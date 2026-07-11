@@ -25,13 +25,13 @@
 
 ## Phase 2: Fastify API Server (`services/api/`)
 
-- [ ] Task: Scaffold Fastify server with health endpoints
-    - [ ] Write Tests: Test `GET /health` returns `200` with `{"status": "ok"}`
-    - [ ] Write Tests: Test `GET /ready` returns `200` when agent service is reachable
-    - [ ] Write Tests: Test `GET /ready` returns `503` when agent service is unreachable
-    - [ ] Implement: Create Fastify app with TypeScript configuration (`src/app.ts`)
-    - [ ] Implement: Register health check routes (`src/routes/health.ts`)
-    - [ ] Implement: Add graceful shutdown handling (SIGTERM, SIGINT)
+- [x] Task: Scaffold Fastify server with health endpoints (173c4a1)
+    - [x] Write Tests: Test `GET /health` returns `200` with `{"status": "ok"}`
+    - [x] Write Tests: Test `GET /ready` returns `200` when agent service is reachable
+    - [x] Write Tests: Test `GET /ready` returns `503` when agent service is unreachable
+    - [x] Implement: Create Fastify app with TypeScript configuration (`src/app.ts`)
+    - [x] Implement: Register health check routes (`src/routes/health.ts`)
+    - [x] Implement: Add graceful shutdown handling (SIGTERM, SIGINT)
 - [ ] Task: Implement API key authentication middleware (AD-10)
     - [ ] Write Tests: Test requests without `X-API-Key` header return `401 Unauthorized`
     - [ ] Write Tests: Test requests with valid API key pass through to handler
