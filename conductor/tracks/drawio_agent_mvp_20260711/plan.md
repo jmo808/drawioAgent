@@ -73,7 +73,7 @@
     - [x] Implement: Provider configuration via environment variables (`LLM_PROVIDER`, `LLM_MODEL`, `LLM_API_KEY`)
     - [x] Implement: Tool schema formatter that converts MCP tool definitions to LiteLLM function calling format
     - [x] Implement: Streaming support with async generator
-- [ ] Task: Implement MCP tool bridge (AD-7)
+- [~] Task: Implement MCP tool bridge (AD-7)
     - [ ] Write Tests: Test `MCPBridge.start()` spawns `node mcp-wrapper.js` child process
     - [ ] Write Tests: Test `MCPBridge.call_tool()` sends JSON-RPC request and returns result
     - [ ] Write Tests: Test `MCPBridge.list_tools()` discovers available tools at startup
