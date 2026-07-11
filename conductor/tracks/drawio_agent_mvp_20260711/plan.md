@@ -63,7 +63,7 @@
 
 ## Phase 3: Python AI Agent Service (`services/agent/`)
 
-- [ ] Task: Create LLM provider abstraction with LiteLLM (AD-4, AD-17)
+- [~] Task: Create LLM provider abstraction with LiteLLM (AD-4, AD-17)
     - [ ] Write Tests: Test `LLMService.generate()` calls `litellm.acompletion()` with correct model and tools
     - [ ] Write Tests: Test `LLMService.stream()` yields chunks from `litellm.acompletion(stream=True)`
     - [ ] Write Tests: Test provider factory selects correct model string from config (openai/gpt-4, gemini/gemini-pro, anthropic/claude-sonnet, ollama/llama3)
