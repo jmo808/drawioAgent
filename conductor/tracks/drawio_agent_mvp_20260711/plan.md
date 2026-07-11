@@ -187,25 +187,25 @@
     - [x] Write Tests: Test container starts and `GET /health` responds 200
     - [x] Implement: Multi-stage Dockerfile — `node:22-slim` build stage (compile TS) → `node:22-slim` runtime (prod deps only)
     - [x] Implement: Non-root user, `HEALTHCHECK` instruction, env var defaults
-- [~] Task: Create Dockerfile for Python AI agent (multi-runtime)
-    - [ ] Write Tests: Test Docker image builds successfully
-    - [ ] Write Tests: Test `python3` and `node` are both available in the container
-    - [ ] Write Tests: Test `GET /health` responds 200
-    - [ ] Write Tests: Test MCP server (`node mcp-wrapper.js`) starts successfully inside container
-    - [ ] Implement: Multi-stage Dockerfile:
-        - Stage 1 (`node:22-slim`): `npm ci` for drawio_plugin dependencies
-        - Stage 2 (`python:3.12-slim`): `pip install` for agent dependencies
-        - Final (`debian:bookworm-slim`): Copy Node.js runtime + MCP files + Python runtime + agent code
-    - [ ] Implement: COPY drawio_plugin source into image at `/app/mcp-server/`
-    - [ ] Implement: Non-root user, `HEALTHCHECK`, env var defaults (`MCP_SERVER_PATH=/app/mcp-server/scripts/mcp-wrapper.js`)
-- [ ] Task: Create docker-compose.yml for local development
-    - [ ] Implement: nginx reverse proxy service with path routing (`/api/*` → api, `/ws/*` → api, `/*` → frontend)
-    - [ ] Implement: Create `nginx.conf` with upstream definitions and proxy_pass rules (including WebSocket upgrade)
-    - [ ] Implement: draw.io frontend service with plugin volume mount for dev iteration
-    - [ ] Implement: Fastify API service with source volume mount and `npm run dev`
-    - [ ] Implement: Python agent service with source volume mount and `uvicorn --reload`
-    - [ ] Implement: Health check dependencies (`depends_on` with `condition: service_healthy`)
-    - [ ] Implement: Environment variable configuration (API key, LLM provider defaults)
+- [x] Task: Create Dockerfile for Python AI agent (multi-runtime)
+    - [x] Write Tests: Test Docker image builds successfully
+    - [x] Write Tests: Test `python3` and `node` are both available in the container
+    - [x] Write Tests: Test `GET /health` responds 200
+    - [x] Write Tests: Test MCP server (`node mcp-wrapper.js`) starts successfully inside container
+    - [x] Implement: Multi-stage Dockerfile:
+        - [x] Stage 1 (`node:22-slim`): `npm ci` for drawio_plugin dependencies
+        - [x] Stage 2 (`python:3.12-slim`): `pip install` for agent dependencies
+        - [x] Final (`debian:bookworm-slim`): Copy Node.js runtime + MCP files + Python runtime + agent code
+    - [x] Implement: COPY drawio_plugin source into image at `/app/mcp-server/`
+    - [x] Implement: Non-root user, `HEALTHCHECK`, env var defaults (`MCP_SERVER_PATH=/app/mcp-server/scripts/mcp-wrapper.js`)
+- [x] Task: Create docker-compose.yml for local development
+    - [x] Implement: nginx reverse proxy service with path routing (`/api/*` → api, `/ws/*` → api, `/*` → frontend)
+    - [x] Implement: Create `nginx.conf` with upstream definitions and proxy_pass rules (including WebSocket upgrade)
+    - [x] Implement: draw.io frontend service with plugin volume mount for dev iteration
+    - [x] Implement: Fastify API service with source volume mount and `npm run dev`
+    - [x] Implement: Python agent service with source volume mount and `uvicorn --reload`
+    - [x] Implement: Health check dependencies (`depends_on` with `condition: service_healthy`)
+    - [x] Implement: Environment variable configuration (API key, LLM provider defaults)
 - [ ] Task: Conductor - User Manual Verification 'Phase 5: Docker Images & Local Development' (Protocol in workflow.md)
 
 ## Phase 6: Helm Chart (`chart/drawio-agent/`) (AD-9, AD-14)
