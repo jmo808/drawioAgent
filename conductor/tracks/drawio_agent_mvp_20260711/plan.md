@@ -216,12 +216,12 @@
     - [x] Implement: Create `values.yaml` with all configurable parameters and documented defaults
     - [x] Implement: Create `templates/_helpers.tpl` with name, fullname, labels, selectorLabels helpers
     - [x] Implement: Create `templates/NOTES.txt` with post-install access instructions
-- [~] Task: Create Kubernetes manifests for draw.io frontend
-    - [ ] Write Tests: Test `helm template` renders valid Deployment YAML with default values
-    - [ ] Write Tests: Test custom image repository and tag overrides render correctly
-    - [ ] Implement: `templates/frontend-deployment.yaml` with liveness/readiness probes (HTTP /)
-    - [ ] Implement: `templates/frontend-service.yaml` (ClusterIP, port 8080)
-- [ ] Task: Create Kubernetes manifests for Fastify API server
+- [x] Task: Create Kubernetes manifests for draw.io frontend
+    - [x] Write Tests: Test `helm template` renders valid Deployment YAML with default values
+    - [x] Write Tests: Test custom image repository and tag overrides render correctly
+    - [x] Implement: `templates/frontend-deployment.yaml` with liveness/readiness probes (HTTP /)
+    - [x] Implement: `templates/frontend-service.yaml` (ClusterIP, port 8080)
+- [~] Task: Create Kubernetes manifests for Fastify API server
     - [ ] Write Tests: Test template renders valid Deployment YAML with API_KEY env from Secret
     - [ ] Write Tests: Test resource limits and replica count are configurable
     - [ ] Implement: `templates/api-deployment.yaml` with liveness (`/health`) and readiness (`/ready`) probes
