@@ -1,0 +1,115 @@
+{
+  "title": "Azure AKS Cluster",
+  "theme": "light",
+  "type": "architecture",
+  "containers": [
+    {
+      "id": "azure-sub",
+      "label": "Azure Resource Group (eastus)",
+      "type": "vpc"
+    },
+    {
+      "id": "pub-subnet-azure",
+      "label": "Public Subnet (Ingress)",
+      "type": "subnet",
+      "parentId": "azure-sub",
+      "tier": "public"
+    },
+    {
+      "id": "aks-subnet-azure",
+      "label": "AKS Private Subnet",
+      "type": "subnet",
+      "parentId": "azure-sub",
+      "tier": "app"
+    },
+    {
+      "id": "db-subnet-azure",
+      "label": "Data Subnet (Database)",
+      "type": "subnet",
+      "parentId": "azure-sub",
+      "tier": "data"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "user-client",
+      "label": "Internet Client",
+      "type": "user",
+      "parentId": "1"
+    },
+    {
+      "id": "traffic-mgr",
+      "label": "Azure Traffic Manager",
+      "type": "route53",
+      "parentId": "1"
+    },
+    {
+      "id": "app-gateway",
+      "label": "Azure Application Gateway",
+      "type": "alb",
+      "parentId": "pub-subnet-azure"
+    },
+    {
+      "id": "aks-node-1",
+      "label": "AKS Worker Node 1",
+      "type": "ecs",
+      "parentId": "aks-subnet-azure"
+    },
+    {
+      "id": "aks-node-2",
+      "label": "AKS Worker Node 2",
+      "type": "ecs",
+      "parentId": "aks-subnet-azure"
+    },
+    {
+      "id": "azure-sql-db",
+      "label": "Azure SQL Database",
+      "type": "rds",
+      "parentId": "db-subnet-azure"
+    },
+    {
+      "id": "blob-storage-1",
+      "label": "Azure Blob Storage Account",
+      "type": "s3",
+      "parentId": "db-subnet-azure"
+    }
+  ],
+  "edges": [
+    {
+      "sourceId": "user-client",
+      "targetId": "traffic-mgr",
+      "label": "DNS Query",
+      "style": "dashed"
+    },
+    {
+      "sourceId": "user-client",
+      "targetId": "app-gateway",
+      "label": "HTTPS Request",
+      "style": "solid"
+    },
+    {
+      "sourceId": "app-gateway",
+      "targetId": "aks-node-1",
+      "label": "Forward Route",
+      "style": "solid"
+    },
+    {
+      "sourceId": "app-gateway",
+      "targetId": "aks-node-2",
+      "label": "Forward Route",
+      "style": "solid"
+    },
+    {
+      "sourceId": "aks-node-1",
+      "targetId": "azure-sql-db",
+      "label": "SQL Query",
+      "style": "solid"
+    },
+    {
+      "sourceId": "aks-node-2",
+      "targetId": "blob-storage-1",
+      "label": "Read/Write Blobs",
+      "style": "solid"
+    }
+  ]
+}

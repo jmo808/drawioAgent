@@ -1,0 +1,108 @@
+{
+  "title": "AWS Microservices",
+  "theme": "light",
+  "type": "architecture",
+  "containers": [
+    {
+      "id": "vpc-1",
+      "label": "Microservices VPC",
+      "type": "vpc"
+    },
+    {
+      "id": "pub-subnet-1",
+      "label": "Public Subnet (Ingress)",
+      "type": "subnet",
+      "parentId": "vpc-1",
+      "tier": "public"
+    },
+    {
+      "id": "priv-subnet-1",
+      "label": "Private Subnet (Application)",
+      "type": "subnet",
+      "parentId": "vpc-1",
+      "tier": "app"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "client-app",
+      "label": "Mobile/Web Client",
+      "type": "user",
+      "parentId": "1"
+    },
+    {
+      "id": "api-gateway",
+      "label": "Amazon API Gateway",
+      "type": "apigateway",
+      "parentId": "pub-subnet-1"
+    },
+    {
+      "id": "auth-lambda",
+      "label": "Cognito Authorizer",
+      "type": "lambda",
+      "parentId": "pub-subnet-1"
+    },
+    {
+      "id": "user-service",
+      "label": "User Microservice (ECS)",
+      "type": "ecs",
+      "parentId": "priv-subnet-1"
+    },
+    {
+      "id": "order-service",
+      "label": "Order Microservice (ECS)",
+      "type": "ecs",
+      "parentId": "priv-subnet-1"
+    },
+    {
+      "id": "users-db",
+      "label": "Users DynamoDB Table",
+      "type": "dynamodb",
+      "parentId": "priv-subnet-1"
+    },
+    {
+      "id": "orders-db",
+      "label": "Orders DynamoDB Table",
+      "type": "dynamodb",
+      "parentId": "priv-subnet-1"
+    }
+  ],
+  "edges": [
+    {
+      "sourceId": "client-app",
+      "targetId": "api-gateway",
+      "label": "REST API Call",
+      "style": "solid"
+    },
+    {
+      "sourceId": "api-gateway",
+      "targetId": "auth-lambda",
+      "label": "Validate Token",
+      "style": "dashed"
+    },
+    {
+      "sourceId": "api-gateway",
+      "targetId": "user-service",
+      "label": "Proxy /users",
+      "style": "solid"
+    },
+    {
+      "sourceId": "api-gateway",
+      "targetId": "order-service",
+      "label": "Proxy /orders",
+      "style": "solid"
+    },
+    {
+      "sourceId": "user-service",
+      "targetId": "users-db",
+      "label": "Read/Write",
+      "style": "solid"
+    },
+    {
+      "sourceId": "order-service",
+      "targetId": "orders-db",
+      "label": "Read/Write",
+      "style": "solid"
+    }
+  ]
+}

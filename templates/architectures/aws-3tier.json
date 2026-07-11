@@ -1,0 +1,80 @@
+{
+  "title": "AWS 3-Tier Web App",
+  "theme": "light",
+  "type": "architecture",
+  "containers": [
+    {
+      "id": "vpc-1",
+      "label": "AWS VPC (10.0.0.0/16)",
+      "type": "vpc"
+    },
+    {
+      "id": "pub-subnet-1",
+      "label": "Public Subnet (Ingress)",
+      "type": "subnet",
+      "parentId": "vpc-1",
+      "tier": "public"
+    },
+    {
+      "id": "app-subnet-1",
+      "label": "Private Subnet (App Tier)",
+      "type": "subnet",
+      "parentId": "vpc-1",
+      "tier": "app"
+    },
+    {
+      "id": "db-subnet-1",
+      "label": "Private Subnet (Data Tier)",
+      "type": "subnet",
+      "parentId": "vpc-1",
+      "tier": "data"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "internet-client",
+      "label": "Internet Client",
+      "type": "user",
+      "parentId": "1"
+    },
+    {
+      "id": "alb-1",
+      "label": "Application Load Balancer",
+      "type": "alb",
+      "parentId": "pub-subnet-1"
+    },
+    {
+      "id": "web-server-1",
+      "label": "Web App (EC2 ASG)",
+      "type": "ec2",
+      "parentId": "app-subnet-1"
+    },
+    {
+      "id": "rds-db-1",
+      "label": "RDS PostgreSQL (Multi-AZ)",
+      "type": "rds",
+      "parentId": "db-subnet-1",
+      "variant": "primary"
+    }
+  ],
+  "edges": [
+    {
+      "sourceId": "internet-client",
+      "targetId": "alb-1",
+      "label": "HTTP/S (80/443)",
+      "style": "solid"
+    },
+    {
+      "sourceId": "alb-1",
+      "targetId": "web-server-1",
+      "label": "Forward Traffic",
+      "style": "solid"
+    },
+    {
+      "sourceId": "web-server-1",
+      "targetId": "rds-db-1",
+      "label": "SQL Queries",
+      "style": "solid"
+    }
+  ]
+}

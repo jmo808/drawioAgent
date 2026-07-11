@@ -1,0 +1,115 @@
+{
+  "title": "GCP GKE Cluster",
+  "theme": "light",
+  "type": "architecture",
+  "containers": [
+    {
+      "id": "gcp-project",
+      "label": "GCP Project (us-central1)",
+      "type": "vpc"
+    },
+    {
+      "id": "pub-subnet-gcp",
+      "label": "Public Subnet (Ingress)",
+      "type": "subnet",
+      "parentId": "gcp-project",
+      "tier": "public"
+    },
+    {
+      "id": "gke-subnet-gcp",
+      "label": "GKE Private Subnet",
+      "type": "subnet",
+      "parentId": "gcp-project",
+      "tier": "app"
+    },
+    {
+      "id": "db-subnet-gcp",
+      "label": "Data Subnet (Database)",
+      "type": "subnet",
+      "parentId": "gcp-project",
+      "tier": "data"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "user-client",
+      "label": "Internet Client",
+      "type": "user",
+      "parentId": "1"
+    },
+    {
+      "id": "cloud-dns",
+      "label": "Google Cloud DNS",
+      "type": "route53",
+      "parentId": "1"
+    },
+    {
+      "id": "gcp-lb",
+      "label": "Google Cloud Load Balancer",
+      "type": "alb",
+      "parentId": "pub-subnet-gcp"
+    },
+    {
+      "id": "k8s-node-1",
+      "label": "K8s Worker Node 1",
+      "type": "ecs",
+      "parentId": "gke-subnet-gcp"
+    },
+    {
+      "id": "k8s-node-2",
+      "label": "K8s Worker Node 2",
+      "type": "ecs",
+      "parentId": "gke-subnet-gcp"
+    },
+    {
+      "id": "cloud-sql-db",
+      "label": "Cloud SQL PostgreSQL",
+      "type": "rds",
+      "parentId": "db-subnet-gcp"
+    },
+    {
+      "id": "gcs-bucket-1",
+      "label": "Cloud Storage Bucket",
+      "type": "s3",
+      "parentId": "db-subnet-gcp"
+    }
+  ],
+  "edges": [
+    {
+      "sourceId": "user-client",
+      "targetId": "cloud-dns",
+      "label": "DNS Query",
+      "style": "dashed"
+    },
+    {
+      "sourceId": "user-client",
+      "targetId": "gcp-lb",
+      "label": "HTTPS Request",
+      "style": "solid"
+    },
+    {
+      "sourceId": "gcp-lb",
+      "targetId": "k8s-node-1",
+      "label": "Forward Route",
+      "style": "solid"
+    },
+    {
+      "sourceId": "gcp-lb",
+      "targetId": "k8s-node-2",
+      "label": "Forward Route",
+      "style": "solid"
+    },
+    {
+      "sourceId": "k8s-node-1",
+      "targetId": "cloud-sql-db",
+      "label": "SQL Query",
+      "style": "solid"
+    },
+    {
+      "sourceId": "k8s-node-2",
+      "targetId": "gcs-bucket-1",
+      "label": "Object Storage",
+      "style": "solid"
+    }
+  ]
+}
