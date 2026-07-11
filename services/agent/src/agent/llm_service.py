@@ -72,3 +72,21 @@ class LLMService:
             choice = chunk.choices[0]
             if hasattr(choice, "delta") and hasattr(choice.delta, "content") and choice.delta.content is not None:
                 yield choice.delta.content
+
+    async def generate_chat(self, messages: list[dict[str, Any]], tools: list[dict[str, Any]] | None = None) -> Any:
+        """
+        Sends conversation messages to the LLM and returns the response message object.
+        """
+        kwargs: dict[str, Any] = {
+            "model": self.model_string,
+            "messages": messages
+        }
+        
+        if self.config.llm_api_key:
+            kwargs["api_key"] = self.config.llm_api_key
+            
+        if tools:
+            kwargs["tools"] = [format_mcp_tool(t) for t in tools]
+
+        response = await litellm.acompletion(**kwargs)
+        return response.choices[0].message
