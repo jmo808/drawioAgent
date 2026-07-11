@@ -1,5 +1,5 @@
 import { useReducer } from 'react'
-import { MessageType } from '../components/MessageList'
+import type { MessageType } from '../components/MessageList'
 
 export interface ChatState {
   messages: MessageType[];
@@ -102,7 +102,7 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
   }
 }
 
-export const useChatStore = (sessionId: string) => {
+export const useChatStore = (_sessionId: string) => {
   const [state, dispatch] = useReducer(chatReducer, {
     messages: [],
     isLoading: false,

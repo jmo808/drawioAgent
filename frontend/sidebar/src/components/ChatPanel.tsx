@@ -1,5 +1,6 @@
-import React, { useState } from 'react'
-import { MessageList, MessageType } from './MessageList'
+import { useState } from 'react'
+import { MessageList } from './MessageList'
+import type { MessageType } from './MessageList'
 import { MessageInput } from './MessageInput'
 import { Sparkles, MessageSquare, X, Wifi, WifiOff } from 'lucide-react'
 
@@ -41,9 +42,13 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         </div>
         <div className="drawio-agent-header-actions">
           {connectionStatus === 'connected' ? (
-            <Wifi className="drawio-agent-status-icon connected" size={14} title="Connected" />
+            <span title="Connected">
+              <Wifi className="drawio-agent-status-icon connected" size={14} />
+            </span>
           ) : (
-            <WifiOff className="drawio-agent-status-icon disconnected" size={14} title="Disconnected" />
+            <span title="Disconnected">
+              <WifiOff className="drawio-agent-status-icon disconnected" size={14} />
+            </span>
           )}
           <button className="drawio-agent-close-btn" onClick={() => setIsOpen(false)} id="drawio-agent-close-btn">
             <X size={16} />
