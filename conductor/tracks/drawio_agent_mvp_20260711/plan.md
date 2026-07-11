@@ -1,0 +1,255 @@
+# Implementation Plan: Build DrawIO Agent MVP
+
+## Phase 1: Project Scaffolding & Shared Types
+
+- [ ] Task: Initialize monorepo structure with workspace configuration
+    - [ ] Create root `package.json` with npm workspaces (`services/api`, `frontend/sidebar`)
+    - [ ] Create root `tsconfig.json` with path aliases for shared types
+    - [ ] Create `.gitignore` with Node.js, Python, and Docker ignores
+    - [ ] Create `README.md` with project overview and quickstart
+- [ ] Task: Define shared TypeScript types (`packages/shared/`)
+    - [ ] Write Tests: Create unit tests for type guards and validation functions
+    - [ ] Implement: Define interfaces — `ChatMessage`, `DiagramState`, `LLMProviderConfig`, `MCPToolCall`, `MCPToolResult`, `WebSocketEvent`
+    - [ ] Implement: Create type guard functions and schema validators (using Zod or JSON Schema)
+- [ ] Task: Set up Python project structure (`services/agent/`)
+    - [ ] Create `pyproject.toml` with dependencies (litellm, fastapi, uvicorn, pydantic)
+    - [ ] Create `requirements.txt` as a lockfile
+    - [ ] Create virtual environment setup script
+    - [ ] Create `src/agent/` package with `__init__.py`
+    - [ ] Configure pytest in `pyproject.toml`
+- [ ] Task: Conductor - User Manual Verification 'Phase 1: Project Scaffolding & Shared Types' (Protocol in workflow.md)
+
+## Phase 2: Fastify API Server (`services/api/`)
+
+- [ ] Task: Scaffold Fastify server with health endpoints
+    - [ ] Write Tests: Test `/health` returns `200 OK` with `{"status": "ok"}`
+    - [ ] Write Tests: Test `/ready` returns `200 OK` when dependencies are available
+    - [ ] Implement: Create Fastify app with TypeScript configuration
+    - [ ] Implement: Register health check routes
+    - [ ] Implement: Add graceful shutdown handling
+- [ ] Task: Implement API key authentication middleware
+    - [ ] Write Tests: Test requests without API key return `401 Unauthorized`
+    - [ ] Write Tests: Test requests with valid API key pass through
+    - [ ] Write Tests: Test requests with invalid API key return `403 Forbidden`
+    - [ ] Implement: Create auth plugin that reads API key from environment variable
+    - [ ] Implement: Register middleware on protected routes
+- [ ] Task: Implement WebSocket chat endpoint (`/ws/chat`)
+    - [ ] Write Tests: Test WebSocket connection establishment with valid auth
+    - [ ] Write Tests: Test WebSocket connection rejection without auth
+    - [ ] Write Tests: Test message send/receive round-trip
+    - [ ] Write Tests: Test connection graceful close
+    - [ ] Implement: Register `@fastify/websocket` plugin
+    - [ ] Implement: Create WebSocket route handler at `/ws/chat`
+    - [ ] Implement: Message serialization/deserialization using shared types
+- [ ] Task: Implement agent proxy service
+    - [ ] Write Tests: Test proxy forwards chat messages to agent HTTP endpoint
+    - [ ] Write Tests: Test proxy streams agent responses back via WebSocket
+    - [ ] Write Tests: Test proxy handles agent service unavailability gracefully
+    - [ ] Implement: Create HTTP client for Python agent service
+    - [ ] Implement: Wire WebSocket handler to agent proxy
+    - [ ] Implement: Add request/response logging
+- [ ] Task: Conductor - User Manual Verification 'Phase 2: Fastify API Server' (Protocol in workflow.md)
+
+## Phase 3: Python AI Agent Service (`services/agent/`)
+
+- [ ] Task: Create LLM provider abstraction layer
+    - [ ] Write Tests: Test provider interface contract (generate, stream, list_models)
+    - [ ] Write Tests: Test provider factory creates correct provider from config
+    - [ ] Write Tests: Test unified error handling across providers
+    - [ ] Implement: Define `LLMProvider` abstract base class
+    - [ ] Implement: Create OpenAI adapter using LiteLLM
+    - [ ] Implement: Create Gemini adapter using LiteLLM
+    - [ ] Implement: Create Claude adapter using LiteLLM
+    - [ ] Implement: Create Ollama adapter using LiteLLM
+    - [ ] Implement: Create provider factory function
+- [ ] Task: Implement MCP tool bridge
+    - [ ] Write Tests: Test MCP server process spawning and lifecycle management
+    - [ ] Write Tests: Test JSON-RPC message serialization over stdio
+    - [ ] Write Tests: Test tool invocation round-trip (call tool → receive result)
+    - [ ] Write Tests: Test MCP server crash recovery (automatic restart)
+    - [ ] Implement: Create `MCPBridge` class that spawns `mcp-wrapper.js` as child process
+    - [ ] Implement: Implement JSON-RPC request/response handling over stdin/stdout
+    - [ ] Implement: Implement tool discovery (list available tools at startup)
+    - [ ] Implement: Implement tool invocation with timeout and error handling
+    - [ ] Implement: Implement process lifecycle management (start, restart, shutdown)
+- [ ] Task: Implement conversation manager
+    - [ ] Write Tests: Test conversation creation and message appending
+    - [ ] Write Tests: Test conversation context window management (truncation)
+    - [ ] Write Tests: Test system prompt injection with SKILL.md content
+    - [ ] Implement: Create `ConversationManager` class
+    - [ ] Implement: Session-based conversation storage (in-memory dict)
+    - [ ] Implement: System prompt builder that includes drawio_plugin SKILL.md
+    - [ ] Implement: Context window management with token counting
+- [ ] Task: Implement agent orchestration loop
+    - [ ] Write Tests: Test end-to-end flow: user message → LLM → tool calls → diagram XML
+    - [ ] Write Tests: Test streaming response generation
+    - [ ] Write Tests: Test multi-turn conversation (modify existing diagram)
+    - [ ] Implement: Create `AgentOrchestrator` class
+    - [ ] Implement: Main loop: receive prompt → call LLM → execute tool calls → return result
+    - [ ] Implement: Streaming support for progressive diagram building
+    - [ ] Implement: Diagram state tracking (current XML maintained between turns)
+- [ ] Task: Create FastAPI HTTP server for agent service
+    - [ ] Write Tests: Test `/health` endpoint returns 200
+    - [ ] Write Tests: Test `/api/chat` endpoint processes messages and returns responses
+    - [ ] Write Tests: Test streaming response via Server-Sent Events
+    - [ ] Implement: Create FastAPI app with health and chat routes
+    - [ ] Implement: Wire routes to `AgentOrchestrator`
+    - [ ] Implement: Add CORS and error handling middleware
+- [ ] Task: Conductor - User Manual Verification 'Phase 3: Python AI Agent Service' (Protocol in workflow.md)
+
+## Phase 4: React Chat Sidebar Plugin (`frontend/sidebar/`)
+
+- [ ] Task: Scaffold Vite + React project for draw.io plugin
+    - [ ] Configure Vite to build a single IIFE bundle (`drawio-agent-plugin.js`)
+    - [ ] Configure build output to be a self-contained plugin with no external dependencies
+    - [ ] Create draw.io plugin entry point that registers with the draw.io Plugin API
+    - [ ] Set up Vitest for component testing
+- [ ] Task: Build core chat UI components
+    - [ ] Write Tests: Test ChatPanel renders with empty message list
+    - [ ] Write Tests: Test MessageList renders user and AI messages correctly
+    - [ ] Write Tests: Test MessageInput handles text input and send button click
+    - [ ] Write Tests: Test MessageInput clears input after send
+    - [ ] Implement: Create `ChatPanel` container component
+    - [ ] Implement: Create `MessageList` component with auto-scroll
+    - [ ] Implement: Create `MessageInput` component with send button
+    - [ ] Implement: Create `Message` component with user/AI styling variants
+    - [ ] Implement: Style components with adaptive theming (light/dark)
+- [ ] Task: Implement WebSocket client and state management
+    - [ ] Write Tests: Test WebSocket connection establishment
+    - [ ] Write Tests: Test message send queues when disconnected
+    - [ ] Write Tests: Test incoming message updates state correctly
+    - [ ] Write Tests: Test reconnection with exponential backoff
+    - [ ] Implement: Create `useWebSocket` React hook
+    - [ ] Implement: Create `useChatStore` state management hook (useReducer or Zustand)
+    - [ ] Implement: Wire WebSocket events to chat state
+- [ ] Task: Implement draw.io integration layer
+    - [ ] Write Tests: Test plugin detects draw.io editor instance
+    - [ ] Write Tests: Test XML injection updates the mxGraph model
+    - [ ] Write Tests: Test theme detection reads draw.io's active theme
+    - [ ] Implement: Create `drawioBridge` module that interfaces with draw.io's `EditorUi` API
+    - [ ] Implement: XML injection function that updates the canvas from AI-generated XML
+    - [ ] Implement: Theme observer that reads and reacts to draw.io theme changes
+    - [ ] Implement: Diagram state reader (current nodes/edges count for status indicator)
+- [ ] Task: Build provider selector and template library UI
+    - [ ] Write Tests: Test ProviderSelector renders dropdown with configured providers
+    - [ ] Write Tests: Test ProviderSelector emits selection change event
+    - [ ] Write Tests: Test TemplateLibrary renders template cards
+    - [ ] Write Tests: Test selecting a template sends the correct prompt
+    - [ ] Implement: Create `ProviderSelector` dropdown component
+    - [ ] Implement: Create `TemplateLibrary` panel with categorized template cards
+    - [ ] Implement: Wire template selection to chat input
+- [ ] Task: Conductor - User Manual Verification 'Phase 4: React Chat Sidebar Plugin' (Protocol in workflow.md)
+
+## Phase 5: Docker Images & Multi-Stage Builds
+
+- [ ] Task: Create Dockerfile for Fastify API server
+    - [ ] Write Tests: Test Docker image builds successfully
+    - [ ] Write Tests: Test container starts and `/health` endpoint responds
+    - [ ] Implement: Multi-stage Dockerfile — `node:22-slim` build stage, `node:22-slim` runtime
+    - [ ] Implement: Copy compiled TypeScript output and production dependencies only
+    - [ ] Implement: Set non-root user and health check instruction
+- [ ] Task: Create Dockerfile for Python AI agent
+    - [ ] Write Tests: Test Docker image builds successfully
+    - [ ] Write Tests: Test container starts and health endpoint responds
+    - [ ] Write Tests: Test MCP server (drawio_plugin) is accessible inside container
+    - [ ] Implement: Multi-stage Dockerfile — `python:3.12-slim` build + `node:22-slim` runtime
+    - [ ] Implement: Install Python dependencies, bundle drawio_plugin, install Node.js for MCP runtime
+    - [ ] Implement: Set non-root user, health check, and environment variable defaults
+- [ ] Task: Create Dockerfile for draw.io frontend with plugin injection
+    - [ ] Write Tests: Test Docker image builds successfully
+    - [ ] Write Tests: Test draw.io serves correctly on port 8080
+    - [ ] Write Tests: Test plugin JS bundle is served at expected path
+    - [ ] Implement: Base on `jgraph/drawio`, copy built `drawio-agent-plugin.js` into static assets
+    - [ ] Implement: Configure draw.io to auto-load the plugin on startup
+    - [ ] Implement: Configure nginx/tomcat to proxy `/api` and `/ws` to the API server
+- [ ] Task: Create docker-compose.yml for local development
+    - [ ] Implement: Define services for draw.io frontend, API server, agent, and optional Redis
+    - [ ] Implement: Configure networking, volume mounts, and environment variables
+    - [ ] Implement: Add health check dependencies between services
+- [ ] Task: Conductor - User Manual Verification 'Phase 5: Docker Images & Multi-Stage Builds' (Protocol in workflow.md)
+
+## Phase 6: Helm Chart (`chart/drawio-agent/`)
+
+- [ ] Task: Create Helm chart scaffolding
+    - [ ] Write Tests: Run `helm lint` and verify zero errors/warnings
+    - [ ] Implement: Create `Chart.yaml` with name, version, description, and appVersion
+    - [ ] Implement: Create `values.yaml` with all configurable parameters and defaults
+    - [ ] Implement: Create `templates/_helpers.tpl` with name, label, and selector helpers
+    - [ ] Implement: Create `templates/NOTES.txt` with post-install instructions
+- [ ] Task: Create Kubernetes manifests for draw.io frontend
+    - [ ] Write Tests: Test template renders valid YAML with default values
+    - [ ] Write Tests: Test template renders correctly with custom values overrides
+    - [ ] Implement: Create `templates/frontend-deployment.yaml`
+    - [ ] Implement: Create `templates/frontend-service.yaml`
+    - [ ] Implement: Add liveness and readiness probes
+- [ ] Task: Create Kubernetes manifests for Fastify API server
+    - [ ] Write Tests: Test template renders valid YAML with default values
+    - [ ] Write Tests: Test template renders correctly with custom values overrides
+    - [ ] Implement: Create `templates/api-deployment.yaml`
+    - [ ] Implement: Create `templates/api-service.yaml`
+    - [ ] Implement: Mount API key secret as environment variable
+    - [ ] Implement: Add liveness (`/health`) and readiness (`/ready`) probes
+- [ ] Task: Create Kubernetes manifests for Python AI agent
+    - [ ] Write Tests: Test template renders valid YAML with default values
+    - [ ] Write Tests: Test template renders correctly with custom values overrides
+    - [ ] Implement: Create `templates/agent-deployment.yaml`
+    - [ ] Implement: Create `templates/agent-service.yaml`
+    - [ ] Implement: Mount LLM provider secrets as environment variables
+    - [ ] Implement: Add liveness and readiness probes
+- [ ] Task: Create Ingress and Secret manifests
+    - [ ] Write Tests: Test ingress template renders with TLS configuration
+    - [ ] Write Tests: Test secret template correctly encodes values
+    - [ ] Implement: Create `templates/ingress.yaml` with configurable host and TLS
+    - [ ] Implement: Create `templates/secrets.yaml` for API keys and LLM provider credentials
+    - [ ] Implement: Create `templates/configmap.yaml` for non-secret configuration
+- [ ] Task: Add optional Redis subchart dependency
+    - [ ] Write Tests: Test chart deploys without Redis when `redis.enabled=false`
+    - [ ] Write Tests: Test chart deploys with Redis when `redis.enabled=true`
+    - [ ] Implement: Add Bitnami Redis as optional dependency in `Chart.yaml`
+    - [ ] Implement: Conditionally render Redis-related environment variables
+- [ ] Task: Conductor - User Manual Verification 'Phase 6: Helm Chart' (Protocol in workflow.md)
+
+## Phase 7: Template Library & Integration Testing
+
+- [ ] Task: Create architecture template JSON specs
+    - [ ] Write Tests: Test each template JSON is valid against the compile_json_spec schema
+    - [ ] Implement: AWS 3-tier web application template
+    - [ ] Implement: AWS microservices template
+    - [ ] Implement: GCP GKE cluster template
+    - [ ] Implement: Azure AKS template
+    - [ ] Implement: Store templates in `templates/architectures/` directory
+- [ ] Task: End-to-end integration tests
+    - [ ] Write Tests: Test full flow — user message → API → agent → MCP → diagram XML → frontend
+    - [ ] Write Tests: Test multi-turn conversation (create diagram, then modify it)
+    - [ ] Write Tests: Test template selection generates correct diagram
+    - [ ] Write Tests: Test provider switching mid-session
+    - [ ] Implement: Set up Playwright for browser E2E testing
+    - [ ] Implement: Create test fixtures with mock LLM responses
+    - [ ] Implement: Create integration test docker-compose
+- [ ] Task: Helm chart deployment test
+    - [ ] Write Tests: Create `templates/tests/test-connection.yaml` pod
+    - [ ] Write Tests: Test `helm install --dry-run` succeeds
+    - [ ] Write Tests: Verify `helm lint` passes with various value combinations
+    - [ ] Implement: Document local testing with `kind` or `minikube`
+- [ ] Task: Conductor - User Manual Verification 'Phase 7: Template Library & Integration Testing' (Protocol in workflow.md)
+
+## Phase 8: Documentation & Polish
+
+- [ ] Task: Write comprehensive README.md
+    - [ ] Project overview and architecture diagram
+    - [ ] Quickstart guide (local development with docker-compose)
+    - [ ] Helm deployment guide (with `values.yaml` reference)
+    - [ ] Configuration reference for all LLM providers
+    - [ ] Contributing guide
+- [ ] Task: Write Helm chart documentation
+    - [ ] Create `chart/drawio-agent/README.md` with parameter table
+    - [ ] Document all `values.yaml` parameters with descriptions and defaults
+    - [ ] Include example deployment commands for common scenarios
+    - [ ] Document air-gapped deployment with Ollama
+- [ ] Task: Final cleanup and code quality
+    - [ ] Run full test suite across all services
+    - [ ] Verify code coverage meets >80% threshold for all modules
+    - [ ] Run linters (ESLint for TypeScript, Ruff for Python)
+    - [ ] Ensure all public APIs have docstrings/JSDoc
+    - [ ] Final `helm lint` verification
+- [ ] Task: Conductor - User Manual Verification 'Phase 8: Documentation & Polish' (Protocol in workflow.md)
