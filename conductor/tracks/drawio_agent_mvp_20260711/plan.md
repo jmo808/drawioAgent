@@ -86,7 +86,7 @@
     - [x] Implement: Tool discovery via `tools/list` method at startup
     - [x] Implement: Process lifecycle management (start, health check, restart, shutdown)
     - [x] Implement: Configurable path to `mcp-wrapper.js` via `MCP_SERVER_PATH` env var
-- [ ] Task: Implement conversation manager (AD-12)
+- [~] Task: Implement conversation manager (AD-12)
     - [ ] Write Tests: Test conversation creation with unique session ID
     - [ ] Write Tests: Test message appending maintains order
     - [ ] Write Tests: Test system prompt includes SKILL.md content and tool schemas
