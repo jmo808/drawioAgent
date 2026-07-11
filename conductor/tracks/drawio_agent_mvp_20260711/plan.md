@@ -1,6 +1,6 @@
 # Implementation Plan: Build DrawIO Agent MVP
 
-## Phase 1: Project Scaffolding & Shared Types
+## Phase 1: Project Scaffolding & Shared Types [checkpoint: c3bf2d1]
 
 - [x] Task: Initialize monorepo structure with workspace configuration (d6651cf)
     - [x] Create root `package.json` with npm workspaces (`services/api`, `frontend/sidebar`, `packages/shared`)
@@ -21,7 +21,7 @@
     - [x] Create virtual environment setup script (`scripts/setup-venv.sh`)
     - [x] Create `src/agent/` package with `__init__.py`, `config.py`
     - [x] Configure pytest with asyncio support in `pyproject.toml`
-- [~] Task: Conductor - User Manual Verification 'Phase 1: Project Scaffolding & Shared Types' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Project Scaffolding & Shared Types' (Protocol in workflow.md) (c3bf2d1)
 
 ## Phase 2: Fastify API Server (`services/api/`)
 
