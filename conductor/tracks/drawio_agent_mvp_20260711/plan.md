@@ -254,7 +254,7 @@
 
 ## Phase 7: Template Library & Integration Testing (AD-15)
 
-- [ ] Task: Create architecture template JSON specs
+- [~] Task: Create architecture template JSON specs
     - [ ] Write Tests: Validate each template JSON against the `compile_json_spec` schema
     - [ ] Implement: AWS 3-tier web application template (`templates/architectures/aws-3tier.json`)
     - [ ] Implement: AWS microservices template (`templates/architectures/aws-microservices.json`)
