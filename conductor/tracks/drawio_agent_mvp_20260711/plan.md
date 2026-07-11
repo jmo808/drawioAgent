@@ -150,7 +150,7 @@
     - [x] Implement: Create `useChatStore` state management hook using `useReducer`
     - [x] Implement: Wire WebSocket events to chat state (message received → dispatch action)
     - [x] Implement: API key inclusion in WebSocket handshake headers
-- [ ] Task: Implement draw.io integration layer — drawioBridge (AD-18, AD-19)
+- [~] Task: Implement draw.io integration layer — drawioBridge (AD-18, AD-19)
     - [ ] Write Tests: Test `drawioBridge.getGraphXml()` serializes current canvas to XML string
     - [ ] Write Tests: Test `drawioBridge.setGraphXml()` replaces canvas content with new XML
     - [ ] Write Tests: Test `drawioBridge.getTheme()` returns 'dark' or 'light' based on draw.io state
