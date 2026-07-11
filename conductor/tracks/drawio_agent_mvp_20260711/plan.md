@@ -23,7 +23,7 @@
     - [x] Configure pytest with asyncio support in `pyproject.toml`
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Project Scaffolding & Shared Types' (Protocol in workflow.md) (c3bf2d1)
 
-## Phase 2: Fastify API Server (`services/api/`)
+## Phase 2: Fastify API Server (`services/api/`) [checkpoint: 743aaa8]
 
 - [x] Task: Scaffold Fastify server with health endpoints (173c4a1)
     - [x] Write Tests: Test `GET /health` returns `200` with `{"status": "ok"}`
@@ -59,7 +59,7 @@
     - [x] Implement: SSE response parser that reads `text/event-stream` and emits typed events
     - [x] Implement: Wire WebSocket handler to agent proxy service
     - [x] Implement: Add structured request/response logging
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Fastify API Server' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Fastify API Server' (Protocol in workflow.md) (743aaa8)
 
 ## Phase 3: Python AI Agent Service (`services/agent/`)
 
