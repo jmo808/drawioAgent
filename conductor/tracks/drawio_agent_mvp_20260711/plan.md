@@ -32,13 +32,13 @@
     - [x] Implement: Create Fastify app with TypeScript configuration (`src/app.ts`)
     - [x] Implement: Register health check routes (`src/routes/health.ts`)
     - [x] Implement: Add graceful shutdown handling (SIGTERM, SIGINT)
-- [ ] Task: Implement API key authentication middleware (AD-10)
-    - [ ] Write Tests: Test requests without `X-API-Key` header return `401 Unauthorized`
-    - [ ] Write Tests: Test requests with valid API key pass through to handler
-    - [ ] Write Tests: Test requests with invalid API key return `403 Forbidden`
-    - [ ] Write Tests: Test WebSocket upgrade requests validate API key in query param or header
-    - [ ] Implement: Create auth plugin (`src/plugins/auth.ts`) reading key from `API_KEY` env var
-    - [ ] Implement: Register middleware on all routes except `/health`
+- [x] Task: Implement API key authentication middleware (AD-10) (92fc2b6)
+    - [x] Write Tests: Test requests without `X-API-Key` header return `401 Unauthorized`
+    - [x] Write Tests: Test requests with valid API key pass through to handler
+    - [x] Write Tests: Test requests with invalid API key return `403 Forbidden`
+    - [x] Write Tests: Test WebSocket upgrade requests validate API key in query param or header
+    - [x] Implement: Create auth plugin (`src/plugins/auth.ts`) reading key from `API_KEY` env var
+    - [x] Implement: Register middleware on all routes except `/health`
 - [ ] Task: Implement WebSocket chat endpoint (`/ws/chat`) (AD-8)
     - [ ] Write Tests: Test WebSocket connection establishment with valid auth
     - [ ] Write Tests: Test WebSocket rejects connection without valid auth
