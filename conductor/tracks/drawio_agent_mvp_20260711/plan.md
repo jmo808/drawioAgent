@@ -171,7 +171,7 @@
     - [x] Implement: Wire template selection to chat input (send template prompt)
 - [x] Task: Conductor - User Manual Verification 'Phase 4: React Chat Sidebar Plugin' (Protocol in workflow.md) (51a8500)
 
-## Phase 5: Docker Images & Local Development (AD-1, AD-14, AD-20)
+## Phase 5: Docker Images & Local Development (AD-1, AD-14, AD-20) [checkpoint: 9a643b0]
 
 - [x] Task: Create Dockerfile for draw.io frontend with plugin injection
     - [x] Write Tests: Test Docker image builds successfully
@@ -206,7 +206,7 @@
     - [x] Implement: Python agent service with source volume mount and `uvicorn --reload`
     - [x] Implement: Health check dependencies (`depends_on` with `condition: service_healthy`)
     - [x] Implement: Environment variable configuration (API key, LLM provider defaults)
-- [ ] Task: Conductor - User Manual Verification 'Phase 5: Docker Images & Local Development' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 5: Docker Images & Local Development' (Protocol in workflow.md) (9a643b0)
 
 ## Phase 6: Helm Chart (`chart/drawio-agent/`) (AD-9, AD-14)
 
