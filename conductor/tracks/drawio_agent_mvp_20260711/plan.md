@@ -243,14 +243,14 @@
     - [x] Implement: `templates/gateway.yaml` — optional Gateway resource (configurable via values)
     - [x] Implement: `templates/secrets.yaml` — API key + LLM provider credentials
     - [x] Implement: `templates/configmap.yaml` — non-secret configuration (agent URL, feature flags)
-- [~] Task: Add optional Valkey inline template stub
-    - [ ] Write Tests: Test chart deploys successfully when `collaboration.enabled=false` (default)
-    - [ ] Write Tests: Test chart renders Valkey Deployment/Service when `collaboration.enabled=true`
-    - [ ] Implement: Create `templates/valkey-deployment.yaml` stub (single-replica `valkey/valkey` image, gated by `collaboration.enabled`)
-    - [ ] Implement: Create `templates/valkey-service.yaml` stub (ClusterIP, port 6379)
-    - [ ] Implement: Add `collaboration.enabled: false` default in `values.yaml`
-    - [ ] Implement: Add comment in values.yaml noting Valkey is for future collaboration features (Track 2)
-- [ ] Task: Conductor - User Manual Verification 'Phase 6: Helm Chart' (Protocol in workflow.md)
+- [x] Task: Add optional Valkey inline template stub
+    - [x] Write Tests: Test chart deploys successfully when `collaboration.enabled=false` (default)
+    - [x] Write Tests: Test chart renders Valkey Deployment/Service when `collaboration.enabled=true`
+    - [x] Implement: Create `templates/valkey-deployment.yaml` stub (single-replica `valkey/valkey` image, gated by `collaboration.enabled`)
+    - [x] Implement: Create `templates/valkey-service.yaml` stub (ClusterIP, port 6379)
+    - [x] Implement: Add `collaboration.enabled: false` default in `values.yaml`
+    - [x] Implement: Add comment in values.yaml noting Valkey is for future collaboration features (Track 2)
+- [~] Task: Conductor - User Manual Verification 'Phase 6: Helm Chart' (Protocol in workflow.md)
 
 ## Phase 7: Template Library & Integration Testing (AD-15)
 
