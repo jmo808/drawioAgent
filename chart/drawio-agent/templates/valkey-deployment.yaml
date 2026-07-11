@@ -1,0 +1,36 @@
+{{- if .Values.collaboration.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "drawio-agent.fullname" . }}-valkey
+  labels:
+    {{- include "drawio-agent.labels" . | nindent 4 }}
+    app.kubernetes.io/component: valkey
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "drawio-agent.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: valkey
+  template:
+    metadata:
+      labels:
+        {{- include "drawio-agent.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: valkey
+    spec:
+      containers:
+        - name: valkey
+          image: docker.io/valkey/valkey:8
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: valkey
+              containerPort: 6379
+              protocol: TCP
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi
+{{- end }}
