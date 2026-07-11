@@ -169,7 +169,7 @@
     - [x] Implement: Create `ProviderSelector` dropdown component
     - [x] Implement: Create `TemplateLibrary` panel with collapsible categories and template cards
     - [x] Implement: Wire template selection to chat input (send template prompt)
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: React Chat Sidebar Plugin' (Protocol in workflow.md)
+- [~] Task: Conductor - User Manual Verification 'Phase 4: React Chat Sidebar Plugin' (Protocol in workflow.md)
 
 ## Phase 5: Docker Images & Local Development (AD-1, AD-14, AD-20)
 
