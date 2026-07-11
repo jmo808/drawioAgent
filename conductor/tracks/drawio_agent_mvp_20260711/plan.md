@@ -15,12 +15,12 @@
     - [x] Implement: Define `ChatMessage`, `ToolProgress`, `DiagramUpdate`, `ErrorPayload` payload types
     - [x] Implement: Define `LLMProviderConfig`, `MCPToolCall`, `MCPToolResult` interfaces
     - [x] Implement: Create Zod schemas and type guard functions for runtime validation
-- [ ] Task: Set up Python project structure (`services/agent/`)
-    - [ ] Create `pyproject.toml` with dependencies (litellm, fastapi, uvicorn, pydantic, httpx)
-    - [ ] Create `requirements.txt` as pinned lockfile
-    - [ ] Create virtual environment setup script (`scripts/setup-venv.sh`)
-    - [ ] Create `src/agent/` package with `__init__.py`, `config.py`
-    - [ ] Configure pytest with asyncio support in `pyproject.toml`
+- [x] Task: Set up Python project structure (`services/agent/`) (02f811c)
+    - [x] Create `pyproject.toml` with dependencies (litellm, fastapi, uvicorn, pydantic, httpx)
+    - [x] Create `requirements.txt` as pinned lockfile
+    - [x] Create virtual environment setup script (`scripts/setup-venv.sh`)
+    - [x] Create `src/agent/` package with `__init__.py`, `config.py`
+    - [x] Configure pytest with asyncio support in `pyproject.toml`
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Project Scaffolding & Shared Types' (Protocol in workflow.md)
 
 ## Phase 2: Fastify API Server (`services/api/`)
