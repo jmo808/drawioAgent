@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "drawio-agent.fullname" . }}-frontend
+  labels:
+    {{- include "drawio-agent.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "drawio-agent.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
