@@ -1,0 +1,64 @@
+import { FastifyInstance } from 'fastify';
+import { validateWebSocketMessage } from '@drawio-agent/shared';
+import crypto from 'crypto';
+
+/**
+ * Registers the WebSocket chat route.
+ */
+export async function chatRoutes(app: FastifyInstance) {
+  app.get('/ws/chat', { websocket: true }, (socket, req) => {
+    const sessionId = crypto.randomUUID();
+    req.log.info({ sessionId }, 'New WebSocket connection established');
+
+    socket.on('message', (message) => {
+      try {
+        const dataStr = message.toString();
+        let parsed: any;
+        
+        try {
+          parsed = JSON.parse(dataStr);
+        } catch (err: any) {
+          req.log.warn({ error: err }, 'Malformed WebSocket message received (not JSON)');
+          socket.send(JSON.stringify({
+            type: 'error',
+            payload: { code: 'BAD_REQUEST', message: 'Message is not valid JSON' },
+            timestamp: new Date().toISOString()
+          }));
+          return;
+        }
+
+        if (!validateWebSocketMessage(parsed)) {
+          req.log.warn({ parsed }, 'WebSocket message fails validation schema');
+          socket.send(JSON.stringify({
+            type: 'error',
+            payload: { code: 'BAD_REQUEST', message: 'Message does not match WebSocketMessage schema' },
+            timestamp: new Date().toISOString()
+          }));
+          return;
+        }
+
+        // Echo back/placeholder for proxying chat_message to agent
+        if (parsed.type === 'chat_message') {
+          req.log.info({ parsed }, 'Received chat_message. Sending placeholder response.');
+          socket.send(JSON.stringify({
+            type: 'tool_progress',
+            payload: { toolName: 'placeholder', step: 1, totalSteps: 1, message: 'Processing your request...' },
+            id: parsed.id,
+            timestamp: new Date().toISOString()
+          }));
+        }
+      } catch (handlerErr: any) {
+        req.log.error({ error: handlerErr }, 'Error in WebSocket message handler');
+        socket.send(JSON.stringify({
+          type: 'error',
+          payload: { code: 'INTERNAL_SERVER_ERROR', message: handlerErr.message },
+          timestamp: new Date().toISOString()
+        }));
+      }
+    });
+
+    socket.on('close', () => {
+      req.log.info({ sessionId }, 'WebSocket connection closed');
+    });
+  });
+}
