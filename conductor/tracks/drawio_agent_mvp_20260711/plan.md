@@ -140,7 +140,7 @@
     - [x] Implement: Create `Message` component with user/AI styling variants
     - [x] Implement: Create `MessageInput` component with send button and loading state
     - [x] Implement: Adaptive theme CSS — detect draw.io dark/light mode and match styling
-- [ ] Task: Implement WebSocket client and state management (AD-8, AD-13)
+- [~] Task: Implement WebSocket client and state management (AD-8, AD-13)
     - [ ] Write Tests: Test `useWebSocket` hook establishes connection to `wss://current-host/ws/chat`
     - [ ] Write Tests: Test message queue when WebSocket is disconnected
     - [ ] Write Tests: Test incoming `tool_progress` events update chat state with progress messages
