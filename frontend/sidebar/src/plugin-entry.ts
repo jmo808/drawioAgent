@@ -6,6 +6,7 @@ import App from './App'
 if (typeof Draw !== 'undefined') {
   Draw.loadPlugin((ui: EditorUi) => {
     console.log('[DrawioAgent] Loading sidebar plugin...');
+    (window as any).drawioEditorUi = ui;
 
     // Create container for the React sidebar
     const sidebarContainer = document.createElement('div');
