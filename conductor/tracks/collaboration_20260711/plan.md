@@ -1,81 +1,200 @@
 # Implementation Plan: Multi-User Collaboration & Shared Sessions
 
-## Phase 1: Redis Integration & Session Management
+## Phase 1: Valkey Integration & Session Management
 
-- [ ] Task: Integrate Redis client into Fastify API server
-    - [ ] Write Tests: Test Redis connection establishment and health check
-    - [ ] Write Tests: Test Redis connection failure handling (graceful degradation to single-user mode)
-    - [ ] Implement: Add `ioredis` dependency to API server
-    - [ ] Implement: Create Redis client plugin with connection pooling
-    - [ ] Implement: Update `/ready` endpoint to check Redis connectivity when collaboration is enabled
-    - [ ] Implement: Update Helm chart to wire Redis connection string env var
-- [ ] Task: Implement session room management
-    - [ ] Write Tests: Test session creation returns unique session ID and shareable URL
-    - [ ] Write Tests: Test session join adds user to room and returns current state
-    - [ ] Write Tests: Test session leave removes user, notifies remaining members
-    - [ ] Write Tests: Test session close notifies all members and cleans up Redis keys
-    - [ ] Write Tests: Test session TTL expiry cleans up stale sessions
-    - [ ] Implement: Create `SessionManager` class with Redis-backed room state
-    - [ ] Implement: Session CRUD operations (create, join, leave, close)
-    - [ ] Implement: User presence tracking per session (Redis sorted set with heartbeat timestamps)
-    - [ ] Implement: Session TTL with automatic cleanup
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Redis Integration & Session Management' (Protocol in workflow.md)
+- [ ] Task: Integrate Valkey client into Fastify API server
+    - [ ] Write Tests: Test Valkey connection establishment and health check via `ioredis`
+    - [ ] Write Tests: Test graceful behavior when `collaboration.enabled=false` (no connection attempt)
+    - [ ] Write Tests: Test `/ready` endpoint includes Valkey connectivity when collaboration is enabled
+    - [ ] Write Tests: Test connection failure handling (log error, mark not-ready, retry)
+    - [ ] Implement: Add `ioredis` dependency to API server `package.json`
+    - [ ] Implement: Create Valkey client Fastify plugin (`src/plugins/valkey.ts`) — gated by `COLLABORATION_ENABLED` env var
+    - [ ] Implement: Connection configuration from env vars (`VALKEY_HOST`, `VALKEY_PORT`, `VALKEY_PASSWORD`)
+    - [ ] Implement: Update `/ready` endpoint to check Valkey connectivity when collaboration is enabled
+- [ ] Task: Implement SessionManager class
+    - [ ] Write Tests: Test `createSession()` generates UUID + 6-char alphanumeric short code, stores in Valkey
+    - [ ] Write Tests: Test `joinSession()` by UUID adds member to `session:{id}:members` hash
+    - [ ] Write Tests: Test `joinSession()` by short code resolves via `shortcode:{code}` → UUID → join
+    - [ ] Write Tests: Test `joinSession()` rejects when session is at max capacity (10 members)
+    - [ ] Write Tests: Test `joinSession()` returns current state (diagram XML + chat history + member list)
+    - [ ] Write Tests: Test `leaveSession()` removes member, broadcasts `member_left`
+    - [ ] Write Tests: Test `leaveSession()` by last member auto-deletes all session keys
+    - [ ] Write Tests: Test session TTL is refreshed on any activity (join, message, diagram update)
+    - [ ] Write Tests: Test `getSessionByShortCode()` returns null for non-existent codes
+    - [ ] Implement: Create `SessionManager` class (`src/services/session-manager.ts`)
+    - [ ] Implement: `createSession(displayName)` — UUID v4 + nanoid(6) short code, MULTI/EXEC to set all keys atomically
+    - [ ] Implement: `joinSession(sessionIdOrCode, connId, displayName)` — resolve short code if needed, HSET member, return state
+    - [ ] Implement: `leaveSession(sessionId, connId)` — HDEL member, check if empty, broadcast
+    - [ ] Implement: `refreshTTL(sessionId)` — EXPIRE on all `session:{id}:*` keys
+    - [ ] Implement: `getSessionState(sessionId)` — MGET diagram + HGETALL members + LRANGE chat
+- [ ] Task: Implement AI request serialization lock (CD-3)
+    - [ ] Write Tests: Test `acquireLock()` succeeds when no lock exists
+    - [ ] Write Tests: Test `acquireLock()` fails when lock is held by another user
+    - [ ] Write Tests: Test lock auto-expires after 60 seconds (timeout safety)
+    - [ ] Write Tests: Test `releaseLock()` clears the lock and broadcasts `ai_unlocked`
+    - [ ] Implement: `acquireLock(sessionId, connId)` — SET NX EX 60 on `session:{id}:lock`
+    - [ ] Implement: `releaseLock(sessionId, connId)` — DEL with owner verification (Lua script)
+    - [ ] Implement: Integrate lock check into chat message handler (queue or reject if locked)
+- [ ] Task: Conductor - User Manual Verification 'Phase 1: Valkey Integration & Session Management' (Protocol in workflow.md)
 
-## Phase 2: Real-Time Broadcast
+## Phase 2: Real-Time Broadcast via Pub/Sub
 
-- [ ] Task: Implement Redis pub/sub for diagram updates
-    - [ ] Write Tests: Test diagram update published to Redis channel reaches subscriber
-    - [ ] Write Tests: Test all session members receive broadcast via WebSocket
-    - [ ] Write Tests: Test publisher does not receive their own broadcast (dedup by connection ID)
-    - [ ] Write Tests: Test broadcast works across multiple API server replicas
-    - [ ] Implement: Create pub/sub channels per session ID (`session:{id}:updates`)
-    - [ ] Implement: Subscribe to session channel on WebSocket connect
-    - [ ] Implement: Broadcast diagram XML updates to all session members
-    - [ ] Implement: Unsubscribe on WebSocket disconnect
-- [ ] Task: Implement shared chat history
-    - [ ] Write Tests: Test chat messages are stored in Redis list per session
-    - [ ] Write Tests: Test new users joining a session receive full chat history
-    - [ ] Write Tests: Test AI responses are broadcast to all session members
-    - [ ] Write Tests: Test chat history respects maximum length limit (circular buffer)
-    - [ ] Implement: Store chat messages in Redis list with session-scoped keys (`session:{id}:chat`)
-    - [ ] Implement: Chat history retrieval on session join (return last N messages)
-    - [ ] Implement: Broadcast AI `tool_progress` and `diagram_update` events to all members
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Real-Time Broadcast' (Protocol in workflow.md)
+- [ ] Task: Implement Valkey pub/sub for diagram broadcasts (CD-4, CD-5)
+    - [ ] Write Tests: Test diagram update published to `session:{id}:events` channel
+    - [ ] Write Tests: Test all session members' WebSocket connections receive the broadcast
+    - [ ] Write Tests: Test sender does NOT receive their own broadcast (dedup by connId)
+    - [ ] Write Tests: Test broadcast works across multiple API server replicas (via Valkey pub/sub)
+    - [ ] Write Tests: Test diagram XML is also persisted to `session:{id}:diagram` key on each broadcast
+    - [ ] Implement: Create pub/sub manager (`src/services/pubsub-manager.ts`)
+    - [ ] Implement: Subscribe to `session:{id}:events` when a WebSocket joins a session
+    - [ ] Implement: Unsubscribe when WebSocket disconnects or leaves session
+    - [ ] Implement: `broadcastDiagramUpdate(sessionId, xml, senderConnId, senderName)` — publish + persist
+    - [ ] Implement: Broadcast receiver that forwards events as WebSocket frames to local connections
+- [ ] Task: Implement debounced diagram sync from manual edits (CD-4)
+    - [ ] Write Tests: Test manual edit triggers broadcast only after 500ms debounce
+    - [ ] Write Tests: Test rapid successive edits produce only one broadcast
+    - [ ] Write Tests: Test broadcast includes complete XML snapshot (not diff)
+    - [ ] Implement: Client-side debounce in `drawioBridge` — listen to `mxGraphModel` change events
+    - [ ] Implement: After 500ms of no changes, call `getGraphXml()` and send `diagram_broadcast` via WebSocket
+    - [ ] Implement: Server relays to pub/sub for distribution to all session members
+- [ ] Task: Implement shared chat history (CD-7)
+    - [ ] Write Tests: Test chat messages are LPUSH'd to `session:{id}:chat` with sender attribution
+    - [ ] Write Tests: Test chat list is capped at 500 messages via LTRIM
+    - [ ] Write Tests: Test new users joining receive last 500 messages via LRANGE
+    - [ ] Write Tests: Test AI responses (tool_progress, diagram_update) are broadcast as `chat_broadcast`
+    - [ ] Write Tests: Test chat messages include `{text, senderConnId, senderName, isAI, timestamp}`
+    - [ ] Implement: Store chat messages in Valkey list (`src/services/chat-store.ts`)
+    - [ ] Implement: Broadcast chat messages to all session members via pub/sub
+    - [ ] Implement: On session join, retrieve and send chat history as part of `session_state`
+    - [ ] Implement: AI tool_progress and diagram_update events written to chat history with `isAI: true`
+- [ ] Task: Conductor - User Manual Verification 'Phase 2: Real-Time Broadcast via Pub/Sub' (Protocol in workflow.md)
 
 ## Phase 3: Frontend Collaboration UI
 
-- [ ] Task: Build session management UI
-    - [ ] Write Tests: Test "Create Session" button generates session and shows shareable URL
-    - [ ] Write Tests: Test "Join Session" dialog accepts session code and connects
-    - [ ] Write Tests: Test presence indicator shows connected user count and names
-    - [ ] Write Tests: Test "Leave Session" button disconnects and returns to single-user mode
-    - [ ] Implement: Create `SessionControls` component (create/join/leave buttons)
-    - [ ] Implement: Create `PresenceIndicator` component showing connected users
-    - [ ] Implement: Shareable session URL generation with copy-to-clipboard
-    - [ ] Implement: Session code input dialog
-- [ ] Task: Integrate real-time sync into existing components
-    - [ ] Write Tests: Test incoming diagram broadcast updates canvas via drawioBridge
-    - [ ] Write Tests: Test incoming chat broadcast appends to message list with sender attribution
-    - [ ] Write Tests: Test user's own messages are not duplicated from broadcast
-    - [ ] Implement: Subscribe to broadcast events in `useWebSocket` hook
-    - [ ] Implement: Update `useChatStore` to handle remote messages (add `sender` field)
-    - [ ] Implement: Update `drawioBridge` to apply remote diagram updates
-    - [ ] Implement: Add visual indicator when diagram is being updated by another user
+- [ ] Task: Implement feature detection and session controls
+    - [ ] Write Tests: Test sidebar hides session controls when collaboration is disabled (via handshake metadata)
+    - [ ] Write Tests: Test "Create Session" button sends `session_create` message and displays session info
+    - [ ] Write Tests: Test "Join Session" dialog sends `session_join` with short code or UUID
+    - [ ] Write Tests: Test "Leave Session" button sends `session_leave` and reverts to single-user mode
+    - [ ] Write Tests: Test session URL is auto-detected from `?session=` query parameter on page load
+    - [ ] Implement: Add collaboration feature flag to WebSocket handshake response metadata
+    - [ ] Implement: Create `SessionControls` component (`src/components/SessionControls.tsx`)
+    - [ ] Implement: Create session — display name prompt → `session_create` → show UUID + short code + copy URL button
+    - [ ] Implement: Join session — short code input dialog → `session_join` → receive `session_state`
+    - [ ] Implement: Auto-join from URL — parse `?session=` param, prompt display name, join
+    - [ ] Implement: Leave session — `session_leave` → hide session controls → revert to MVP mode
+- [ ] Task: Implement display name prompt (CD-1)
+    - [ ] Write Tests: Test prompt appears before session create/join
+    - [ ] Write Tests: Test empty name generates random name ("Architect-7f3a" pattern)
+    - [ ] Write Tests: Test display name is stored in `useChatStore` and sent with all messages
+    - [ ] Implement: Create `DisplayNamePrompt` modal component
+    - [ ] Implement: Random name generator (adjective + noun + 4-char hex, e.g., "Swift-Router-a3f7")
+    - [ ] Implement: Persist display name in localStorage for convenience across page reloads
+- [ ] Task: Build presence indicators (CD-10)
+    - [ ] Write Tests: Test presence bar renders colored badges for each connected member
+    - [ ] Write Tests: Test badge shows initials (first letter of display name)
+    - [ ] Write Tests: Test hovering a badge shows full display name tooltip
+    - [ ] Write Tests: Test `member_joined` event adds a new badge with enter animation
+    - [ ] Write Tests: Test `member_left` event removes badge with fade-out animation
+    - [ ] Write Tests: Test `ai_locked` event pulses the triggering user's badge
+    - [ ] Write Tests: Test disconnected members (within reconnect window) show dimmed badge
+    - [ ] Implement: Create `PresenceBar` component (`src/components/PresenceBar.tsx`)
+    - [ ] Implement: Deterministic color assignment from connId (hash to HSL hue)
+    - [ ] Implement: Badge pulse animation CSS for active AI user
+    - [ ] Implement: Integrate into `ChatPanel` header area
+- [ ] Task: Integrate broadcast handlers into existing components (CD-6)
+    - [ ] Write Tests: Test incoming `diagram_broadcast` saves viewport → setGraphXml → restores viewport
+    - [ ] Write Tests: Test incoming `diagram_broadcast` shows toast ("Diagram updated by Alice")
+    - [ ] Write Tests: Test incoming `chat_broadcast` appends message to chat list with sender attribution
+    - [ ] Write Tests: Test user's own messages are NOT duplicated from broadcast (dedup by connId)
+    - [ ] Write Tests: Test `ai_locked` shows "AI is working for Bob..." status in ChatPanel
+    - [ ] Write Tests: Test `ai_unlocked` clears the AI working status
+    - [ ] Implement: Add broadcast event handlers to `useWebSocket` hook
+    - [ ] Implement: Update `useChatStore` reducer with `CHAT_BROADCAST`, `MEMBER_JOINED`, `MEMBER_LEFT` actions
+    - [ ] Implement: Update `drawioBridge` with `setGraphXmlPreservingViewport()` — saves scroll/zoom, applies XML, restores
+    - [ ] Implement: Toast notification component for diagram update events
+    - [ ] Implement: AI lock status indicator in ChatPanel (disables input for queued requests)
+- [ ] Task: Implement full state resync on reconnect (CD-11)
+    - [ ] Write Tests: Test reconnection sends `session_join` with stored sessionId and displayName
+    - [ ] Write Tests: Test `session_state` response replaces all local state (diagram, chat, members)
+    - [ ] Write Tests: Test reconnection preserves user's display name from localStorage
+    - [ ] Implement: Store current sessionId in `useChatStore`
+    - [ ] Implement: On WebSocket reconnect, auto-send `session_join` with stored sessionId
+    - [ ] Implement: `session_state` handler replaces local diagram, chat history, and member list entirely
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Frontend Collaboration UI' (Protocol in workflow.md)
 
-## Phase 4: Helm Chart & Documentation Updates
+## Phase 4: WebSocket Protocol & API Server Wiring
 
-- [ ] Task: Update Helm chart for collaboration
-    - [ ] Write Tests: Test chart deploys with Redis when `collaboration.enabled=true`
-    - [ ] Write Tests: Test chart deploys without Redis when `collaboration.enabled=false` (default)
-    - [ ] Write Tests: Test Redis connection string env var is injected into API server pods
-    - [ ] Implement: Promote Redis subchart from stub to wired dependency
-    - [ ] Implement: Add collaboration-related values (session TTL, max users per session, chat history limit)
-    - [ ] Implement: Conditionally render Redis env vars based on `collaboration.enabled`
-    - [ ] Implement: Update NOTES.txt with collaboration setup instructions
+- [ ] Task: Extend WebSocket handler with collaboration message types (CD-14)
+    - [ ] Write Tests: Test `session_create` message creates session and returns `session_state`
+    - [ ] Write Tests: Test `session_join` by UUID joins and returns `session_state`
+    - [ ] Write Tests: Test `session_join` by short code resolves and joins
+    - [ ] Write Tests: Test `session_leave` removes member and broadcasts `member_left`
+    - [ ] Write Tests: Test `chat_message` in collaboration mode broadcasts to all members + stores in Valkey
+    - [ ] Write Tests: Test `chat_message` with active AI lock queues the request and notifies sender
+    - [ ] Write Tests: Test `diagram_broadcast` from client is relayed to all session members
+    - [ ] Write Tests: Test unknown session ID returns error message
+    - [ ] Write Tests: Test graceful handling of duplicate join (idempotent)
+    - [ ] Implement: Extend WebSocket route handler (`src/routes/chat.ts`) with collaboration message routing
+    - [ ] Implement: Integration with `SessionManager` for session lifecycle
+    - [ ] Implement: Integration with `PubSubManager` for broadcast relay
+    - [ ] Implement: Integration with `ChatStore` for shared chat persistence
+    - [ ] Implement: AI request flow: acquire lock → forward to agent → stream progress (broadcast) → release lock
+- [ ] Task: Implement WebSocket heartbeat and stale member cleanup (CD-18)
+    - [ ] Write Tests: Test server sends WebSocket ping every 30 seconds
+    - [ ] Write Tests: Test client that doesn't pong within 10 seconds is disconnected
+    - [ ] Write Tests: Test disconnected client is removed from `session:{id}:members`
+    - [ ] Write Tests: Test `member_left` is broadcast when heartbeat timeout triggers
+    - [ ] Write Tests: Test client reconnecting within 5 minutes preserves display name
+    - [ ] Implement: Configure `@fastify/websocket` ping interval (30s) and pong timeout (10s)
+    - [ ] Implement: On heartbeat timeout, call `SessionManager.leaveSession()` for the dead connection
+    - [ ] Implement: Stale member TTL — keep member entry in Valkey for 5 minutes after disconnect (for reconnect)
+- [ ] Task: Add `/api/features` endpoint for feature discovery
+    - [ ] Write Tests: Test endpoint returns `{collaboration: true}` when enabled
+    - [ ] Write Tests: Test endpoint returns `{collaboration: false}` when disabled
+    - [ ] Implement: Create `/api/features` GET route (no auth required)
+    - [ ] Implement: Alternatively, include features in WebSocket handshake response headers
+- [ ] Task: Conductor - User Manual Verification 'Phase 4: WebSocket Protocol & API Server Wiring' (Protocol in workflow.md)
+
+## Phase 5: Helm Chart Updates
+
+- [ ] Task: Create inline Valkey deployment template (CD-13)
+    - [ ] Write Tests: Test Valkey Deployment renders when `collaboration.enabled=true` and `collaboration.valkey.enabled=true`
+    - [ ] Write Tests: Test Valkey Deployment does NOT render when `collaboration.enabled=false`
+    - [ ] Write Tests: Test external Valkey config renders env vars when `collaboration.valkey.enabled=false`
+    - [ ] Write Tests: Test `helm lint` passes with collaboration enabled and disabled
+    - [ ] Implement: `templates/valkey-deployment.yaml` — single-replica Deployment using `valkey/valkey` image
+    - [ ] Implement: `templates/valkey-service.yaml` — ClusterIP Service on port 6379
+    - [ ] Implement: `templates/valkey-pvc.yaml` — optional PersistentVolumeClaim for data persistence
+    - [ ] Implement: Conditional rendering gated by `{{ if and .Values.collaboration.enabled .Values.collaboration.valkey.enabled }}`
+- [ ] Task: Update API server deployment with collaboration env vars
+    - [ ] Write Tests: Test `COLLABORATION_ENABLED` env var is set correctly based on values
+    - [ ] Write Tests: Test `VALKEY_HOST` and `VALKEY_PORT` env vars resolve to Valkey service or external host
+    - [ ] Implement: Add collaboration env vars to `templates/api-deployment.yaml`
+    - [ ] Implement: Add `VALKEY_PASSWORD` from Secret when configured
+- [ ] Task: Add collaboration values to `values.yaml`
+    - [ ] Implement: Add full `collaboration.*` section with documented defaults (per spec CD-15)
+    - [ ] Implement: Update `templates/NOTES.txt` with collaboration setup instructions
+    - [ ] Implement: Update `chart/drawio-agent/README.md` with collaboration parameters table
+- [ ] Task: Conductor - User Manual Verification 'Phase 5: Helm Chart Updates' (Protocol in workflow.md)
+
+## Phase 6: Integration Testing & Documentation
+
+- [ ] Task: Collaboration integration tests
+    - [ ] Write Tests: Test 2-user session — create, join, chat, AI generation, both see result
+    - [ ] Write Tests: Test manual edit broadcast — user A edits, user B sees update after debounce
+    - [ ] Write Tests: Test AI serialization lock — user A triggers AI, user B's request queues
+    - [ ] Write Tests: Test reconnection — user disconnects, reconnects, receives full state resync
+    - [ ] Write Tests: Test session cleanup — both users leave, all Valkey keys are deleted
+    - [ ] Write Tests: Test graceful degradation — collaboration disabled, no session UI visible
+    - [ ] Write Tests: Test max members enforcement — 11th user rejected with error message
+    - [ ] Implement: Multi-browser Playwright test setup (2 browser contexts, 1 session)
+    - [ ] Implement: Test fixtures for collaboration scenarios
+    - [ ] Implement: Docker-compose test config with Valkey included
 - [ ] Task: Update documentation
-    - [ ] Update README with collaboration feature documentation and usage guide
+    - [ ] Update project README with collaboration feature overview and usage guide
     - [ ] Update Helm chart README with collaboration parameters table
-    - [ ] Add collaboration architecture diagram
-    - [ ] Document Redis requirements and sizing guidance
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Helm Chart & Documentation Updates' (Protocol in workflow.md)
+    - [ ] Document Valkey requirements and sizing guidance
+    - [ ] Document session lifecycle and limits
+    - [ ] Add collaboration architecture diagram (generated via drawio_plugin)
+- [ ] Task: Conductor - User Manual Verification 'Phase 6: Integration Testing & Documentation' (Protocol in workflow.md)

@@ -243,12 +243,13 @@
     - [ ] Implement: `templates/gateway.yaml` — optional Gateway resource (configurable via values)
     - [ ] Implement: `templates/secrets.yaml` — API key + LLM provider credentials
     - [ ] Implement: `templates/configmap.yaml` — non-secret configuration (agent URL, feature flags)
-- [ ] Task: Add optional Redis subchart stub
-    - [ ] Write Tests: Test chart deploys successfully when `redis.enabled=false` (default)
-    - [ ] Write Tests: Test chart includes Redis dependency when `redis.enabled=true`
-    - [ ] Implement: Add Bitnami Redis as optional dependency in `Chart.yaml` with `condition: redis.enabled`
-    - [ ] Implement: Add `redis.enabled: false` default in `values.yaml`
-    - [ ] Implement: Add comment in values.yaml noting Redis is for future collaboration features (Track 2)
+- [ ] Task: Add optional Valkey inline template stub
+    - [ ] Write Tests: Test chart deploys successfully when `collaboration.enabled=false` (default)
+    - [ ] Write Tests: Test chart renders Valkey Deployment/Service when `collaboration.enabled=true`
+    - [ ] Implement: Create `templates/valkey-deployment.yaml` stub (single-replica `valkey/valkey` image, gated by `collaboration.enabled`)
+    - [ ] Implement: Create `templates/valkey-service.yaml` stub (ClusterIP, port 6379)
+    - [ ] Implement: Add `collaboration.enabled: false` default in `values.yaml`
+    - [ ] Implement: Add comment in values.yaml noting Valkey is for future collaboration features (Track 2)
 - [ ] Task: Conductor - User Manual Verification 'Phase 6: Helm Chart' (Protocol in workflow.md)
 
 ## Phase 7: Template Library & Integration Testing (AD-15)

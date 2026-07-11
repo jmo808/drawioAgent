@@ -125,7 +125,7 @@ interface WebSocketMessage {
 - `templates/NOTES.txt` — post-install instructions
 - `templates/_helpers.tpl` — label/name/selector template helpers
 - **No Ingress** — uses Gateway API `HTTPRoute` for path-based routing (AD-14)
-- Optional Redis subchart toggle (stub for future Track 2 collaboration)
+- Optional Valkey inline template stub (for future Track 2 collaboration, gated by `collaboration.enabled`)
 
 ### 2. Fastify API Server (`services/api/`)
 - TypeScript, Fastify 5.x with `@fastify/websocket`
@@ -174,7 +174,7 @@ interface WebSocketMessage {
 
 ## Scope Exclusions (Deferred to Future Tracks)
 - Multi-user collaboration / shared sessions (Track 2)
-- Redis integration for pub/sub (Track 2)
+- Valkey integration for pub/sub (Track 2)
 - CI/CD pipeline and automated image publishing (Track 3)
 - Prometheus metrics, Grafana dashboards, OpenTelemetry tracing (Track 4)
 - Rate limiting, circuit breakers, PodDisruptionBudgets (Track 4)
