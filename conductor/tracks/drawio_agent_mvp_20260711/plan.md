@@ -208,7 +208,7 @@
     - [x] Implement: Environment variable configuration (API key, LLM provider defaults)
 - [x] Task: Conductor - User Manual Verification 'Phase 5: Docker Images & Local Development' (Protocol in workflow.md) (9a643b0)
 
-## Phase 6: Helm Chart (`chart/drawio-agent/`) (AD-9, AD-14)
+## Phase 6: Helm Chart (`chart/drawio-agent/`) (AD-9, AD-14) [checkpoint: 73831d6]
 
 - [x] Task: Create Helm chart scaffolding
     - [x] Write Tests: Run `helm lint chart/drawio-agent` and verify zero errors/warnings
@@ -250,7 +250,7 @@
     - [x] Implement: Create `templates/valkey-service.yaml` stub (ClusterIP, port 6379)
     - [x] Implement: Add `collaboration.enabled: false` default in `values.yaml`
     - [x] Implement: Add comment in values.yaml noting Valkey is for future collaboration features (Track 2)
-- [~] Task: Conductor - User Manual Verification 'Phase 6: Helm Chart' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 6: Helm Chart' (Protocol in workflow.md) (73831d6)
 
 ## Phase 7: Template Library & Integration Testing (AD-15)
 
