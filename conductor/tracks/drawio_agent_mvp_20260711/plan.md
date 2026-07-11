@@ -108,7 +108,7 @@
     - [x] Implement: MCP state initialization from snapshot XML (via `init_diagram` or direct state injection)
     - [x] Implement: Tool call execution loop with per-call SSE event emission
     - [x] Implement: Diagram state tracking between turns
-- [ ] Task: Create FastAPI HTTP server (AD-16)
+- [~] Task: Create FastAPI HTTP server (AD-16)
     - [ ] Write Tests: Test `GET /health` returns 200
     - [ ] Write Tests: Test `GET /api/providers` returns list of configured providers
     - [ ] Write Tests: Test `POST /api/chat` returns SSE stream with tool_progress and diagram_update events
