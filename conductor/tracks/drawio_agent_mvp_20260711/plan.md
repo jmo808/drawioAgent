@@ -173,16 +173,16 @@
 
 ## Phase 5: Docker Images & Local Development (AD-1, AD-14, AD-20)
 
-- [~] Task: Create Dockerfile for draw.io frontend with plugin injection
-    - [ ] Write Tests: Test Docker image builds successfully
-    - [ ] Write Tests: Test draw.io serves on port 8080
-    - [ ] Write Tests: Test `drawio-agent-plugin.js` is accessible at expected URL path
-    - [ ] Write Tests: Test `PreConfig.js` is present and contains plugin auto-load configuration
-    - [ ] Implement: Dockerfile extending `jgraph/drawio` base image
-    - [ ] Implement: COPY built `drawio-agent-plugin.js` into Tomcat webapp static assets
-    - [ ] Implement: Create custom `PreConfig.js` with `Draw.loadPlugin()` and plugin URL
-    - [ ] Implement: COPY `PreConfig.js` to override default at `/usr/local/tomcat/webapps/draw/js/PreConfig.js`
-- [ ] Task: Create Dockerfile for Fastify API server
+- [x] Task: Create Dockerfile for draw.io frontend with plugin injection
+    - [x] Write Tests: Test Docker image builds successfully
+    - [x] Write Tests: Test draw.io serves on port 8080
+    - [x] Write Tests: Test `drawio-agent-plugin.js` is accessible at expected URL path
+    - [x] Write Tests: Test `PreConfig.js` is present and contains plugin auto-load configuration
+    - [x] Implement: Dockerfile extending `jgraph/drawio` base image
+    - [x] Implement: COPY built `drawio-agent-plugin.js` into Tomcat webapp static assets
+    - [x] Implement: Create custom `PreConfig.js` with `Draw.loadPlugin()` and plugin URL
+    - [x] Implement: COPY `PreConfig.js` to override default at `/usr/local/tomcat/webapps/draw/js/PreConfig.js`
+- [~] Task: Create Dockerfile for Fastify API server
     - [ ] Write Tests: Test Docker image builds successfully
     - [ ] Write Tests: Test container starts and `GET /health` responds 200
     - [ ] Implement: Multi-stage Dockerfile — `node:22-slim` build stage (compile TS) → `node:22-slim` runtime (prod deps only)
