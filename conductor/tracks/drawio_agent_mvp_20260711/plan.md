@@ -86,17 +86,17 @@
     - [x] Implement: Tool discovery via `tools/list` method at startup
     - [x] Implement: Process lifecycle management (start, health check, restart, shutdown)
     - [x] Implement: Configurable path to `mcp-wrapper.js` via `MCP_SERVER_PATH` env var
-- [~] Task: Implement conversation manager (AD-12)
-    - [ ] Write Tests: Test conversation creation with unique session ID
-    - [ ] Write Tests: Test message appending maintains order
-    - [ ] Write Tests: Test system prompt includes SKILL.md content and tool schemas
-    - [ ] Write Tests: Test on-demand reference doc loading based on prompt keywords ("aws" → aws-well-architected)
-    - [ ] Write Tests: Test context window truncation when history exceeds token limit
-    - [ ] Implement: Create `ConversationManager` class (`src/agent/conversation.py`)
-    - [ ] Implement: Session-based conversation storage (in-memory dict)
-    - [ ] Implement: System prompt builder that embeds SKILL.md content + dynamic tool schemas
-    - [ ] Implement: Keyword-based reference doc loader (aws, pfd, pid detection)
-    - [ ] Implement: Token-aware context window management
+- [x] Task: Implement conversation manager (AD-12) (24be4df)
+    - [x] Write Tests: Test conversation creation with unique session ID
+    - [x] Write Tests: Test message appending maintains order
+    - [x] Write Tests: Test system prompt includes SKILL.md content and tool schemas
+    - [x] Write Tests: Test on-demand reference doc loading based on prompt keywords ("aws" → aws-well-architected)
+    - [x] Write Tests: Test context window truncation when history exceeds token limit
+    - [x] Implement: Create `ConversationManager` class (`src/agent/conversation.py`)
+    - [x] Implement: Session-based conversation storage (in-memory dict)
+    - [x] Implement: System prompt builder that embeds SKILL.md content + dynamic tool schemas
+    - [x] Implement: Keyword-based reference doc loader (aws, pfd, pid detection)
+    - [x] Implement: Token-aware context window management
 - [ ] Task: Implement agent orchestration loop (AD-3, AD-5, AD-19)
     - [ ] Write Tests: Test end-to-end: user message → LLM call → tool calls → final XML returned
     - [ ] Write Tests: Test snapshot-before-request: agent initializes MCP state from provided XML
