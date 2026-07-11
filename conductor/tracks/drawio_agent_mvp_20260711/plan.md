@@ -108,17 +108,17 @@
     - [x] Implement: MCP state initialization from snapshot XML (via `init_diagram` or direct state injection)
     - [x] Implement: Tool call execution loop with per-call SSE event emission
     - [x] Implement: Diagram state tracking between turns
-- [~] Task: Create FastAPI HTTP server (AD-16)
-    - [ ] Write Tests: Test `GET /health` returns 200
-    - [ ] Write Tests: Test `GET /api/providers` returns list of configured providers
-    - [ ] Write Tests: Test `POST /api/chat` returns SSE stream with tool_progress and diagram_update events
-    - [ ] Write Tests: Test `POST /api/chat` validates request body (text required, diagramXml optional)
-    - [ ] Implement: Create FastAPI app (`src/agent/main.py`)
-    - [ ] Implement: Health route and provider listing route
-    - [ ] Implement: Chat route with `StreamingResponse(media_type='text/event-stream')`
-    - [ ] Implement: Wire routes to `AgentOrchestrator`
-    - [ ] Implement: Pydantic models for request/response validation
-    - [ ] Implement: CORS middleware and error handling
+- [x] Task: Create FastAPI HTTP server (AD-16) (a5416b8)
+    - [x] Write Tests: Test `GET /health` returns 200
+    - [x] Write Tests: Test `GET /api/providers` returns list of configured providers
+    - [x] Write Tests: Test `POST /api/chat` returns SSE stream with tool_progress and diagram_update events
+    - [x] Write Tests: Test `POST /api/chat` validates request body (text required, diagramXml optional)
+    - [x] Implement: Create FastAPI app (`src/agent/main.py`)
+    - [x] Implement: Health route and provider listing route
+    - [x] Implement: Chat route with `StreamingResponse(media_type='text/event-stream')`
+    - [x] Implement: Wire routes to `AgentOrchestrator`
+    - [x] Implement: Pydantic models for request/response validation
+    - [x] Implement: CORS middleware and error handling
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Python AI Agent Service' (Protocol in workflow.md)
 
 ## Phase 4: React Chat Sidebar Plugin (`frontend/sidebar/`)
