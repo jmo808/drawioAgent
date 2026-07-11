@@ -39,16 +39,16 @@
     - [x] Write Tests: Test WebSocket upgrade requests validate API key in query param or header
     - [x] Implement: Create auth plugin (`src/plugins/auth.ts`) reading key from `API_KEY` env var
     - [x] Implement: Register middleware on all routes except `/health`
-- [ ] Task: Implement WebSocket chat endpoint (`/ws/chat`) (AD-8)
-    - [ ] Write Tests: Test WebSocket connection establishment with valid auth
-    - [ ] Write Tests: Test WebSocket rejects connection without valid auth
-    - [ ] Write Tests: Test typed JSON envelope message round-trip (send `chat_message`, receive `tool_progress`)
-    - [ ] Write Tests: Test malformed messages return `error` type response
-    - [ ] Write Tests: Test connection graceful close and cleanup
-    - [ ] Implement: Register `@fastify/websocket` plugin (`src/plugins/websocket.ts`)
-    - [ ] Implement: Create WebSocket route handler at `/ws/chat` (`src/routes/chat.ts`)
-    - [ ] Implement: Message serialization/deserialization using shared `WebSocketMessage` type
-    - [ ] Implement: Session management (assign session ID per connection)
+- [x] Task: Implement WebSocket chat endpoint (`/ws/chat`) (AD-8) (bcfb425)
+    - [x] Write Tests: Test WebSocket connection establishment with valid auth
+    - [x] Write Tests: Test WebSocket rejects connection without valid auth
+    - [x] Write Tests: Test typed JSON envelope message round-trip (send `chat_message`, receive `tool_progress`)
+    - [x] Write Tests: Test malformed messages return `error` type response
+    - [x] Write Tests: Test connection graceful close and cleanup
+    - [x] Implement: Register `@fastify/websocket` plugin (`src/plugins/websocket.ts`)
+    - [x] Implement: Create WebSocket route handler at `/ws/chat` (`src/routes/chat.ts`)
+    - [x] Implement: Message serialization/deserialization using shared `WebSocketMessage` type
+    - [x] Implement: Session management (assign session ID per connection)
 - [ ] Task: Implement SSE proxy to Python agent (AD-6)
     - [ ] Write Tests: Test proxy POSTs chat message + diagram XML to agent `/api/chat`
     - [ ] Write Tests: Test proxy relays SSE events as WebSocket frames with correct types
