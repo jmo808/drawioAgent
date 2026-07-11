@@ -173,7 +173,7 @@
 
 ## Phase 5: Docker Images & Local Development (AD-1, AD-14, AD-20)
 
-- [ ] Task: Create Dockerfile for draw.io frontend with plugin injection
+- [~] Task: Create Dockerfile for draw.io frontend with plugin injection
     - [ ] Write Tests: Test Docker image builds successfully
     - [ ] Write Tests: Test draw.io serves on port 8080
     - [ ] Write Tests: Test `drawio-agent-plugin.js` is accessible at expected URL path
