@@ -97,17 +97,17 @@
     - [x] Implement: System prompt builder that embeds SKILL.md content + dynamic tool schemas
     - [x] Implement: Keyword-based reference doc loader (aws, pfd, pid detection)
     - [x] Implement: Token-aware context window management
-- [~] Task: Implement agent orchestration loop (AD-3, AD-5, AD-19)
-    - [ ] Write Tests: Test end-to-end: user message → LLM call → tool calls → final XML returned
-    - [ ] Write Tests: Test snapshot-before-request: agent initializes MCP state from provided XML
-    - [ ] Write Tests: Test multi-turn conversation: create diagram, then modify it in next turn
-    - [ ] Write Tests: Test streaming: per-tool-call progress events emitted via SSE
-    - [ ] Write Tests: Test error recovery: LLM returns invalid tool call → agent retries or reports error
-    - [ ] Implement: Create `AgentOrchestrator` class (`src/agent/orchestrator.py`)
-    - [ ] Implement: Main loop — receive prompt + XML snapshot → build messages → call LLM → execute tool calls → yield progress → return final XML
-    - [ ] Implement: MCP state initialization from snapshot XML (via `init_diagram` or direct state injection)
-    - [ ] Implement: Tool call execution loop with per-call SSE event emission
-    - [ ] Implement: Diagram state tracking between turns
+- [x] Task: Implement agent orchestration loop (AD-3, AD-5, AD-19) (92fd9eb)
+    - [x] Write Tests: Test end-to-end: user message → LLM call → tool calls → final XML returned
+    - [x] Write Tests: Test snapshot-before-request: agent initializes MCP state from provided XML
+    - [x] Write Tests: Test multi-turn conversation: create diagram, then modify it in next turn
+    - [x] Write Tests: Test streaming: per-tool-call progress events emitted via SSE
+    - [x] Write Tests: Test error recovery: LLM returns invalid tool call → agent retries or reports error
+    - [x] Implement: Create `AgentOrchestrator` class (`src/agent/orchestrator.py`)
+    - [x] Implement: Main loop — receive prompt + XML snapshot → build messages → call LLM → execute tool calls → yield progress → return final XML
+    - [x] Implement: MCP state initialization from snapshot XML (via `init_diagram` or direct state injection)
+    - [x] Implement: Tool call execution loop with per-call SSE event emission
+    - [x] Implement: Diagram state tracking between turns
 - [ ] Task: Create FastAPI HTTP server (AD-16)
     - [ ] Write Tests: Test `GET /health` returns 200
     - [ ] Write Tests: Test `GET /api/providers` returns list of configured providers
