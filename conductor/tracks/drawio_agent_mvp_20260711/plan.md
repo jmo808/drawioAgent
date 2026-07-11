@@ -2,12 +2,12 @@
 
 ## Phase 1: Project Scaffolding & Shared Types
 
-- [ ] Task: Initialize monorepo structure with workspace configuration
-    - [ ] Create root `package.json` with npm workspaces (`services/api`, `frontend/sidebar`, `packages/shared`)
-    - [ ] Create root `tsconfig.json` with project references and path aliases for `@drawio-agent/shared`
-    - [ ] Create `.gitignore` with Node.js, Python, Docker, and IDE ignores
-    - [ ] Create `.dockerignore` for each service
-    - [ ] Create `README.md` with project overview and quickstart placeholder
+- [x] Task: Initialize monorepo structure with workspace configuration (d6651cf)
+    - [x] Create root `package.json` with npm workspaces (`services/api`, `frontend/sidebar`, `packages/shared`)
+    - [x] Create root `tsconfig.json` with project references and path aliases for `@drawio-agent/shared`
+    - [x] Create `.gitignore` with Node.js, Python, Docker, and IDE ignores
+    - [x] Create `.dockerignore` for each service
+    - [x] Create `README.md` with project overview and quickstart placeholder
 - [ ] Task: Define shared TypeScript types (`packages/shared/`)
     - [ ] Write Tests: Test type guard functions for `WebSocketMessage`, `ChatMessage`, `DiagramState`
     - [ ] Write Tests: Test schema validators reject malformed payloads
