@@ -150,17 +150,17 @@
     - [x] Implement: Create `useChatStore` state management hook using `useReducer`
     - [x] Implement: Wire WebSocket events to chat state (message received → dispatch action)
     - [x] Implement: API key inclusion in WebSocket handshake headers
-- [~] Task: Implement draw.io integration layer — drawioBridge (AD-18, AD-19)
-    - [ ] Write Tests: Test `drawioBridge.getGraphXml()` serializes current canvas to XML string
-    - [ ] Write Tests: Test `drawioBridge.setGraphXml()` replaces canvas content with new XML
-    - [ ] Write Tests: Test `drawioBridge.getTheme()` returns 'dark' or 'light' based on draw.io state
-    - [ ] Write Tests: Test `drawioBridge.getDiagramStats()` returns node/edge count
-    - [ ] Implement: Create `drawioBridge` module (`src/services/drawioBridge.ts`)
-    - [ ] Implement: `getGraphXml()` — calls `ui.editor.getGraphXml()` and serializes
-    - [ ] Implement: `setGraphXml()` — parses XML, calls `ui.editor.setGraphXml()` with beginUpdate/endUpdate
-    - [ ] Implement: `getTheme()` — reads draw.io's active theme class
-    - [ ] Implement: `getDiagramStats()` — counts cells in current mxGraphModel
-    - [ ] Implement: Snapshot-before-request: integrate `getGraphXml()` into chat send flow
+- [x] Task: Implement draw.io integration layer — drawioBridge (AD-18, AD-19) (f4fc5c1)
+    - [x] Write Tests: Test `drawioBridge.getGraphXml()` serializes current canvas to XML string
+    - [x] Write Tests: Test `drawioBridge.setGraphXml()` replaces canvas content with new XML
+    - [x] Write Tests: Test `drawioBridge.getTheme()` returns 'dark' or 'light' based on draw.io state
+    - [x] Write Tests: Test `drawioBridge.getDiagramStats()` returns node/edge count
+    - [x] Implement: Create `drawioBridge` module (`src/services/drawioBridge.ts`)
+    - [x] Implement: `getGraphXml()` — calls `ui.editor.getGraphXml()` and serializes
+    - [x] Implement: `setGraphXml()` — parses XML, calls `ui.editor.setGraphXml()` with beginUpdate/endUpdate
+    - [x] Implement: `getTheme()` — reads draw.io's active theme class
+    - [x] Implement: `getDiagramStats()` — counts cells in current mxGraphModel
+    - [x] Implement: Snapshot-before-request: integrate `getGraphXml()` into chat send flow
 - [ ] Task: Build provider selector and template library UI (AD-15)
     - [ ] Write Tests: Test `ProviderSelector` renders dropdown with provider names from API
     - [ ] Write Tests: Test `ProviderSelector` emits `provider_change` WebSocket message on selection
