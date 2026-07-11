@@ -63,16 +63,16 @@
 
 ## Phase 3: Python AI Agent Service (`services/agent/`)
 
-- [~] Task: Create LLM provider abstraction with LiteLLM (AD-4, AD-17)
-    - [ ] Write Tests: Test `LLMService.generate()` calls `litellm.acompletion()` with correct model and tools
-    - [ ] Write Tests: Test `LLMService.stream()` yields chunks from `litellm.acompletion(stream=True)`
-    - [ ] Write Tests: Test provider factory selects correct model string from config (openai/gpt-4, gemini/gemini-pro, anthropic/claude-sonnet, ollama/llama3)
-    - [ ] Write Tests: Test error handling for invalid API keys, rate limits, and network failures
-    - [ ] Write Tests: Test tool schema formatting matches LiteLLM's expected `tools` parameter format
-    - [ ] Implement: Create `LLMService` class wrapping `litellm.acompletion()` (`src/agent/llm_service.py`)
-    - [ ] Implement: Provider configuration via environment variables (`LLM_PROVIDER`, `LLM_MODEL`, `LLM_API_KEY`)
-    - [ ] Implement: Tool schema formatter that converts MCP tool definitions to LiteLLM function calling format
-    - [ ] Implement: Streaming support with async generator
+- [x] Task: Create LLM provider abstraction with LiteLLM (AD-4, AD-17) (b7d204d)
+    - [x] Write Tests: Test `LLMService.generate()` calls `litellm.acompletion()` with correct model and tools
+    - [x] Write Tests: Test `LLMService.stream()` yields chunks from `litellm.acompletion(stream=True)`
+    - [x] Write Tests: Test provider factory selects correct model string from config (openai/gpt-4, gemini/gemini-pro, anthropic/claude-sonnet, ollama/llama3)
+    - [x] Write Tests: Test error handling for invalid API keys, rate limits, and network failures
+    - [x] Write Tests: Test tool schema formatting matches LiteLLM's expected `tools` parameter format
+    - [x] Implement: Create `LLMService` class wrapping `litellm.acompletion()` (`src/agent/llm_service.py`)
+    - [x] Implement: Provider configuration via environment variables (`LLM_PROVIDER`, `LLM_MODEL`, `LLM_API_KEY`)
+    - [x] Implement: Tool schema formatter that converts MCP tool definitions to LiteLLM function calling format
+    - [x] Implement: Streaming support with async generator
 - [ ] Task: Implement MCP tool bridge (AD-7)
     - [ ] Write Tests: Test `MCPBridge.start()` spawns `node mcp-wrapper.js` child process
     - [ ] Write Tests: Test `MCPBridge.call_tool()` sends JSON-RPC request and returns result
