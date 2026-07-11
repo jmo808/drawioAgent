@@ -8,13 +8,13 @@
     - [x] Create `.gitignore` with Node.js, Python, Docker, and IDE ignores
     - [x] Create `.dockerignore` for each service
     - [x] Create `README.md` with project overview and quickstart placeholder
-- [ ] Task: Define shared TypeScript types (`packages/shared/`)
-    - [ ] Write Tests: Test type guard functions for `WebSocketMessage`, `ChatMessage`, `DiagramState`
-    - [ ] Write Tests: Test schema validators reject malformed payloads
-    - [ ] Implement: Define `WebSocketMessage` interface with typed envelope `{type, payload, id?, timestamp}` (AD-8)
-    - [ ] Implement: Define `ChatMessage`, `ToolProgress`, `DiagramUpdate`, `ErrorPayload` payload types
-    - [ ] Implement: Define `LLMProviderConfig`, `MCPToolCall`, `MCPToolResult` interfaces
-    - [ ] Implement: Create Zod schemas and type guard functions for runtime validation
+- [x] Task: Define shared TypeScript types (`packages/shared/`) (82f35d5)
+    - [x] Write Tests: Test type guard functions for `WebSocketMessage`, `ChatMessage`, `DiagramState`
+    - [x] Write Tests: Test schema validators reject malformed payloads
+    - [x] Implement: Define `WebSocketMessage` interface with typed envelope `{type, payload, id?, timestamp}` (AD-8)
+    - [x] Implement: Define `ChatMessage`, `ToolProgress`, `DiagramUpdate`, `ErrorPayload` payload types
+    - [x] Implement: Define `LLMProviderConfig`, `MCPToolCall`, `MCPToolResult` interfaces
+    - [x] Implement: Create Zod schemas and type guard functions for runtime validation
 - [ ] Task: Set up Python project structure (`services/agent/`)
     - [ ] Create `pyproject.toml` with dependencies (litellm, fastapi, uvicorn, pydantic, httpx)
     - [ ] Create `requirements.txt` as pinned lockfile
