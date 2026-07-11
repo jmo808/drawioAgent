@@ -129,7 +129,7 @@
     - [x] Create draw.io plugin entry point (`src/plugin-entry.ts`) using `Draw.loadPlugin()`
     - [x] Set up Vitest for component testing with jsdom environment
     - [x] Create TypeScript declarations for draw.io globals (`EditorUi`, `mxGraph`, `Draw`)
-- [ ] Task: Build core chat UI components
+- [~] Task: Build core chat UI components
     - [ ] Write Tests: Test `ChatPanel` renders with empty message list and input field
     - [ ] Write Tests: Test `MessageList` renders user messages with right-aligned styling
     - [ ] Write Tests: Test `MessageList` renders AI messages with left-aligned styling and tool progress
