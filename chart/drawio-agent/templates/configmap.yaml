@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "drawio-agent.fullname" . }}-config
+  labels:
+    {{- include "drawio-agent.labels" . | nindent 4 }}
+data:
+  AGENT_SERVICE_URL: "http://{{ include "drawio-agent.fullname" . }}-agent:8000"
+  API_PORT: "3000"
+  FRONTEND_PORT: "8080"
