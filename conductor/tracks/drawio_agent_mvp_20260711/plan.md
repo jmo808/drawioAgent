@@ -121,7 +121,7 @@
     - [x] Implement: CORS middleware and error handling
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Python AI Agent Service' (Protocol in workflow.md) (4bbe321)
 
-## Phase 4: React Chat Sidebar Plugin (`frontend/sidebar/`)
+## Phase 4: React Chat Sidebar Plugin (`frontend/sidebar/`) [checkpoint: 51a8500]
 
 - [x] Task: Scaffold Vite + React project for draw.io plugin (AD-1, AD-2) (828b53e)
     - [x] Configure Vite to build a single IIFE bundle (`drawio-agent-plugin.js`)
@@ -169,7 +169,7 @@
     - [x] Implement: Create `ProviderSelector` dropdown component
     - [x] Implement: Create `TemplateLibrary` panel with collapsible categories and template cards
     - [x] Implement: Wire template selection to chat input (send template prompt)
-- [~] Task: Conductor - User Manual Verification 'Phase 4: React Chat Sidebar Plugin' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: React Chat Sidebar Plugin' (Protocol in workflow.md) (51a8500)
 
 ## Phase 5: Docker Images & Local Development (AD-1, AD-14, AD-20)
 
