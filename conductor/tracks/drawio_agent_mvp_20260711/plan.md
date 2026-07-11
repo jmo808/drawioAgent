@@ -161,7 +161,7 @@
     - [x] Implement: `getTheme()` — reads draw.io's active theme class
     - [x] Implement: `getDiagramStats()` — counts cells in current mxGraphModel
     - [x] Implement: Snapshot-before-request: integrate `getGraphXml()` into chat send flow
-- [ ] Task: Build provider selector and template library UI (AD-15)
+- [~] Task: Build provider selector and template library UI (AD-15)
     - [ ] Write Tests: Test `ProviderSelector` renders dropdown with provider names from API
     - [ ] Write Tests: Test `ProviderSelector` emits `provider_change` WebSocket message on selection
     - [ ] Write Tests: Test `TemplateLibrary` renders categorized template cards (AWS, GCP, Azure)
