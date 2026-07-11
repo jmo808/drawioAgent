@@ -1,0 +1,78 @@
+# Default values for drawio-agent.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+nameOverride: ""
+fullnameOverride: ""
+
+# Global settings
+global:
+  apiKey: "test-api-key"
+
+# Draw.io Frontend settings
+frontend:
+  replicaCount: 1
+  image:
+    repository: ghcr.io/jmo808/drawio-frontend
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: ""
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+# Fastify API Server settings
+api:
+  replicaCount: 1
+  image:
+    repository: ghcr.io/jmo808/drawio-api
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: ""
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+# Python AI Agent settings
+agent:
+  replicaCount: 1
+  image:
+    repository: ghcr.io/jmo808/drawio-agent
+    pullPolicy: IfNotPresent
+    # Overrides the image tag whose default is the chart appVersion.
+    tag: ""
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 250m
+      memory: 512Mi
+  # LLM Provider Configuration
+  llm:
+    provider: "ollama"
+    model: "llama3"
+    apiKey: ""
+
+# Collaboration (Valkey) stub settings (For future Phase 2 work)
+collaboration:
+  enabled: false
+
+# Gateway API routing settings
+gateway:
+  # When true, a Gateway resource will be created
+  enabled: true
+  name: "drawio-gateway"
+  gatewayClassName: "cilium"
+
+httproute:
+  # Hostnames to match (e.g. ["drawio.example.com"])
+  hostnames: []

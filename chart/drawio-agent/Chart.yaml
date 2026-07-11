@@ -1,0 +1,6 @@
+apiVersion: v2
+name: drawio-agent
+description: Helm-packaged, self-hosted draw.io editor extended with an AI-powered chat sidebar
+type: application
+version: 0.1.0
+appVersion: 0.1.0

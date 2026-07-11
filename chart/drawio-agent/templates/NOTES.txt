@@ -1,0 +1,9 @@
+1. Get the application URL by running these commands:
+{{- if .Values.gateway.enabled }}
+   kubectl get httproute {{ include "drawio-agent.fullname" . }} -o jsonpath='{.spec.hostnames}'
+{{- else }}
+   kubectl get svc {{ include "drawio-agent.fullname" . }}-frontend
+{{- end }}
+
+2. Send chat prompts using the sidebar in draw.io frontend to generate or edit diagrams!
+   Ensure your local LLM provider is running and accessible (or appropriate API keys are configured).
