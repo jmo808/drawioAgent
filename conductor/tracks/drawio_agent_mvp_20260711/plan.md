@@ -254,13 +254,13 @@
 
 ## Phase 7: Template Library & Integration Testing (AD-15)
 
-- [~] Task: Create architecture template JSON specs
-    - [ ] Write Tests: Validate each template JSON against the `compile_json_spec` schema
-    - [ ] Implement: AWS 3-tier web application template (`templates/architectures/aws-3tier.json`)
-    - [ ] Implement: AWS microservices template (`templates/architectures/aws-microservices.json`)
-    - [ ] Implement: GCP GKE cluster template (`templates/architectures/gcp-gke.json`)
-    - [ ] Implement: Azure AKS template (`templates/architectures/azure-aks.json`)
-- [ ] Task: End-to-end integration tests
+- [x] Task: Create architecture template JSON specs
+    - [x] Write Tests: Validate each template JSON against the `compile_json_spec` schema
+    - [x] Implement: AWS 3-tier web application template (`templates/architectures/aws-3tier.json`)
+    - [x] Implement: AWS microservices template (`templates/architectures/aws-microservices.json`)
+    - [x] Implement: GCP GKE cluster template (`templates/architectures/gcp-gke.json`)
+    - [x] Implement: Azure AKS template (`templates/architectures/azure-aks.json`)
+- [~] Task: End-to-end integration tests
     - [ ] Write Tests: Test full flow — chat message → API → agent → MCP tools → diagram XML → frontend display
     - [ ] Write Tests: Test multi-turn with snapshot — create diagram, manually edit, then modify via follow-up prompt
     - [ ] Write Tests: Test template selection — select AWS 3-tier → diagram generated via compile_json_spec
