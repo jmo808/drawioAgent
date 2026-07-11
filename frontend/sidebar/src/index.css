@@ -1,111 +1,347 @@
+/* Custom CSS for Antigravity Chat Sidebar */
+
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
-
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
+  --ag-font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --ag-bg-light: rgba(255, 255, 255, 0.85);
+  --ag-bg-dark: rgba(30, 31, 38, 0.9);
+  --ag-border-light: rgba(229, 228, 231, 0.5);
+  --ag-border-dark: rgba(46, 48, 58, 0.6);
+  --ag-text-light: #2c2a2e;
+  --ag-text-dark: #e3e1e6;
+  --ag-text-muted-light: #7a7580;
+  --ag-text-muted-dark: #928f99;
+  --ag-accent: #aa3bff;
+  --ag-accent-hover: #912ae6;
+  --ag-bubble-user-light: #aa3bff;
+  --ag-bubble-user-dark: #be5eff;
+  --ag-bubble-assistant-light: rgba(244, 243, 236, 0.8);
+  --ag-bubble-assistant-dark: rgba(47, 48, 58, 0.7);
+  --ag-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15);
+  --ag-shadow-fab: 0 4px 16px 0 rgba(170, 59, 255, 0.3);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
+/* Core styles for sidebar container */
+#drawio-agent-sidebar-root {
+  font-family: var(--ag-font-family);
+  font-size: 14px;
 }
 
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
+/* Sidebar panel */
+.drawio-agent-sidebar {
+  position: fixed;
+  top: 60px; /* offset top header bar in draw.io */
+  right: 16px;
+  bottom: 16px;
+  width: 380px;
+  z-index: 9999;
   display: flex;
   flex-direction: column;
-  box-sizing: border-box;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--ag-shadow);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  
+  background: var(--ag-bg-light);
+  border: 1px solid var(--ag-border-light);
+  color: var(--ag-text-light);
 }
 
-body {
-  margin: 0;
-}
-
-h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
-}
-
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
+/* Dark mode theme check */
+@media (prefers-color-scheme: dark) {
+  .drawio-agent-sidebar {
+    background: var(--ag-bg-dark);
+    border: 1px solid var(--ag-border-dark);
+    color: var(--ag-text-dark);
   }
 }
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
+/* If dark theme class added dynamically on parent body */
+body.geDarkPage .drawio-agent-sidebar,
+body.dark .drawio-agent-sidebar {
+  background: var(--ag-bg-dark);
+  border: 1px solid var(--ag-border-dark);
+  color: var(--ag-text-dark);
 }
 
-code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
+/* Floating Action Button */
+.drawio-agent-toggle-fab {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--ag-accent);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--ag-shadow-fab);
+  z-index: 10000;
+  transition: all 0.2s ease-in-out;
+}
+.drawio-agent-toggle-fab:hover {
+  transform: scale(1.08);
+  background: var(--ag-accent-hover);
+}
+
+/* Header */
+.drawio-agent-header {
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--ag-border-light);
+}
+@media (prefers-color-scheme: dark) {
+  .drawio-agent-header {
+    border-bottom: 1px solid var(--ag-border-dark);
+  }
+}
+body.geDarkPage .drawio-agent-header {
+  border-bottom: 1px solid var(--ag-border-dark);
+}
+
+.drawio-agent-title-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.drawio-agent-sparkle-icon {
+  color: var(--ag-accent);
+}
+.drawio-agent-title {
+  font-weight: 600;
+  letter-spacing: -0.2px;
+}
+
+.drawio-agent-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.drawio-agent-status-icon {
+  transition: color 0.2s ease;
+}
+.drawio-agent-status-icon.connected {
+  color: #10b981;
+}
+.drawio-agent-status-icon.disconnected {
+  color: #ef4444;
+}
+
+.drawio-agent-close-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
   border-radius: 4px;
-  color: var(--text-h);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+.drawio-agent-close-btn:hover {
+  opacity: 1;
 }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+/* Connection Banner */
+.drawio-agent-connection-banner {
+  padding: 6px 12px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 500;
+}
+.drawio-agent-connection-banner.connecting {
+  background: rgba(245, 158, 11, 0.15);
+  color: #d97706;
+}
+.drawio-agent-connection-banner.disconnected {
+  background: rgba(239, 68, 68, 0.15);
+  color: #dc2626;
+}
+
+/* Body / Messages List */
+.drawio-agent-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.drawio-agent-msg-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.drawio-agent-msg-row {
+  display: flex;
+  width: 100%;
+}
+.drawio-agent-row-user {
+  justify-content: flex-end;
+}
+.drawio-agent-row-assistant {
+  justify-content: flex-start;
+}
+
+.drawio-agent-msg-bubble {
+  max-width: 80%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  line-height: 140%;
+}
+
+.drawio-agent-msg-user {
+  background: var(--ag-bubble-user-light);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+@media (prefers-color-scheme: dark) {
+  .drawio-agent-msg-user {
+    background: var(--ag-bubble-user-dark);
+  }
+}
+body.geDarkPage .drawio-agent-msg-user {
+  background: var(--ag-bubble-user-dark);
+}
+
+.drawio-agent-msg-bubble.drawio-agent-msg-assistant {
+  background: var(--ag-bubble-assistant-light);
+  color: var(--ag-text-light);
+  border-bottom-left-radius: 4px;
+  border: 1px solid var(--ag-border-light);
+}
+@media (prefers-color-scheme: dark) {
+  .drawio-agent-msg-bubble.drawio-agent-msg-assistant {
+    background: var(--ag-bubble-assistant-dark);
+    color: var(--ag-text-dark);
+    border: 1px solid var(--ag-border-dark);
+  }
+}
+body.geDarkPage .drawio-agent-msg-bubble.drawio-agent-msg-assistant {
+  background: var(--ag-bubble-assistant-dark);
+  color: var(--ag-text-dark);
+  border: 1px solid var(--ag-border-dark);
+}
+
+/* Tool Progress indicator */
+.drawio-agent-tool-progress {
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.04);
+}
+@media (prefers-color-scheme: dark) {
+  .drawio-agent-tool-progress {
+    background: rgba(255, 255, 255, 0.04);
+  }
+}
+body.geDarkPage .drawio-agent-tool-progress {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.drawio-agent-tool-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--ag-accent);
+}
+
+.drawio-agent-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.drawio-agent-tool-desc {
+  opacity: 0.85;
+}
+
+.drawio-agent-tool-steps {
+  font-size: 10px;
+  opacity: 0.5;
+  text-align: right;
+}
+
+/* Footer / Input box */
+.drawio-agent-footer {
+  padding: 14px;
+  border-top: 1px solid var(--ag-border-light);
+}
+@media (prefers-color-scheme: dark) {
+  .drawio-agent-footer {
+    border-top: 1px solid var(--ag-border-dark);
+  }
+}
+body.geDarkPage .drawio-agent-footer {
+  border-top: 1px solid var(--ag-border-dark);
+}
+
+.drawio-agent-input-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.03);
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid var(--ag-border-light);
+}
+@media (prefers-color-scheme: dark) {
+  .drawio-agent-input-container {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--ag-border-dark);
+  }
+}
+body.geDarkPage .drawio-agent-input-container {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--ag-border-dark);
+}
+
+.drawio-agent-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 13px;
+  color: inherit;
+}
+.drawio-agent-input::placeholder {
+  opacity: 0.5;
+}
+
+.drawio-agent-send-btn {
+  background: var(--ag-accent);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.drawio-agent-send-btn:hover:not(:disabled) {
+  background: var(--ag-accent-hover);
+}
+.drawio-agent-send-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
