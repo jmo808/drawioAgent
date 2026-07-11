@@ -260,21 +260,21 @@
     - [x] Implement: AWS microservices template (`templates/architectures/aws-microservices.json`)
     - [x] Implement: GCP GKE cluster template (`templates/architectures/gcp-gke.json`)
     - [x] Implement: Azure AKS template (`templates/architectures/azure-aks.json`)
-- [~] Task: End-to-end integration tests
-    - [ ] Write Tests: Test full flow — chat message → API → agent → MCP tools → diagram XML → frontend display
-    - [ ] Write Tests: Test multi-turn with snapshot — create diagram, manually edit, then modify via follow-up prompt
-    - [ ] Write Tests: Test template selection — select AWS 3-tier → diagram generated via compile_json_spec
-    - [ ] Write Tests: Test provider switching — change provider mid-session, verify next request uses new provider
-    - [ ] Write Tests: Test error handling — invalid prompt → graceful error message in chat
-    - [ ] Implement: Set up Playwright for browser E2E testing against docker-compose environment
-    - [ ] Implement: Create test fixtures with mock LLM responses for deterministic testing
-    - [ ] Implement: Create `docker-compose.test.yml` with test-specific configuration
-- [ ] Task: Helm chart validation
-    - [ ] Write Tests: Create `templates/tests/test-connection.yaml` test pod
-    - [ ] Write Tests: Test `helm template --dry-run` succeeds with default values
-    - [ ] Write Tests: Test `helm template --dry-run` succeeds with all values overridden
-    - [ ] Write Tests: Verify `helm lint` passes with strict mode
-- [ ] Task: Conductor - User Manual Verification 'Phase 7: Template Library & Integration Testing' (Protocol in workflow.md)
+- [x] Task: End-to-end integration tests (3013b65, 39fcb79, 6bf7dc8)
+    - [x] Write Tests: Test full flow — chat message → API → agent → MCP tools → diagram XML → frontend display
+    - [x] Write Tests: Test multi-turn with snapshot — create diagram, manually edit, then modify via follow-up prompt
+    - [x] Write Tests: Test template selection — select AWS 3-tier → diagram generated via compile_json_spec
+    - [x] Write Tests: Test provider switching — change provider mid-session, verify next request uses new provider
+    - [x] Write Tests: Test error handling — invalid prompt → graceful error message in chat
+    - [x] Implement: Set up Playwright for browser E2E testing against docker-compose environment
+    - [x] Implement: Create test fixtures with mock LLM responses for deterministic testing
+    - [x] Implement: Create `docker-compose.test.yml` with test-specific configuration
+- [x] Task: Helm chart validation (39fcb79)
+    - [x] Write Tests: Create `templates/tests/test-connection.yaml` test pod
+    - [x] Write Tests: Test `helm template --dry-run` succeeds with default values
+    - [x] Write Tests: Test `helm template --dry-run` succeeds with all values overridden
+    - [x] Write Tests: Verify `helm lint` passes with strict mode
+- [~] Task: Conductor - User Manual Verification 'Phase 7: Template Library & Integration Testing' (Protocol in workflow.md)
 
 ## Phase 8: Documentation & Polish
 
