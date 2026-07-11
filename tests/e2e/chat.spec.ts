@@ -7,15 +7,18 @@ test.describe('Drawio Agent AI Chat Sidebar E2E Tests', () => {
 
     // If "Decide later" dialog appears, click it to bypass the storage setup
     const decideLater = page.locator('text="Decide later"');
-    try {
-      await decideLater.waitFor({ state: 'visible', timeout: 5000 });
-      await decideLater.click();
-    } catch (e) {
-      // Dialog didn't show up, which is fine
-    }
+    const sidebarRoot = page.locator('#drawio-agent-sidebar-root');
+
+    await Promise.race([
+      decideLater.waitFor({ state: 'visible', timeout: 15000 }).then(() => 'dialog'),
+      sidebarRoot.waitFor({ state: 'visible', timeout: 15000 }).then(() => 'sidebar')
+    ]).then(async (result) => {
+      if (result === 'dialog') {
+        await decideLater.click();
+      }
+    }).catch(() => {});
 
     // Wait for draw.io editor to initialize and render our sidebar root
-    const sidebarRoot = page.locator('#drawio-agent-sidebar-root');
     await expect(sidebarRoot).toBeVisible({ timeout: 20000 });
 
     // Wait for connection banner to disappear (indicating WebSocket is connected)
