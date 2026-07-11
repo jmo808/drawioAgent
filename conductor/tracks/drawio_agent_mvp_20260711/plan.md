@@ -228,14 +228,14 @@
     - [x] Implement: `templates/api-service.yaml` (ClusterIP, port 3000)
     - [x] Implement: Mount API key from Secret as `API_KEY` env var
     - [x] Implement: Mount agent service URL as `AGENT_SERVICE_URL` env var
-- [~] Task: Create Kubernetes manifests for Python AI agent
-    - [ ] Write Tests: Test template renders valid Deployment YAML with LLM provider env vars
-    - [ ] Write Tests: Test MCP_SERVER_PATH env var is set correctly
-    - [ ] Implement: `templates/agent-deployment.yaml` with liveness/readiness probes (HTTP /health)
-    - [ ] Implement: `templates/agent-service.yaml` (ClusterIP, port 8000)
-    - [ ] Implement: Mount LLM provider secrets (LLM_PROVIDER, LLM_MODEL, LLM_API_KEY) from Secret
-    - [ ] Implement: Set `MCP_SERVER_PATH` env var pointing to bundled mcp-wrapper.js
-- [ ] Task: Create Gateway API HTTPRoute and supporting manifests
+- [x] Task: Create Kubernetes manifests for Python AI agent
+    - [x] Write Tests: Test template renders valid Deployment YAML with LLM provider env vars
+    - [x] Write Tests: Test MCP_SERVER_PATH env var is set correctly
+    - [x] Implement: `templates/agent-deployment.yaml` with liveness/readiness probes (HTTP /health)
+    - [x] Implement: `templates/agent-service.yaml` (ClusterIP, port 8000)
+    - [x] Implement: Mount LLM provider secrets (LLM_PROVIDER, LLM_MODEL, LLM_API_KEY) from Secret
+    - [x] Implement: Set `MCP_SERVER_PATH` env var pointing to bundled mcp-wrapper.js
+- [~] Task: Create Gateway API HTTPRoute and supporting manifests
     - [ ] Write Tests: Test HTTPRoute renders with correct path matching rules
     - [ ] Write Tests: Test Secret template correctly encodes API key and LLM credentials
     - [ ] Write Tests: Test ConfigMap renders with non-secret configuration
