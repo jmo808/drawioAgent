@@ -73,19 +73,19 @@
     - [x] Implement: Provider configuration via environment variables (`LLM_PROVIDER`, `LLM_MODEL`, `LLM_API_KEY`)
     - [x] Implement: Tool schema formatter that converts MCP tool definitions to LiteLLM function calling format
     - [x] Implement: Streaming support with async generator
-- [~] Task: Implement MCP tool bridge (AD-7)
-    - [ ] Write Tests: Test `MCPBridge.start()` spawns `node mcp-wrapper.js` child process
-    - [ ] Write Tests: Test `MCPBridge.call_tool()` sends JSON-RPC request and returns result
-    - [ ] Write Tests: Test `MCPBridge.list_tools()` discovers available tools at startup
-    - [ ] Write Tests: Test automatic restart when child process crashes
-    - [ ] Write Tests: Test graceful shutdown terminates child process
-    - [ ] Write Tests: Test timeout handling for unresponsive tool calls
-    - [ ] Implement: Create `MCPBridge` class (`src/agent/mcp_bridge.py`)
-    - [ ] Implement: `asyncio.subprocess` for child process management
-    - [ ] Implement: JSON-RPC 2.0 request/response serialization over stdin/stdout
-    - [ ] Implement: Tool discovery via `tools/list` method at startup
-    - [ ] Implement: Process lifecycle management (start, health check, restart, shutdown)
-    - [ ] Implement: Configurable path to `mcp-wrapper.js` via `MCP_SERVER_PATH` env var
+- [x] Task: Implement MCP tool bridge (AD-7) (fe6afc5)
+    - [x] Write Tests: Test `MCPBridge.start()` spawns `node mcp-wrapper.js` child process
+    - [x] Write Tests: Test `MCPBridge.call_tool()` sends JSON-RPC request and returns result
+    - [x] Write Tests: Test `MCPBridge.list_tools()` discovers available tools at startup
+    - [x] Write Tests: Test automatic restart when child process crashes
+    - [x] Write Tests: Test graceful shutdown terminates child process
+    - [x] Write Tests: Test timeout handling for unresponsive tool calls
+    - [x] Implement: Create `MCPBridge` class (`src/agent/mcp_bridge.py`)
+    - [x] Implement: `asyncio.subprocess` for child process management
+    - [x] Implement: JSON-RPC 2.0 request/response serialization over stdin/stdout
+    - [x] Implement: Tool discovery via `tools/list` method at startup
+    - [x] Implement: Process lifecycle management (start, health check, restart, shutdown)
+    - [x] Implement: Configurable path to `mcp-wrapper.js` via `MCP_SERVER_PATH` env var
 - [ ] Task: Implement conversation manager (AD-12)
     - [ ] Write Tests: Test conversation creation with unique session ID
     - [ ] Write Tests: Test message appending maintains order
