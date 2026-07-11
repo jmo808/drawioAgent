@@ -129,17 +129,17 @@
     - [x] Create draw.io plugin entry point (`src/plugin-entry.ts`) using `Draw.loadPlugin()`
     - [x] Set up Vitest for component testing with jsdom environment
     - [x] Create TypeScript declarations for draw.io globals (`EditorUi`, `mxGraph`, `Draw`)
-- [~] Task: Build core chat UI components
-    - [ ] Write Tests: Test `ChatPanel` renders with empty message list and input field
-    - [ ] Write Tests: Test `MessageList` renders user messages with right-aligned styling
-    - [ ] Write Tests: Test `MessageList` renders AI messages with left-aligned styling and tool progress
-    - [ ] Write Tests: Test `MessageInput` handles text input, Enter key, and send button click
-    - [ ] Write Tests: Test `MessageInput` clears input after send and disables during loading
-    - [ ] Implement: Create `ChatPanel` container component (`src/components/ChatPanel.tsx`)
-    - [ ] Implement: Create `MessageList` component with auto-scroll to latest message
-    - [ ] Implement: Create `Message` component with user/AI styling variants
-    - [ ] Implement: Create `MessageInput` component with send button and loading state
-    - [ ] Implement: Adaptive theme CSS — detect draw.io dark/light mode and match styling
+- [x] Task: Build core chat UI components (ce2b34c)
+    - [x] Write Tests: Test `ChatPanel` renders with empty message list and input field
+    - [x] Write Tests: Test `MessageList` renders user messages with right-aligned styling
+    - [x] Write Tests: Test `MessageList` renders AI messages with left-aligned styling and tool progress
+    - [x] Write Tests: Test `MessageInput` handles text input, Enter key, and send button click
+    - [x] Write Tests: Test `MessageInput` clears input after send and disables during loading
+    - [x] Implement: Create `ChatPanel` container component (`src/components/ChatPanel.tsx`)
+    - [x] Implement: Create `MessageList` component with auto-scroll to latest message
+    - [x] Implement: Create `Message` component with user/AI styling variants
+    - [x] Implement: Create `MessageInput` component with send button and loading state
+    - [x] Implement: Adaptive theme CSS — detect draw.io dark/light mode and match styling
 - [ ] Task: Implement WebSocket client and state management (AD-8, AD-13)
     - [ ] Write Tests: Test `useWebSocket` hook establishes connection to `wss://current-host/ws/chat`
     - [ ] Write Tests: Test message queue when WebSocket is disconnected
