@@ -182,12 +182,12 @@
     - [x] Implement: COPY built `drawio-agent-plugin.js` into Tomcat webapp static assets
     - [x] Implement: Create custom `PreConfig.js` with `Draw.loadPlugin()` and plugin URL
     - [x] Implement: COPY `PreConfig.js` to override default at `/usr/local/tomcat/webapps/draw/js/PreConfig.js`
-- [~] Task: Create Dockerfile for Fastify API server
-    - [ ] Write Tests: Test Docker image builds successfully
-    - [ ] Write Tests: Test container starts and `GET /health` responds 200
-    - [ ] Implement: Multi-stage Dockerfile — `node:22-slim` build stage (compile TS) → `node:22-slim` runtime (prod deps only)
-    - [ ] Implement: Non-root user, `HEALTHCHECK` instruction, env var defaults
-- [ ] Task: Create Dockerfile for Python AI agent (multi-runtime)
+- [x] Task: Create Dockerfile for Fastify API server
+    - [x] Write Tests: Test Docker image builds successfully
+    - [x] Write Tests: Test container starts and `GET /health` responds 200
+    - [x] Implement: Multi-stage Dockerfile — `node:22-slim` build stage (compile TS) → `node:22-slim` runtime (prod deps only)
+    - [x] Implement: Non-root user, `HEALTHCHECK` instruction, env var defaults
+- [~] Task: Create Dockerfile for Python AI agent (multi-runtime)
     - [ ] Write Tests: Test Docker image builds successfully
     - [ ] Write Tests: Test `python3` and `node` are both available in the container
     - [ ] Write Tests: Test `GET /health` responds 200
