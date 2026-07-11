@@ -1,6 +1,9 @@
 import { FastifyInstance } from 'fastify';
 import { validateWebSocketMessage } from '@drawio-agent/shared';
+import { AgentProxy } from '../services/agent-proxy.js';
 import crypto from 'crypto';
+
+const agentProxy = new AgentProxy();
 
 /**
  * Registers the WebSocket chat route.
@@ -10,7 +13,7 @@ export async function chatRoutes(app: FastifyInstance) {
     const sessionId = crypto.randomUUID();
     req.log.info({ sessionId }, 'New WebSocket connection established');
 
-    socket.on('message', (message) => {
+    socket.on('message', async (message) => {
       try {
         const dataStr = message.toString();
         let parsed: any;
@@ -37,15 +40,36 @@ export async function chatRoutes(app: FastifyInstance) {
           return;
         }
 
-        // Echo back/placeholder for proxying chat_message to agent
         if (parsed.type === 'chat_message') {
-          req.log.info({ parsed }, 'Received chat_message. Sending placeholder response.');
-          socket.send(JSON.stringify({
-            type: 'tool_progress',
-            payload: { toolName: 'placeholder', step: 1, totalSteps: 1, message: 'Processing your request...' },
-            id: parsed.id,
-            timestamp: new Date().toISOString()
-          }));
+          const clientMsgId = parsed.id;
+          req.log.info({ parsed, sessionId }, 'Proxying chat message to agent');
+          
+          try {
+            await agentProxy.sendChatMessage(
+              {
+                message: parsed.payload.text,
+                diagramXml: parsed.payload.diagramXml,
+                sessionId
+              },
+              (agentEvent) => {
+                req.log.info({ event: agentEvent, sessionId }, 'Relaying agent event to client');
+                socket.send(JSON.stringify({
+                  type: agentEvent.type,
+                  payload: agentEvent.payload,
+                  id: clientMsgId,
+                  timestamp: new Date().toISOString()
+                }));
+              }
+            );
+          } catch (agentErr: any) {
+            req.log.error({ error: agentErr, sessionId }, 'Error during agent proxying');
+            socket.send(JSON.stringify({
+              type: 'error',
+              payload: { code: 'SERVICE_UNAVAILABLE', message: agentErr.message },
+              id: clientMsgId,
+              timestamp: new Date().toISOString()
+            }));
+          }
         }
       } catch (handlerErr: any) {
         req.log.error({ error: handlerErr }, 'Error in WebSocket message handler');
