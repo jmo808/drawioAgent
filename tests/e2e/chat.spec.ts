@@ -5,6 +5,15 @@ test.describe('Drawio Agent AI Chat Sidebar E2E Tests', () => {
     // Navigate to draw.io app loaded with our custom sidebar plugin and test api key
     await page.goto('/?apiKey=test-api-key&ui=atlas&spin=1&proto=json');
 
+    // If "Decide later" dialog appears, click it to bypass the storage setup
+    const decideLater = page.locator('text="Decide later"');
+    try {
+      await decideLater.waitFor({ state: 'visible', timeout: 5000 });
+      await decideLater.click();
+    } catch (e) {
+      // Dialog didn't show up, which is fine
+    }
+
     // Wait for draw.io editor to initialize and render our sidebar root
     const sidebarRoot = page.locator('#drawio-agent-sidebar-root');
     await expect(sidebarRoot).toBeVisible({ timeout: 20000 });
