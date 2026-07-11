@@ -221,14 +221,14 @@
     - [x] Write Tests: Test custom image repository and tag overrides render correctly
     - [x] Implement: `templates/frontend-deployment.yaml` with liveness/readiness probes (HTTP /)
     - [x] Implement: `templates/frontend-service.yaml` (ClusterIP, port 8080)
-- [~] Task: Create Kubernetes manifests for Fastify API server
-    - [ ] Write Tests: Test template renders valid Deployment YAML with API_KEY env from Secret
-    - [ ] Write Tests: Test resource limits and replica count are configurable
-    - [ ] Implement: `templates/api-deployment.yaml` with liveness (`/health`) and readiness (`/ready`) probes
-    - [ ] Implement: `templates/api-service.yaml` (ClusterIP, port 3000)
-    - [ ] Implement: Mount API key from Secret as `API_KEY` env var
-    - [ ] Implement: Mount agent service URL as `AGENT_SERVICE_URL` env var
-- [ ] Task: Create Kubernetes manifests for Python AI agent
+- [x] Task: Create Kubernetes manifests for Fastify API server
+    - [x] Write Tests: Test template renders valid Deployment YAML with API_KEY env from Secret
+    - [x] Write Tests: Test resource limits and replica count are configurable
+    - [x] Implement: `templates/api-deployment.yaml` with liveness (`/health`) and readiness (`/ready`) probes
+    - [x] Implement: `templates/api-service.yaml` (ClusterIP, port 3000)
+    - [x] Implement: Mount API key from Secret as `API_KEY` env var
+    - [x] Implement: Mount agent service URL as `AGENT_SERVICE_URL` env var
+- [~] Task: Create Kubernetes manifests for Python AI agent
     - [ ] Write Tests: Test template renders valid Deployment YAML with LLM provider env vars
     - [ ] Write Tests: Test MCP_SERVER_PATH env var is set correctly
     - [ ] Implement: `templates/agent-deployment.yaml` with liveness/readiness probes (HTTP /health)
