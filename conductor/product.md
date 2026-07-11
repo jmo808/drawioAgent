@@ -53,7 +53,18 @@ The AI chat is delivered as an **embedded sidebar panel** within the draw.io edi
 - Configurable via `values.yaml` for LLM provider, resource limits, ingress, TLS, and persistence
 
 ## Non-Functional Requirements
-- **Security:** All data stays within the cluster; no external calls unless explicitly configured for cloud LLM APIs
+- **Security:** All data stays within the cluster; no external calls unless explicitly configured for cloud LLM APIs. OIDC/JWT authentication with API key fallback. MCP tool sandboxing with path validation. Security audit logging (AU-2 compliant). See TRA Report for full control mapping.
+- **Privacy:** Privacy notice displayed before first chat. Consent toggle for cloud LLM data processing. Local LLM (Ollama) as default provider. Data classification metadata on sessions.
 - **Performance:** Diagram generation should complete within 10 seconds for typical architectures
 - **Scalability:** Horizontal scaling of the AI backend service behind the draw.io frontend
 - **Observability:** Structured logging, health checks, and Prometheus metrics endpoints
+- **Compliance:** FIPS-199 MODERATE classification. NIST 800-53r5 control mapping across 13 families. Pre-implementation TRA conducted 2026-07-11.
+
+## Security Posture
+A Technology Risk Assessment (TRA) was conducted on 2026-07-11 using NIST CSF 2.0 + 800-53r5 framework. Key findings:
+- **FIPS-199:** MODERATE (Confidentiality: Moderate, Integrity: Moderate, Availability: Low)
+- **Pre-Remediation Posture:** HIGH (19 findings: 1 Critical, 7 High, 10 Medium, 1 Low)
+- **Post-Remediation Target:** LOW-MEDIUM
+- **Top 3 Priorities:** (1) OIDC/JWT authentication, (2) MCP sandboxing & prompt injection defenses, (3) Supply chain hardening
+- **Report:** [`TRA-Report.html`](../TRA-Report.html)
+- **Remediation Track:** Track 5 — Security Hardening & TRA Remediation

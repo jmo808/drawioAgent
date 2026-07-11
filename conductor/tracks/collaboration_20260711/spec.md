@@ -11,10 +11,10 @@ Extend the DrawIO Agent MVP with real-time multi-user collaboration. Multiple te
 
 | # | Decision | Choice | Rationale |
 |---|----------|--------|-----------|
-| CD-1 | User identity | Anonymous with display name (random or user-chosen) | Lowest friction; no auth changes needed; matches Excalidraw/Figma casual collab |
+| CD-1 | User identity | Anonymous with display name (random or user-chosen) | Lowest friction; no auth changes needed; matches Excalidraw/Figma casual collab. ⚠️ TRA F-17 (MEDIUM): Add optional identity linking in Track 5 |
 | CD-2 | Session sharing | URL (UUID) + 6-char alphanumeric short code fallback | URL for async sharing (Slack/email); short code for verbal sharing (voice call) |
 | CD-3 | AI trigger permissions | Any member can trigger; requests serialized per session | Egalitarian; mirrors shared whiteboard; serialization prevents conflicting AI requests |
-| CD-4 | Conflict resolution | Last-write-wins with 500ms debounced broadcast | Simple, effective for diagramming (edits are spatially distributed); no CRDT/OT complexity |
+| CD-4 | Conflict resolution | Last-write-wins with 500ms debounced broadcast | Simple, effective for diagramming (edits are spatially distributed); no CRDT/OT complexity. ⚠️ TRA F-15 (MEDIUM): Add version vectors in Track 5 |
 | CD-5 | Broadcast payload | Full XML snapshot (consistent with MVP snapshot-before-request) | Self-healing (missed broadcasts auto-corrected by next one); 5-50KB is trivial for WebSocket |
 | CD-6 | Canvas sync UX | Silent replacement + viewport preservation + toast notification | Save zoom/scroll → setGraphXml → restore viewport; toast: "Diagram updated by Alice" |
 | CD-7 | Chat model | Shared chat with sender attribution; full history for new joiners | Complete audit trail of who asked what; new joiners understand diagram's evolution |

@@ -14,13 +14,13 @@ Establish automated CI/CD pipelines for building, testing, and releasing all Dra
 | # | Decision | Choice | Rationale |
 |---|----------|--------|-----------|
 | CI-1 | CI platform | GitHub Actions (Node 24+ compatible actions only) | Native GitHub integration; OIDC for ghcr.io; rich ecosystem |
-| CI-2 | Runner strategy | Self-hosted `k8s-cluster` for heavy jobs; GitHub-hosted `ubuntu-latest` for lint/test | Fast queue times for lightweight jobs; self-hosted for Docker builds and E2E |
+| CI-2 | Runner strategy | Self-hosted `k8s-cluster` for heavy jobs; GitHub-hosted `ubuntu-latest` for lint/test | Fast queue times for lightweight jobs; self-hosted for Docker builds and E2E. ⚠️ TRA F-16 (MEDIUM): Use ephemeral runners or post-job cleanup |
 | CI-3 | Container registry | GitHub Container Registry (ghcr.io) with OIDC keyless auth | Free, zero credential setup, images linked to repo, configurable override in values.yaml |
 | CI-4 | Helm distribution | OCI registry via ghcr.io (`helm push` as OCI artifact) | Modern Helm 3.8+ approach; one registry for images + charts; no GitHub Pages branch |
 | CI-5 | Versioning | Manual semver git tags; non-release commits get `sha-<commit>` + `latest` tags | Full control over release timing; chart version and image versions stay in sync |
 | CI-6 | Build strategy | Path-filtered selective builds; release tags build all | Saves CI time; `packages/shared` changes trigger all builds |
 | CI-7 | Multi-arch | linux/amd64 + linux/arm64; PR builds amd64-only | Covers x86 + ARM (Graviton, Ampere, Apple Silicon); QEMU for arm64 on release only |
-| CI-8 | Vulnerability scanning | Trivy (filesystem scan on PR, image scan on release, SARIF output) | Open-source, comprehensive, native GitHub Security tab integration |
+| CI-8 | Vulnerability scanning | Trivy (filesystem scan on PR, image scan on release, SARIF output) + SBOM generation | Open-source, comprehensive, native GitHub Security tab integration. TRA F-04: Add `npm audit` + SBOM via `syft`/`trivy sbom` |
 | CI-9 | E2E environment | kind + Cilium CNI + Gateway API CRDs on `k8s-cluster` | Matches production deployment; ephemeral, reproducible, isolated |
 | CI-10 | PR checks | Lint, unit tests (>80% coverage), `tsc --noEmit`, Docker build verify, Trivy filesystem | Fast (<5 min), catch the right bugs; no full E2E on PRs |
 | CI-11 | Image signing | Cosign keyless with GitHub OIDC (Sigstore transparency log) | Zero key management; industry standard; 3 lines in workflow |

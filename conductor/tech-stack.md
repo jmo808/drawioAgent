@@ -67,3 +67,15 @@
 | `react` | `^18.x` | Frontend sidebar UI |
 | `vite` | `^6.x` | Frontend build tool |
 | `litellm` | `latest` | Python LLM provider abstraction |
+
+## Security Tooling (TRA Findings)
+
+| Component | Technology | TRA Finding | Purpose |
+|-----------|------------|-------------|--------|
+| **Authentication** | `jsonwebtoken` + `jwks-rsa` (Node.js) | F-01 | OIDC/JWT token validation with JWKS key discovery |
+| **Path Sandboxing** | Custom `validatePath()` in mcp-wrapper.js | F-05 | Prevent MCP file-access tools from path traversal |
+| **Content Filtering** | Custom `content_filter.py` (Python) | F-03 | Scan diagram XML for sensitive patterns before LLM submission |
+| **MCP Validation** | Custom `mcp_validator.py` (Python) | F-02 | Allowlist-based MCP tool call filtering between LLM and MCP |
+| **Audit Logging** | Pino (Node.js) + structlog (Python) | F-08 | AU-2-compliant security event logging with X-Request-ID correlation |
+| **Supply Chain** | `syft` or `trivy sbom` | F-04 | SBOM generation; replaces npx runtime downloads |
+| **Privacy UI** | React components | F-13 | Privacy notice banner + cloud LLM consent toggle |

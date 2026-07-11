@@ -21,7 +21,7 @@
     - [x] Create virtual environment setup script (`scripts/setup-venv.sh`)
     - [x] Create `src/agent/` package with `__init__.py`, `config.py`
     - [x] Configure pytest with asyncio support in `pyproject.toml`
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Project Scaffolding & Shared Types' (Protocol in workflow.md)
+- [~] Task: Conductor - User Manual Verification 'Phase 1: Project Scaffolding & Shared Types' (Protocol in workflow.md)
 
 ## Phase 2: Fastify API Server (`services/api/`)
 

@@ -18,7 +18,7 @@ The following decisions were resolved during design review and are binding for i
 | AD-7 | MCP server lifecycle | Long-lived child process (spawn once, reuse) | Sub-millisecond tool call latency; matches MCP protocol's persistent session design |
 | AD-8 | WebSocket protocol | Typed JSON envelope `{type, payload, id, timestamp}` | Simple, debuggable in DevTools, extensible |
 | AD-9 | K8s pod architecture | Separate Deployments per service | Independent scaling; AI agent is CPU-heavy, frontend/API are lightweight |
-| AD-10 | Authentication | Static API key (Kubernetes Secret) | Sufficient for MVP; upgradeable to JWT/OAuth2 later |
+| AD-10 | Authentication | Static API key (Kubernetes Secret) | Sufficient for MVP; upgradeable to JWT/OAuth2 later. ⚠️ TRA F-01 (CRITICAL): Replace with OIDC/JWT in Track 5 |
 | AD-11 | Collaboration | Deferred to post-MVP (Track 2) | Single-user sessions for MVP; dramatically simplifies state management |
 | AD-12 | System prompt | SKILL.md + dynamic tool schemas + on-demand reference docs | Compact core prompt; reference docs loaded only when relevant |
 | AD-13 | API URL discovery | Same-origin (reverse proxy / Gateway API) | Zero CORS, zero config; plugin connects to `wss://current-host/ws/chat` |
@@ -178,8 +178,25 @@ interface WebSocketMessage {
 - CI/CD pipeline and automated image publishing (Track 3)
 - Prometheus metrics, Grafana dashboards, OpenTelemetry tracing (Track 4)
 - Rate limiting, circuit breakers, PodDisruptionBudgets (Track 4)
-- JWT/OAuth2 authentication
+- OIDC/JWT authentication — replaces static API key (Track 5, F-01 CRITICAL)
+- MCP sandboxing & prompt injection defenses (Track 5, F-02/F-05 HIGH)
+- LLM data flow controls & content filtering (Track 5, F-03/F-07 HIGH)
+- NPX fallback removal & supply chain hardening (Track 5, F-04 HIGH)
+- Security audit logging (Track 5, F-08 HIGH)
+- Privacy notice & consent mechanism (Track 5, F-13 MEDIUM)
 - Diagram version history
+
+## TRA Security Notes
+A pre-implementation Technology Risk Assessment (TRA-Report.html) identified the following items that impact MVP design but are remediated in Track 5:
+
+| Finding | Severity | MVP Impact | Track 5 Phase |
+|---------|----------|------------|---------------|
+| F-01: Static API key auth | CRITICAL | AD-10 accepted for MVP; Track 5 upgrades to OIDC/JWT | Phase 1 |
+| F-02: Prompt injection → MCP | HIGH | No guardrails between LLM output and MCP execution in MVP | Phase 2 |
+| F-04: NPX fallback supply chain | HIGH | mcp-wrapper.js npx fallback present in MVP Docker image | Phase 3 |
+| F-05: MCP path traversal | HIGH | validate_file/compile_json_spec accept arbitrary paths | Phase 2 |
+| F-06: MCP inherits secrets | HIGH | Child process receives full parent environment | Phase 2 |
+| F-19: No API versioning | LOW | MVP routes are unversioned; Track 5 adds /api/v1/ | Phase 6 |
 
 ## Dependencies on drawio_plugin
 The project depends on `~/Development/drawio_plugin` for:

@@ -18,7 +18,7 @@ Add comprehensive observability (metrics, logging, tracing) and production harde
 | OB-4 | Logging libraries | Pino (Fastify built-in) + structlog (Python) | Both JSON-native; Pino is fastest Node.js logger; structlog has processor pipeline |
 | OB-5 | Correlation ID | X-Request-ID header propagation (API → Agent → logs) | Enables cross-service log search by single ID; returned to client |
 | OB-6 | Distributed tracing | OpenTelemetry SDK with configurable OTLP exporter | Industry standard (CNCF); auto-instrumentation + custom spans; opt-in via env var |
-| OB-7 | Rate limiting | Per-API-key via `@fastify/rate-limit`; Valkey store when available, in-memory otherwise | Reuses existing infra; prevents LLM cost runaway; configurable limits |
+| OB-7 | Rate limiting | Per-API-key via `@fastify/rate-limit`; Valkey store when available, in-memory otherwise | Reuses existing infra; prevents LLM cost runaway; configurable limits. ⚠️ TRA F-11 (MEDIUM): Add per-connection WebSocket rate limiting in Track 5 |
 | OB-8 | Circuit breaker | pybreaker wrapping `LLMService.generate()`; per-provider; state as Prometheus gauge | Fast-fail on provider outages; prevents cascading failures; per-provider isolation |
 | OB-9 | HPA | CPU-based HPA for agent only (70%, min 1, max 5); fixed replicas for API/frontend | Agent is CPU-bound; API/frontend are lightweight; no custom metrics adapter needed |
 | OB-10 | Network policies | Standard K8s NetworkPolicy (L3/L4); optional Cilium FQDN egress for LLM endpoints | Default deny; portability; defense-in-depth |
