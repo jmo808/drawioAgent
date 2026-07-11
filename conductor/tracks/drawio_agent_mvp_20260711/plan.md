@@ -210,7 +210,7 @@
 
 ## Phase 6: Helm Chart (`chart/drawio-agent/`) (AD-9, AD-14)
 
-- [ ] Task: Create Helm chart scaffolding
+- [~] Task: Create Helm chart scaffolding
     - [ ] Write Tests: Run `helm lint chart/drawio-agent` and verify zero errors/warnings
     - [ ] Implement: Create `Chart.yaml` — name: drawio-agent, version: 0.1.0, appVersion: 0.1.0, type: application
     - [ ] Implement: Create `values.yaml` with all configurable parameters and documented defaults
