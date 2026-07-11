@@ -1,0 +1,107 @@
+services:
+  nginx-proxy:
+    image: docker.io/nginx:alpine
+    ports:
+      - "8081:8080" # Map to port 8081 for testing to avoid conflicts with 8080 dev port
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro,z
+    depends_on:
+      drawio-frontend:
+        condition: service_healthy
+      drawio-api:
+        condition: service_healthy
+    networks:
+      - drawio-net
+
+  drawio-frontend:
+    build:
+      context: .
+      dockerfile: frontend/sidebar/Dockerfile
+    volumes:
+      - ./frontend/sidebar/dist/drawio-agent-plugin.js:/usr/local/tomcat/webapps/draw/js/drawio-agent-plugin.js:ro,z
+      - ./frontend/sidebar/PreConfig.js:/usr/local/tomcat/webapps/draw/js/PreConfig.js:ro,z
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/draw/js/PreConfig.js"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 2s
+    networks:
+      - drawio-net
+
+  drawio-api:
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+      target: builder
+    volumes:
+      - ./services/api/src:/app/services/api/src:ro,z
+      - ./packages/shared/src:/app/packages/shared/src:ro,z
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - HOST=0.0.0.0
+      - API_KEY=test-api-key
+      - AGENT_SERVICE_URL=http://drawio-agent:8000
+    command: npm run dev -w drawio-agent-api
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 2s
+    depends_on:
+      drawio-agent:
+        condition: service_healthy
+    networks:
+      - drawio-net
+
+  drawio-agent:
+    build:
+      context: ..
+      dockerfile: drawioAgent/services/agent/Dockerfile
+    volumes:
+      - ./services/agent/src:/app/agent/src:ro,z
+      - ../drawio_plugin:/app/mcp-server:ro,z
+    environment:
+      - PORT=8000
+      - HOST=0.0.0.0
+      - PYTHONPATH=/app/agent/src
+      - MCP_SERVER_PATH=/app/mcp-server/scripts/mcp-wrapper.js
+      - LLM_PROVIDER=openai
+      - LLM_MODEL=mock-model
+      - LLM_API_KEY=mock-key
+      - OPENAI_API_BASE=http://mock-llm:9090/v1
+    command: uvicorn agent.server:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 2s
+    depends_on:
+      mock-llm:
+        condition: service_healthy
+    networks:
+      - drawio-net
+
+  mock-llm:
+    build:
+      context: ..
+      dockerfile: drawioAgent/services/agent/Dockerfile
+    volumes:
+      - ./services/agent/src:/app/agent/src:ro,z
+      - ./services/agent/tests:/app/agent/tests:ro,z
+    command: /opt/venv/bin/python /app/agent/tests/mock_llm.py
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9090/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 2s
+    networks:
+      - drawio-net
+
+networks:
+  drawio-net:
+    driver: bridge

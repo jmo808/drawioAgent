@@ -13,6 +13,7 @@
     "lint": "npm run lint -w packages/shared -w services/api -w frontend/sidebar"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "typescript": "^5.3.3"
   }
 }
