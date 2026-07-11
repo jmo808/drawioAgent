@@ -119,7 +119,7 @@
     - [x] Implement: Wire routes to `AgentOrchestrator`
     - [x] Implement: Pydantic models for request/response validation
     - [x] Implement: CORS middleware and error handling
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Python AI Agent Service' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Python AI Agent Service' (Protocol in workflow.md) (4bbe321)
 
 ## Phase 4: React Chat Sidebar Plugin (`frontend/sidebar/`)
 
