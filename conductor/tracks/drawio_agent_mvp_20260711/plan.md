@@ -123,12 +123,12 @@
 
 ## Phase 4: React Chat Sidebar Plugin (`frontend/sidebar/`)
 
-- [ ] Task: Scaffold Vite + React project for draw.io plugin (AD-1, AD-2)
-    - [ ] Configure Vite to build a single IIFE bundle (`drawio-agent-plugin.js`)
-    - [ ] Configure Vite library mode with no external dependencies (everything bundled)
-    - [ ] Create draw.io plugin entry point (`src/plugin-entry.ts`) using `Draw.loadPlugin()`
-    - [ ] Set up Vitest for component testing with jsdom environment
-    - [ ] Create TypeScript declarations for draw.io globals (`EditorUi`, `mxGraph`, `Draw`)
+- [x] Task: Scaffold Vite + React project for draw.io plugin (AD-1, AD-2) (828b53e)
+    - [x] Configure Vite to build a single IIFE bundle (`drawio-agent-plugin.js`)
+    - [x] Configure Vite library mode with no external dependencies (everything bundled)
+    - [x] Create draw.io plugin entry point (`src/plugin-entry.ts`) using `Draw.loadPlugin()`
+    - [x] Set up Vitest for component testing with jsdom environment
+    - [x] Create TypeScript declarations for draw.io globals (`EditorUi`, `mxGraph`, `Draw`)
 - [ ] Task: Build core chat UI components
     - [ ] Write Tests: Test `ChatPanel` renders with empty message list and input field
     - [ ] Write Tests: Test `MessageList` renders user messages with right-aligned styling
