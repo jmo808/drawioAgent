@@ -235,15 +235,15 @@
     - [x] Implement: `templates/agent-service.yaml` (ClusterIP, port 8000)
     - [x] Implement: Mount LLM provider secrets (LLM_PROVIDER, LLM_MODEL, LLM_API_KEY) from Secret
     - [x] Implement: Set `MCP_SERVER_PATH` env var pointing to bundled mcp-wrapper.js
-- [~] Task: Create Gateway API HTTPRoute and supporting manifests
-    - [ ] Write Tests: Test HTTPRoute renders with correct path matching rules
-    - [ ] Write Tests: Test Secret template correctly encodes API key and LLM credentials
-    - [ ] Write Tests: Test ConfigMap renders with non-secret configuration
-    - [ ] Implement: `templates/httproute.yaml` — Gateway API HTTPRoute with path-based routing (`/api/*` → api-svc, `/ws/*` → api-svc, `/*` → frontend-svc)
-    - [ ] Implement: `templates/gateway.yaml` — optional Gateway resource (configurable via values)
-    - [ ] Implement: `templates/secrets.yaml` — API key + LLM provider credentials
-    - [ ] Implement: `templates/configmap.yaml` — non-secret configuration (agent URL, feature flags)
-- [ ] Task: Add optional Valkey inline template stub
+- [x] Task: Create Gateway API HTTPRoute and supporting manifests
+    - [x] Write Tests: Test HTTPRoute renders with correct path matching rules
+    - [x] Write Tests: Test Secret template correctly encodes API key and LLM credentials
+    - [x] Write Tests: Test ConfigMap renders with non-secret configuration
+    - [x] Implement: `templates/httproute.yaml` — Gateway API HTTPRoute with path-based routing (`/api/*` → api-svc, `/ws/*` → api-svc, `/*` → frontend-svc)
+    - [x] Implement: `templates/gateway.yaml` — optional Gateway resource (configurable via values)
+    - [x] Implement: `templates/secrets.yaml` — API key + LLM provider credentials
+    - [x] Implement: `templates/configmap.yaml` — non-secret configuration (agent URL, feature flags)
+- [~] Task: Add optional Valkey inline template stub
     - [ ] Write Tests: Test chart deploys successfully when `collaboration.enabled=false` (default)
     - [ ] Write Tests: Test chart renders Valkey Deployment/Service when `collaboration.enabled=true`
     - [ ] Implement: Create `templates/valkey-deployment.yaml` stub (single-replica `valkey/valkey` image, gated by `collaboration.enabled`)
