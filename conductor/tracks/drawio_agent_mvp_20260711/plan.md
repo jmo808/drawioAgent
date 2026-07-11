@@ -140,16 +140,16 @@
     - [x] Implement: Create `Message` component with user/AI styling variants
     - [x] Implement: Create `MessageInput` component with send button and loading state
     - [x] Implement: Adaptive theme CSS — detect draw.io dark/light mode and match styling
-- [~] Task: Implement WebSocket client and state management (AD-8, AD-13)
-    - [ ] Write Tests: Test `useWebSocket` hook establishes connection to `wss://current-host/ws/chat`
-    - [ ] Write Tests: Test message queue when WebSocket is disconnected
-    - [ ] Write Tests: Test incoming `tool_progress` events update chat state with progress messages
-    - [ ] Write Tests: Test incoming `diagram_update` event triggers canvas XML update
-    - [ ] Write Tests: Test reconnection with exponential backoff (100ms, 200ms, 400ms...)
-    - [ ] Implement: Create `useWebSocket` hook (`src/hooks/useWebSocket.ts`)
-    - [ ] Implement: Create `useChatStore` state management hook using `useReducer`
-    - [ ] Implement: Wire WebSocket events to chat state (message received → dispatch action)
-    - [ ] Implement: API key inclusion in WebSocket handshake headers
+- [x] Task: Implement WebSocket client and state management (AD-8, AD-13) (4506c22)
+    - [x] Write Tests: Test `useWebSocket` hook establishes connection to `wss://current-host/ws/chat`
+    - [x] Write Tests: Test message queue when WebSocket is disconnected
+    - [x] Write Tests: Test incoming `tool_progress` events update chat state with progress messages
+    - [x] Write Tests: Test incoming `diagram_update` event triggers canvas XML update
+    - [x] Write Tests: Test reconnection with exponential backoff (100ms, 200ms, 400ms...)
+    - [x] Implement: Create `useWebSocket` hook (`src/hooks/useWebSocket.ts`)
+    - [x] Implement: Create `useChatStore` state management hook using `useReducer`
+    - [x] Implement: Wire WebSocket events to chat state (message received → dispatch action)
+    - [x] Implement: API key inclusion in WebSocket handshake headers
 - [ ] Task: Implement draw.io integration layer — drawioBridge (AD-18, AD-19)
     - [ ] Write Tests: Test `drawioBridge.getGraphXml()` serializes current canvas to XML string
     - [ ] Write Tests: Test `drawioBridge.setGraphXml()` replaces canvas content with new XML
