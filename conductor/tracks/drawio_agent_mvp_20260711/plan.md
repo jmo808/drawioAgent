@@ -260,7 +260,7 @@
     - [x] Implement: AWS microservices template (`templates/architectures/aws-microservices.json`)
     - [x] Implement: GCP GKE cluster template (`templates/architectures/gcp-gke.json`)
     - [x] Implement: Azure AKS template (`templates/architectures/azure-aks.json`)
-- [x] Task: End-to-end integration tests (3013b65, 39fcb79, 6bf7dc8)
+- [x] Task: End-to-end integration tests (3013b65, 39fcb79, 6bf7dc8, 9012d48)
     - [x] Write Tests: Test full flow — chat message → API → agent → MCP tools → diagram XML → frontend display
     - [x] Write Tests: Test multi-turn with snapshot — create diagram, manually edit, then modify via follow-up prompt
     - [x] Write Tests: Test template selection — select AWS 3-tier → diagram generated via compile_json_spec
