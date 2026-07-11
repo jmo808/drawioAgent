@@ -161,14 +161,14 @@
     - [x] Implement: `getTheme()` — reads draw.io's active theme class
     - [x] Implement: `getDiagramStats()` — counts cells in current mxGraphModel
     - [x] Implement: Snapshot-before-request: integrate `getGraphXml()` into chat send flow
-- [~] Task: Build provider selector and template library UI (AD-15)
-    - [ ] Write Tests: Test `ProviderSelector` renders dropdown with provider names from API
-    - [ ] Write Tests: Test `ProviderSelector` emits `provider_change` WebSocket message on selection
-    - [ ] Write Tests: Test `TemplateLibrary` renders categorized template cards (AWS, GCP, Azure)
-    - [ ] Write Tests: Test selecting a template sends template ID as chat message
-    - [ ] Implement: Create `ProviderSelector` dropdown component
-    - [ ] Implement: Create `TemplateLibrary` panel with collapsible categories and template cards
-    - [ ] Implement: Wire template selection to chat input (send template prompt)
+- [x] Task: Build provider selector and template library UI (AD-15) (09ae36b)
+    - [x] Write Tests: Test `ProviderSelector` renders dropdown with provider names from API
+    - [x] Write Tests: Test `ProviderSelector` emits `provider_change` WebSocket message on selection
+    - [x] Write Tests: Test `TemplateLibrary` renders categorized template cards (AWS, GCP, Azure)
+    - [x] Write Tests: Test selecting a template sends template ID as chat message
+    - [x] Implement: Create `ProviderSelector` dropdown component
+    - [x] Implement: Create `TemplateLibrary` panel with collapsible categories and template cards
+    - [x] Implement: Wire template selection to chat input (send template prompt)
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: React Chat Sidebar Plugin' (Protocol in workflow.md)
 
 ## Phase 5: Docker Images & Local Development (AD-1, AD-14, AD-20)
