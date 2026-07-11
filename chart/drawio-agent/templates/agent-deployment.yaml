@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "drawio-agent.fullname" . }}-agent
+  labels:
+    {{- include "drawio-agent.labels" . | nindent 4 }}
+    app.kubernetes.io/component: agent
+spec:
+  replicas: {{ .Values.agent.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "drawio-agent.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: agent
+  template:
+    metadata:
+      labels:
+        {{- include "drawio-agent.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: agent
+    spec:
+      containers:
+        - name: agent
+          image: "{{ .Values.agent.image.repository }}:{{ .Values.agent.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.agent.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          env:
+            - name: PORT
+              value: "8000"
+            - name: HOST
+              value: "0.0.0.0"
+            - name: PYTHONPATH
+              value: "/app/agent/src"
+            - name: MCP_SERVER_PATH
+              value: "/app/mcp-server/scripts/mcp-wrapper.js"
+            - name: LLM_PROVIDER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "drawio-agent.fullname" . }}-secrets
+                  key: llm-provider
+            - name: LLM_MODEL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "drawio-agent.fullname" . }}-secrets
+                  key: llm-model
+            - name: LLM_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "drawio-agent.fullname" . }}-secrets
+                  key: llm-api-key
+                  optional: true
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.agent.resources | nindent 12 }}
