@@ -1,0 +1,17 @@
+.venv
+venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache
+.coverage
+htmlcov
+.git
+.gitignore
+.dockerignore
+Dockerfile
+docker-compose.yml
+.vscode
+.idea
+*.log

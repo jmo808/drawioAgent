@@ -1,0 +1,42 @@
+# Dependency directories
+node_modules/
+jspm_packages/
+web_components/
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+.nuxt/
+
+# Python envs and cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Docker / Local Dev
+*.log
+.docker/
+docker-compose.override.yml
+
+# IDE / Editor configuration
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*~
+
+# OS Files
+.DS_Store
+Thumbs.db

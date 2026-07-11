@@ -1,0 +1,18 @@
+{
+  "name": "drawio-agent-monorepo",
+  "private": true,
+  "description": "Monorepo for DrawIO Agent - Self-hosted draw.io editor extended with AI chat sidebar",
+  "workspaces": [
+    "packages/shared",
+    "services/api",
+    "frontend/sidebar"
+  ],
+  "scripts": {
+    "test": "npm run test -w packages/shared -w services/api -w frontend/sidebar",
+    "build": "npm run build -w packages/shared -w services/api -w frontend/sidebar",
+    "lint": "npm run lint -w packages/shared -w services/api -w frontend/sidebar"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}
