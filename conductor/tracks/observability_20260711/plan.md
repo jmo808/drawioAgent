@@ -1,89 +1,240 @@
 # Implementation Plan: Observability & Production Hardening
 
-## Phase 1: Structured Logging & Correlation IDs
+## Phase 1: Structured Logging & Correlation IDs (OB-4, OB-5)
 
 - [ ] Task: Implement structured JSON logging for Fastify API server
-    - [ ] Write Tests: Test log output is valid JSON with required fields (timestamp, level, message, requestId)
-    - [ ] Write Tests: Test correlation ID is propagated in `X-Request-ID` header to agent proxy requests
-    - [ ] Implement: Configure Fastify's built-in pino logger with JSON serializer
-    - [ ] Implement: Add request ID middleware that generates or propagates `X-Request-ID` header
-    - [ ] Implement: Configure log level via `LOG_LEVEL` environment variable
-    - [ ] Implement: Add WebSocket connection/disconnection logging with session context
-- [ ] Task: Implement structured logging for Python AI agent
-    - [ ] Write Tests: Test log output is valid JSON with required fields (timestamp, level, message, request_id)
-    - [ ] Write Tests: Test correlation ID from incoming `X-Request-ID` header is included in all log entries
-    - [ ] Implement: Configure `structlog` with JSON renderer and timestamp processor
-    - [ ] Implement: Add correlation ID middleware to FastAPI (extract from request header)
-    - [ ] Implement: Log LLM calls (provider, model, token count), MCP tool invocations (tool name, duration), and errors
+    - [ ] Write Tests: Test log output is valid JSON with fields: `timestamp`, `level`, `message`, `requestId`
+    - [ ] Write Tests: Test `X-Request-ID` header is generated (UUID v4) when not present in request
+    - [ ] Write Tests: Test `X-Request-ID` header is preserved when already present (from Gateway)
+    - [ ] Write Tests: Test request ID is propagated to Python agent in proxy requests
+    - [ ] Write Tests: Test request ID is returned in response `X-Request-ID` header
+    - [ ] Write Tests: Test log level is configurable via `LOG_LEVEL` env var
+    - [ ] Implement: Configure Fastify's built-in Pino logger with JSON serializer (`src/app.ts`)
+    - [ ] Implement: Add `request-id` plugin — generate UUID v4 or preserve from `X-Request-ID` header
+    - [ ] Implement: Add request ID to Pino logger child context (auto-included in all request logs)
+    - [ ] Implement: Propagate `X-Request-ID` in agent proxy HTTP requests (`src/services/agent-proxy.ts`)
+    - [ ] Implement: Add request ID to WebSocket error messages
+    - [ ] Implement: Configure log level from `LOG_LEVEL` env var (default: `info`)
+- [ ] Task: Implement structured JSON logging for Python AI agent
+    - [ ] Write Tests: Test log output is valid JSON with fields: `timestamp`, `level`, `message`, `request_id`
+    - [ ] Write Tests: Test `X-Request-ID` from incoming request header is bound to structlog context
+    - [ ] Write Tests: Test LLM calls are logged with provider, model, duration, and token count
+    - [ ] Write Tests: Test MCP tool invocations are logged with tool name, duration, and status
+    - [ ] Implement: Add `structlog` dependency to `pyproject.toml`
+    - [ ] Implement: Configure structlog with JSON renderer, timestamp processor, and log level filter
+    - [ ] Implement: Create FastAPI middleware to extract `X-Request-ID` and bind to structlog context
+    - [ ] Implement: Add structured logging to `LLMService` (provider, model, duration, tokens)
+    - [ ] Implement: Add structured logging to `MCPBridge` (tool name, duration, status)
+    - [ ] Implement: Add structured logging to `AgentOrchestrator` (prompt length, tool call count, total duration)
+    - [ ] Implement: Configure log level from `LOG_LEVEL` env var (default: `info`)
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Structured Logging & Correlation IDs' (Protocol in workflow.md)
 
-## Phase 2: Prometheus Metrics
+## Phase 2: Prometheus Metrics (OB-2, OB-3)
 
 - [ ] Task: Add Prometheus metrics to Fastify API server
-    - [ ] Write Tests: Test `GET /metrics` endpoint returns Prometheus text format
-    - [ ] Write Tests: Test request duration histogram is recorded for each route
-    - [ ] Write Tests: Test WebSocket connection gauge increments/decrements correctly
-    - [ ] Implement: Add `fastify-metrics` plugin with `prom-client` Prometheus client
-    - [ ] Implement: Custom metrics: `ws_connections_active` (gauge), `ws_messages_total` (counter), `agent_proxy_duration_seconds` (histogram)
-    - [ ] Implement: Expose `GET /metrics` endpoint (excluded from auth middleware)
+    - [ ] Write Tests: Test `GET /metrics` endpoint returns Prometheus text exposition format
+    - [ ] Write Tests: Test `http_request_duration_seconds` histogram is recorded for each route
+    - [ ] Write Tests: Test `ws_connections_active` gauge increments on connect, decrements on disconnect
+    - [ ] Write Tests: Test `ws_messages_total` counter increments per message with correct labels
+    - [ ] Write Tests: Test `agent_proxy_duration_seconds` histogram is recorded for proxy calls
+    - [ ] Write Tests: Test `/metrics` endpoint is excluded from auth middleware
+    - [ ] Write Tests: Test default `prom-client` metrics are collected (GC, memory, event loop lag)
+    - [ ] Implement: Add `prom-client` dependency to API server `package.json`
+    - [ ] Implement: Create metrics plugin (`src/plugins/metrics.ts`) — register default metrics + custom metrics
+    - [ ] Implement: Register `http_request_duration_seconds` histogram with `onResponse` hook
+    - [ ] Implement: Register `ws_connections_active` gauge, increment/decrement in WebSocket lifecycle
+    - [ ] Implement: Register `ws_messages_total` counter, increment in WebSocket message handler
+    - [ ] Implement: Register `agent_proxy_duration_seconds` histogram, record in agent proxy service
+    - [ ] Implement: Expose `GET /metrics` route (excluded from auth middleware)
 - [ ] Task: Add Prometheus metrics to Python AI agent
-    - [ ] Write Tests: Test `GET /metrics` endpoint returns Prometheus text format
-    - [ ] Write Tests: Test LLM call duration is recorded per provider
-    - [ ] Implement: Add `prometheus-client` library
-    - [ ] Implement: Custom metrics: `llm_call_duration_seconds{provider,model}` (histogram), `mcp_tool_duration_seconds{tool}` (histogram), `llm_tokens_total{type,provider}` (counter), `diagram_generation_duration_seconds` (histogram)
-    - [ ] Implement: Expose `GET /metrics` endpoint
-- [ ] Task: Update Helm chart with metrics annotations
-    - [ ] Implement: Add Prometheus scrape annotations to all pod template specs
-    - [ ] Implement: Add optional ServiceMonitor CRDs (for Prometheus Operator users)
-    - [ ] Implement: Add `metrics.enabled` toggle in `values.yaml`
+    - [ ] Write Tests: Test `GET /metrics` endpoint returns Prometheus text exposition format
+    - [ ] Write Tests: Test `llm_call_duration_seconds` histogram is recorded per provider and model
+    - [ ] Write Tests: Test `llm_tokens_total` counter tracks prompt and completion tokens separately
+    - [ ] Write Tests: Test `mcp_tool_duration_seconds` histogram is recorded per tool name
+    - [ ] Write Tests: Test `mcp_tool_calls_total` counter tracks success and error status
+    - [ ] Write Tests: Test `diagram_generation_duration_seconds` histogram records end-to-end time
+    - [ ] Implement: Add `prometheus-client` dependency to `pyproject.toml`
+    - [ ] Implement: Create metrics module (`src/agent/metrics.py`) — define all custom metrics
+    - [ ] Implement: Instrument `LLMService.generate()` with duration histogram and token counter
+    - [ ] Implement: Instrument `MCPBridge.call_tool()` with duration histogram and call counter
+    - [ ] Implement: Instrument `AgentOrchestrator.process()` with diagram generation duration histogram
+    - [ ] Implement: Expose `GET /metrics` route via `prometheus_client.make_asgi_app()` mounted at `/metrics`
+- [ ] Task: Update Helm chart with metrics support
+    - [ ] Write Tests: Test Prometheus scrape annotations render on pod templates when `metrics.enabled=true`
+    - [ ] Write Tests: Test ServiceMonitor CRD renders when `metrics.serviceMonitor.enabled=true`
+    - [ ] Write Tests: Test no metrics annotations when `metrics.enabled=false`
+    - [ ] Implement: Add Prometheus scrape annotations to all pod template specs (port, path, scheme)
+    - [ ] Implement: Create `templates/servicemonitor.yaml` — ServiceMonitor for each service (gated by `metrics.serviceMonitor.enabled`)
+    - [ ] Implement: Add `metrics.*` section to `values.yaml` with documented defaults
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Prometheus Metrics' (Protocol in workflow.md)
 
-## Phase 3: Production Hardening
+## Phase 3: Rate Limiting & Circuit Breaker (OB-7, OB-8)
 
-- [ ] Task: Implement rate limiting
-    - [ ] Write Tests: Test rate limiter blocks requests exceeding configured threshold (429 response)
-    - [ ] Write Tests: Test rate limit headers are returned (`X-RateLimit-Limit`, `X-RateLimit-Remaining`, `Retry-After`)
-    - [ ] Write Tests: Test per-API-key rate tracking
-    - [ ] Implement: Add `@fastify/rate-limit` plugin with configurable limits
-    - [ ] Implement: Per-API-key rate limiting (using Redis store when available, in-memory otherwise)
-- [ ] Task: Implement circuit breaker for LLM calls
-    - [ ] Write Tests: Test circuit opens after N consecutive LLM failures (default: 5)
-    - [ ] Write Tests: Test circuit half-opens after timeout and allows one test request
-    - [ ] Write Tests: Test circuit closes after successful test request
-    - [ ] Write Tests: Test user receives graceful error message when circuit is open
-    - [ ] Implement: Add circuit breaker wrapper around `LLMService.generate()` using `pybreaker`
-    - [ ] Implement: Return user-friendly error response when circuit is open ("AI service temporarily unavailable")
-    - [ ] Implement: Circuit breaker state metrics exposed via Prometheus
-- [ ] Task: Add Kubernetes production manifests to Helm chart
-    - [ ] Write Tests: Test PDB renders correctly with default values
-    - [ ] Write Tests: Test HPA renders with correct metrics and thresholds
-    - [ ] Write Tests: Test NetworkPolicy renders with correct ingress/egress rules
-    - [ ] Implement: `templates/pdb.yaml` — PodDisruptionBudget for each Deployment (minAvailable: 1)
-    - [ ] Implement: `templates/hpa.yaml` — HorizontalPodAutoscaler for agent Deployment (CPU 70%, min 1, max 5)
-    - [ ] Implement: `templates/networkpolicy.yaml` — Cilium NetworkPolicy restricting traffic (frontend→api, api→agent, agent→LLM endpoints)
-    - [ ] Implement: Add resource requests/limits with sensible defaults in values.yaml
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Production Hardening' (Protocol in workflow.md)
+- [ ] Task: Implement per-API-key rate limiting
+    - [ ] Write Tests: Test requests exceeding rate limit receive `429` response with JSON body
+    - [ ] Write Tests: Test rate limit headers are returned on every response (`X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`)
+    - [ ] Write Tests: Test `Retry-After` header is returned on 429 responses
+    - [ ] Write Tests: Test per-API-key tracking (key A at limit, key B still allowed)
+    - [ ] Write Tests: Test `/health`, `/ready`, `/metrics` are excluded from rate limiting
+    - [ ] Write Tests: Test Valkey store is used when available, in-memory otherwise
+    - [ ] Write Tests: Test separate limits for HTTP (60/min) and WebSocket chat messages (30/min)
+    - [ ] Implement: Add `@fastify/rate-limit` dependency to API server
+    - [ ] Implement: Create rate limit plugin (`src/plugins/rate-limit.ts`)
+    - [ ] Implement: Configure key generator from `X-API-Key` header
+    - [ ] Implement: Configure Valkey store adapter (ioredis) when `VALKEY_HOST` is set, in-memory otherwise
+    - [ ] Implement: Separate rate limit instance for WebSocket chat messages
+    - [ ] Implement: Add `rateLimiting.*` section to `values.yaml`
+- [ ] Task: Implement per-provider circuit breaker for LLM calls
+    - [ ] Write Tests: Test circuit opens after 5 consecutive LLM failures
+    - [ ] Write Tests: Test circuit half-opens after 30-second timeout
+    - [ ] Write Tests: Test successful request in half-open state closes the circuit
+    - [ ] Write Tests: Test open circuit returns immediate error response ("AI service temporarily unavailable")
+    - [ ] Write Tests: Test per-provider isolation (OpenAI open, Gemini still closed)
+    - [ ] Write Tests: Test `llm_circuit_state` Prometheus gauge reflects circuit state
+    - [ ] Write Tests: Test configurable `fail_max` and `reset_timeout` from env vars
+    - [ ] Implement: Add `pybreaker` dependency to `pyproject.toml`
+    - [ ] Implement: Create `CircuitBreakerManager` class (`src/agent/circuit_breaker.py`)
+    - [ ] Implement: Create per-provider `CircuitBreaker` instances with Prometheus listener
+    - [ ] Implement: Wrap `LLMService.generate()` with circuit breaker (decorator or context manager)
+    - [ ] Implement: Return user-friendly error message when circuit is open
+    - [ ] Implement: Register `llm_circuit_state` gauge metric (0=closed, 1=open, 2=half-open)
+- [ ] Task: Conductor - User Manual Verification 'Phase 3: Rate Limiting & Circuit Breaker' (Protocol in workflow.md)
 
-## Phase 4: Grafana Dashboards & Distributed Tracing
+## Phase 4: Kubernetes Hardening (OB-9, OB-10, OB-11, OB-14)
+
+- [ ] Task: Create HPA for Python agent
+    - [ ] Write Tests: Test HPA renders when `hpa.agent.enabled=true`
+    - [ ] Write Tests: Test HPA does NOT render when `hpa.agent.enabled=false` (default)
+    - [ ] Write Tests: Test HPA target CPU, minReplicas, maxReplicas are configurable
+    - [ ] Implement: Create `templates/agent-hpa.yaml` — HPA targeting agent Deployment
+    - [ ] Implement: Add `hpa.agent.*` section to `values.yaml` (enabled: false, minReplicas: 1, maxReplicas: 5, targetCPU: 70)
+- [ ] Task: Create NetworkPolicies
+    - [ ] Write Tests: Test NetworkPolicy renders for all services when `networkPolicy.enabled=true`
+    - [ ] Write Tests: Test NetworkPolicy does NOT render when `networkPolicy.enabled=false`
+    - [ ] Write Tests: Test frontend ingress allows only from Gateway pod selector
+    - [ ] Write Tests: Test API ingress allows from Gateway; API egress allows only to agent + Valkey
+    - [ ] Write Tests: Test agent ingress allows only from API; agent egress allows HTTPS (443)
+    - [ ] Write Tests: Test Valkey ingress allows only from API (when collaboration enabled)
+    - [ ] Implement: Create `templates/networkpolicy-frontend.yaml` — ingress from Gateway only
+    - [ ] Implement: Create `templates/networkpolicy-api.yaml` — ingress from Gateway; egress to agent + Valkey
+    - [ ] Implement: Create `templates/networkpolicy-agent.yaml` — ingress from API; egress to HTTPS (443)
+    - [ ] Implement: Create `templates/networkpolicy-valkey.yaml` — ingress from API only (conditional)
+    - [ ] Implement: Add `networkPolicy.enabled` to `values.yaml` (default: true)
+    - [ ] Implement: Create optional `templates/cilium-fqdn-policy.yaml` — CiliumNetworkPolicy for LLM endpoint FQDN egress filtering
+- [ ] Task: Create PodDisruptionBudgets
+    - [ ] Write Tests: Test PDB renders for each service when `pdb.enabled=true` AND `replicaCount >= 2`
+    - [ ] Write Tests: Test PDB does NOT render when `replicaCount < 2`
+    - [ ] Write Tests: Test `minAvailable` is configurable
+    - [ ] Implement: Create `templates/pdb.yaml` — PDB for frontend, API, and agent (conditional)
+    - [ ] Implement: Add `pdb.enabled` and `pdb.minAvailable` to `values.yaml`
+- [ ] Task: Set resource defaults
+    - [ ] Write Tests: Test resource requests/limits render correctly for each service
+    - [ ] Write Tests: Test resource values are overridable per service
+    - [ ] Implement: Add `resources` section to each service in `values.yaml` with defaults:
+        - Frontend: requests 128Mi/100m, limits 256Mi/200m
+        - API: requests 128Mi/100m, limits 512Mi/500m
+        - Agent: requests 256Mi/200m, limits 1Gi/1000m
+        - Valkey: requests 128Mi/100m, limits 256Mi/200m
+    - [ ] Implement: Wire resource blocks into all Deployment templates
+- [ ] Task: Conductor - User Manual Verification 'Phase 4: Kubernetes Hardening' (Protocol in workflow.md)
+
+## Phase 5: Grafana Dashboards & Alerting (OB-12, OB-13)
 
 - [ ] Task: Create Grafana dashboard ConfigMaps
-    - [ ] Implement: API server health dashboard JSON (request rate, latency p50/p95/p99, error rate, WS connections)
-    - [ ] Implement: AI agent performance dashboard JSON (LLM latency by provider, tool call distribution, token usage)
-    - [ ] Implement: System overview dashboard JSON (pod health, resource usage, WebSocket connections, diagram count)
-    - [ ] Implement: Add dashboards to Helm chart as optional ConfigMaps (`grafana.dashboards.enabled`)
-    - [ ] Implement: Configure dashboard provisioning annotations for Grafana sidecar
-- [ ] Task: Add OpenTelemetry distributed tracing
-    - [ ] Write Tests: Test trace spans are created for API request handling
-    - [ ] Write Tests: Test trace context is propagated from API → Agent via `traceparent` header
-    - [ ] Implement: Add `@opentelemetry/sdk-node` and `@opentelemetry/auto-instrumentations-node` to API server
-    - [ ] Implement: Add `opentelemetry-sdk` and `opentelemetry-instrumentation-fastapi` to Python agent
-    - [ ] Implement: Configure OTLP exporter via `OTEL_EXPORTER_OTLP_ENDPOINT` env var
-    - [ ] Implement: Create custom spans for LLM calls and MCP tool invocations
-    - [ ] Implement: Propagate `traceparent` header across API → Agent boundary
-- [ ] Task: Update documentation
-    - [ ] Document metrics endpoints and complete list of available Prometheus metrics
-    - [ ] Document Grafana dashboard import process and dashboard descriptions
-    - [ ] Document tracing configuration for Jaeger, Zipkin, and OTLP collectors
-    - [ ] Document rate limiting configuration and per-key limits
-    - [ ] Update Helm chart README with observability and hardening parameters
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Grafana Dashboards & Distributed Tracing' (Protocol in workflow.md)
+    - [ ] Write Tests: Test dashboard ConfigMaps render when `grafana.dashboards.enabled=true`
+    - [ ] Write Tests: Test ConfigMaps have `grafana_dashboard: "1"` label for sidecar auto-discovery
+    - [ ] Write Tests: Test dashboard JSON is valid (parseable by Grafana API)
+    - [ ] Implement: Create API Server Health dashboard JSON
+        - Request rate (req/s) by route and status code
+        - Latency heatmap with p50/p95/p99 overlay
+        - Error rate percentage
+        - Active WebSocket connections over time
+        - Agent proxy latency
+    - [ ] Implement: Create AI Agent Performance dashboard JSON
+        - LLM call latency by provider (stacked histogram)
+        - Token usage by provider (prompt vs. completion)
+        - MCP tool call distribution (bar chart by tool name)
+        - MCP tool error rate
+        - Circuit breaker state timeline per provider
+        - Diagram generation duration distribution
+    - [ ] Implement: Create System Overview dashboard JSON
+        - Pod health (ready/not-ready) per Deployment
+        - CPU and memory usage per pod vs. limits
+        - Total diagram generations per hour
+        - Active sessions (when collaboration enabled)
+        - WebSocket connection trends
+    - [ ] Implement: Create `templates/grafana-dashboards.yaml` — ConfigMap per dashboard with sidecar label
+    - [ ] Implement: Add `grafana.dashboards.enabled` to `values.yaml` (default: true when metrics.enabled)
+- [ ] Task: Create PrometheusRule alerting CRDs
+    - [ ] Write Tests: Test PrometheusRule renders when `alerting.enabled=true`
+    - [ ] Write Tests: Test PrometheusRule does NOT render when `alerting.enabled=false` (default)
+    - [ ] Write Tests: Test all 6 alert rules have correct PromQL expressions
+    - [ ] Implement: Create `templates/prometheusrule.yaml` with alerts:
+        - `DrawIOAgentDown` — `up{job="drawio-agent-agent"} == 0` for 5m (critical)
+        - `HighLLMErrorRate` — `rate(mcp_tool_calls_total{status="error"}[5m]) / rate(mcp_tool_calls_total[5m]) > 0.5` for 5m (warning)
+        - `LLMCircuitOpen` — `llm_circuit_state > 0` for 0m (warning)
+        - `HighAPILatency` — `histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m])) > 10` for 5m (warning)
+        - `WebSocketConnectionsDrop` — `delta(ws_connections_active[5m]) < -0.5 * ws_connections_active offset 5m` for 5m (warning)
+        - `HighMemoryUsage` — `container_memory_working_set_bytes / container_spec_memory_limit_bytes > 0.9` for 5m (warning)
+    - [ ] Implement: Add `alerting.enabled` to `values.yaml` (default: false)
+- [ ] Task: Conductor - User Manual Verification 'Phase 5: Grafana Dashboards & Alerting' (Protocol in workflow.md)
+
+## Phase 6: OpenTelemetry Distributed Tracing (OB-6)
+
+- [ ] Task: Add OpenTelemetry tracing to Fastify API server
+    - [ ] Write Tests: Test trace spans are created for HTTP request handling
+    - [ ] Write Tests: Test `traceparent` header is propagated to agent proxy requests
+    - [ ] Write Tests: Test `request.id` span attribute contains the X-Request-ID
+    - [ ] Write Tests: Test no tracing overhead when `OTEL_EXPORTER_OTLP_ENDPOINT` is not set
+    - [ ] Implement: Add `@opentelemetry/sdk-node`, `@opentelemetry/auto-instrumentations-node`, `@opentelemetry/exporter-trace-otlp-http` dependencies
+    - [ ] Implement: Create OTEL initialization module (`src/tracing.ts`) — loaded conditionally when `OTEL_EXPORTER_OTLP_ENDPOINT` is set
+    - [ ] Implement: Configure auto-instrumentation for HTTP, Fastify, and WebSocket
+    - [ ] Implement: Create custom span for agent proxy call (`agent.proxy`)
+    - [ ] Implement: Propagate `traceparent` header in agent proxy HTTP requests
+    - [ ] Implement: Set `request.id` as span attribute from X-Request-ID
+- [ ] Task: Add OpenTelemetry tracing to Python AI agent
+    - [ ] Write Tests: Test trace spans are created for FastAPI request handling
+    - [ ] Write Tests: Test `traceparent` header is extracted and used as parent context
+    - [ ] Write Tests: Test custom `llm.generate` span records provider, model, and token count
+    - [ ] Write Tests: Test custom `mcp.tool_call` span records tool name and duration
+    - [ ] Write Tests: Test no tracing overhead when `OTEL_EXPORTER_OTLP_ENDPOINT` is not set
+    - [ ] Implement: Add `opentelemetry-sdk`, `opentelemetry-instrumentation-fastapi`, `opentelemetry-instrumentation-httpx`, `opentelemetry-exporter-otlp` dependencies
+    - [ ] Implement: Create OTEL initialization module (`src/agent/tracing.py`) — conditional initialization
+    - [ ] Implement: Configure auto-instrumentation for FastAPI and httpx
+    - [ ] Implement: Create custom span `llm.generate` in `LLMService` (attributes: provider, model, tokens)
+    - [ ] Implement: Create custom span `mcp.tool_call` in `MCPBridge` (attributes: tool_name, duration)
+    - [ ] Implement: Create custom span `mcp.init` in `AgentOrchestrator` for diagram state initialization
+- [ ] Task: Update Helm chart with tracing configuration
+    - [ ] Write Tests: Test `OTEL_EXPORTER_OTLP_ENDPOINT` env var renders when `tracing.enabled=true`
+    - [ ] Write Tests: Test `OTEL_SERVICE_NAME` is set correctly per service
+    - [ ] Implement: Add `OTEL_EXPORTER_OTLP_ENDPOINT` and `OTEL_SERVICE_NAME` env vars to API and agent Deployments
+    - [ ] Implement: Add `tracing.*` section to `values.yaml`
+- [ ] Task: Conductor - User Manual Verification 'Phase 6: OpenTelemetry Distributed Tracing' (Protocol in workflow.md)
+
+## Phase 7: Documentation & Integration Testing
+
+- [ ] Task: Integration tests for observability features
+    - [ ] Write Tests: Test `/metrics` endpoints return valid Prometheus format for both services
+    - [ ] Write Tests: Test correlation ID propagation end-to-end (API → Agent → logs)
+    - [ ] Write Tests: Test rate limiter blocks at threshold and returns correct headers
+    - [ ] Write Tests: Test circuit breaker opens after configured failures and recovers
+    - [ ] Write Tests: Test `helm template` renders all observability manifests correctly
+    - [ ] Write Tests: Test `helm template` with all features disabled produces clean output
+    - [ ] Implement: Add observability test scenarios to docker-compose test config
+    - [ ] Implement: Add Helm template tests for all new manifests (ServiceMonitor, PrometheusRule, PDB, HPA, NetworkPolicy, dashboards)
+- [ ] Task: Documentation
+    - [ ] Update project README with observability section:
+        - Available metrics endpoints and complete metrics list
+        - Structured logging format and correlation ID usage
+        - Tracing configuration for Jaeger, Tempo, and Zipkin
+        - Rate limiting configuration and limits
+        - Circuit breaker behavior
+    - [ ] Update Helm chart README with:
+        - Full observability parameters table (metrics, tracing, alerting, rateLimiting, networkPolicy, pdb, hpa)
+        - Grafana dashboard import instructions
+        - PrometheusRule and ServiceMonitor setup
+        - Resource sizing guide
+    - [ ] Create example values files:
+        - `examples/values-minimal.yaml` — smallest footprint (1 replica each, no monitoring)
+        - `examples/values-production.yaml` — full observability, HPA, NetworkPolicy, PDB
+- [ ] Task: Conductor - User Manual Verification 'Phase 7: Documentation & Integration Testing' (Protocol in workflow.md)
