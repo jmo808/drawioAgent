@@ -210,13 +210,13 @@
 
 ## Phase 6: Helm Chart (`chart/drawio-agent/`) (AD-9, AD-14)
 
-- [~] Task: Create Helm chart scaffolding
-    - [ ] Write Tests: Run `helm lint chart/drawio-agent` and verify zero errors/warnings
-    - [ ] Implement: Create `Chart.yaml` — name: drawio-agent, version: 0.1.0, appVersion: 0.1.0, type: application
-    - [ ] Implement: Create `values.yaml` with all configurable parameters and documented defaults
-    - [ ] Implement: Create `templates/_helpers.tpl` with name, fullname, labels, selectorLabels helpers
-    - [ ] Implement: Create `templates/NOTES.txt` with post-install access instructions
-- [ ] Task: Create Kubernetes manifests for draw.io frontend
+- [x] Task: Create Helm chart scaffolding
+    - [x] Write Tests: Run `helm lint chart/drawio-agent` and verify zero errors/warnings
+    - [x] Implement: Create `Chart.yaml` — name: drawio-agent, version: 0.1.0, appVersion: 0.1.0, type: application
+    - [x] Implement: Create `values.yaml` with all configurable parameters and documented defaults
+    - [x] Implement: Create `templates/_helpers.tpl` with name, fullname, labels, selectorLabels helpers
+    - [x] Implement: Create `templates/NOTES.txt` with post-install access instructions
+- [~] Task: Create Kubernetes manifests for draw.io frontend
     - [ ] Write Tests: Test `helm template` renders valid Deployment YAML with default values
     - [ ] Write Tests: Test custom image repository and tag overrides render correctly
     - [ ] Implement: `templates/frontend-deployment.yaml` with liveness/readiness probes (HTTP /)
