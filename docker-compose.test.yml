@@ -17,9 +17,6 @@ services:
     build:
       context: .
       dockerfile: frontend/sidebar/Dockerfile
-    volumes:
-      - ./frontend/sidebar/dist/drawio-agent-plugin.js:/usr/local/tomcat/webapps/draw/js/drawio-agent-plugin.js:ro,z
-      - ./frontend/sidebar/PreConfig.js:/usr/local/tomcat/webapps/draw/js/PreConfig.js:ro,z
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/draw/js/PreConfig.js"]
       interval: 5s
