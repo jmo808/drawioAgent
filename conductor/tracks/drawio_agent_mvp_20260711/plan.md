@@ -49,16 +49,16 @@
     - [x] Implement: Create WebSocket route handler at `/ws/chat` (`src/routes/chat.ts`)
     - [x] Implement: Message serialization/deserialization using shared `WebSocketMessage` type
     - [x] Implement: Session management (assign session ID per connection)
-- [ ] Task: Implement SSE proxy to Python agent (AD-6)
-    - [ ] Write Tests: Test proxy POSTs chat message + diagram XML to agent `/api/chat`
-    - [ ] Write Tests: Test proxy relays SSE events as WebSocket frames with correct types
-    - [ ] Write Tests: Test proxy handles agent `tool_progress` events correctly
-    - [ ] Write Tests: Test proxy handles agent service unavailability (503 response to client)
-    - [ ] Write Tests: Test proxy handles agent timeout gracefully
-    - [ ] Implement: Create HTTP client for Python agent (`src/services/agent-proxy.ts`)
-    - [ ] Implement: SSE response parser that reads `text/event-stream` and emits typed events
-    - [ ] Implement: Wire WebSocket handler to agent proxy service
-    - [ ] Implement: Add structured request/response logging
+- [x] Task: Implement SSE proxy to Python agent (AD-6) (a4d025b)
+    - [x] Write Tests: Test proxy POSTs chat message + diagram XML to agent `/api/chat`
+    - [x] Write Tests: Test proxy relays SSE events as WebSocket frames with correct types
+    - [x] Write Tests: Test proxy handles agent `tool_progress` events correctly
+    - [x] Write Tests: Test proxy handles agent service unavailability (503 response to client)
+    - [x] Write Tests: Test proxy handles agent timeout gracefully
+    - [x] Implement: Create HTTP client for Python agent (`src/services/agent-proxy.ts`)
+    - [x] Implement: SSE response parser that reads `text/event-stream` and emits typed events
+    - [x] Implement: Wire WebSocket handler to agent proxy service
+    - [x] Implement: Add structured request/response logging
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Fastify API Server' (Protocol in workflow.md)
 
 ## Phase 3: Python AI Agent Service (`services/agent/`)
