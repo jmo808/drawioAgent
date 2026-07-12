@@ -160,7 +160,7 @@
     - [x] Reference all 7 domain expert guides
     - [x] Mandate `compile_json_spec` for all new diagram generation
 
-- [ ] Task: Update `conversation.py` docs index
+- [~] Task: Update `conversation.py` docs index
     - [ ] Register all new reference guides in DOCS_INDEX
     - [ ] Verify keyword triggers mount correct references
 
