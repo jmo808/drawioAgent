@@ -4,7 +4,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [~] **Track 1: Build DrawIO Agent MVP: Helm-packaged self-hosted draw.io with AI chat sidebar**
+- [x] **Track 1: Build DrawIO Agent MVP: Helm-packaged self-hosted draw.io with AI chat sidebar**
   *Link: [./tracks/drawio_agent_mvp_20260711/](./tracks/drawio_agent_mvp_20260711/)*
 
 - [ ] **Track 2: Multi-User Collaboration & Shared Sessions**
@@ -19,3 +19,9 @@ This file tracks all major tracks for the project. Each track has its own detail
 - [ ] **Track 5: Security Hardening & TRA Remediation**
   *Link: [./tracks/security_hardening_20260711/](./tracks/security_hardening_20260711/)*
   *TRA Report: [../TRA-Report.html](../TRA-Report.html) | 19 findings (1C/7H/10M/1L) | FIPS-199: MODERATE*
+
+---
+
+- [ ] **Track 6: Universal JSON Diagram Compilation & Domain Expert Expansion**
+  *Link: [./tracks/json_domain_experts_20260712/](./tracks/json_domain_experts_20260712/)*
+
