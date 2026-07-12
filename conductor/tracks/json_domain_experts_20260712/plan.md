@@ -11,14 +11,15 @@
     - [x] Write unit tests for each new container layout calculation
 
 
-- [~] Task: Extend `addNode` with new node type mappings
-    - [ ] Add node styles/sizes for flowchart types: `process`, `decision`, `start`, `end`, `io`, `subroutine`
-    - [ ] Add node styles/sizes for K8s types: `pod`, `service`, `ingress`, `configmap`, `secret`, `pv`, `pvc`, `hpa`
-    - [ ] Add node styles/sizes for network types: `router`, `switch`, `firewall`, `server`, `workstation`, `wireless_ap`, `load_balancer`, `storage`
-    - [ ] Add node styles/sizes for ERD types: `table`, `view` (card rendering with columns list)
-    - [ ] Add node styles/sizes for sequence types: `participant`, `activation`, `note`
-    - [ ] Add node styles/sizes for mind map types: `central`, `branch`, `leaf`
-    - [ ] Write unit tests for each new node type's style and size
+- [x] Task: Extend `addNode` with new node type mappings (d86631a)
+    - [x] Add node styles/sizes for flowchart types: `process`, `decision`, `start`, `end`, `io`, `subroutine`
+    - [x] Add node styles/sizes for K8s types: `pod`, `service`, `ingress`, `configmap`, `secret`, `pv`, `pvc`, `hpa`
+    - [x] Add node styles/sizes for network types: `router`, `switch`, `firewall`, `server`, `workstation`, `wireless_ap`, `load_balancer`, `storage`
+    - [x] Add node styles/sizes for ERD types: `table`, `view` (card rendering with columns list)
+    - [x] Add node styles/sizes for sequence types: `participant`, `activation`, `note`
+    - [x] Add node styles/sizes for mind map types: `central`, `branch`, `leaf`
+    - [x] Write unit tests for each new node type's style and size
+
 
 
 - [ ] Task: Extend `connect` with new edge/connector styles
