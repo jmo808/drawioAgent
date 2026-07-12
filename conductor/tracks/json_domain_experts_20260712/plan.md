@@ -4,11 +4,12 @@
 
 ### 1.1 — Universal JSON Spec Engine (diagram-builder.js)
 
-- [ ] Task: Extend `_layoutContainer` with new container type mappings
-    - [ ] Add layout rules for `cluster`, `namespace`, `deployment` (K8s)
-    - [ ] Add layout rules for `wan`, `dmz`, `lan`, `vlan` (Network)
-    - [ ] Add layout rules for flowchart `group` containers
-    - [ ] Write unit tests for each new container layout calculation
+- [x] Task: Extend `_layoutContainer` with new container type mappings (30d26e4)
+    - [x] Add layout rules for `cluster`, `namespace`, `deployment` (K8s)
+    - [x] Add layout rules for `wan`, `dmz`, `lan`, `vlan` (Network)
+    - [x] Add layout rules for flowchart `group` containers
+    - [x] Write unit tests for each new container layout calculation
+
 
 - [ ] Task: Extend `addNode` with new node type mappings
     - [ ] Add node styles/sizes for flowchart types: `process`, `decision`, `start`, `end`, `io`, `subroutine`
