@@ -82,7 +82,7 @@
     - [x] Document service discovery and networking patterns
     - [x] Document common architecture patterns (sidecar, ambassador, adapter)
 
-- [ ] Task: Create K8s validator (`validators/kubernetes.js`)
+- [~] Task: Create K8s validator (`validators/kubernetes.js`)
     - [ ] Write failing tests for each rule
     - [ ] Implement ORPHAN_POD rule
     - [ ] Implement SERVICE_WITHOUT_TARGET rule
