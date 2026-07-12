@@ -47,15 +47,15 @@
 
 ### 1.2 — PFD Domain Expert Expansion
 
-- [~] Task: Add PFD equipment shape library to `diagram-builder.js`
-    - [ ] Add styles/sizes/ports for Separator (2-phase, 3-phase)
-    - [ ] Add styles/sizes/ports for Heat Exchanger (shell-and-tube, plate)
-    - [ ] Add styles/sizes/ports for Pump (centrifugal, positive displacement)
-    - [ ] Add styles/sizes/ports for Compressor (centrifugal, reciprocating)
-    - [ ] Add styles/sizes/ports for Reactor (CSTR, PFR)
-    - [ ] Add styles/sizes/ports for Distillation Column (tray, packed)
-    - [ ] Add styles/sizes/ports for Tank/Vessel (storage, surge, accumulator)
-    - [ ] Write unit tests for equipment shape resolution and port definitions
+- [x] Task: Add PFD equipment shape library to `diagram-builder.js` (e5c1142)
+    - [x] Add styles/sizes/ports for Separator (2-phase, 3-phase)
+    - [x] Add styles/sizes/ports for Heat Exchanger (shell-and-tube, plate)
+    - [x] Add styles/sizes/ports for Pump (centrifugal, positive displacement)
+    - [x] Add styles/sizes/ports for Compressor (centrifugal, reciprocating)
+    - [x] Add styles/sizes/ports for Reactor (CSTR, PFR)
+    - [x] Add styles/sizes/ports for Distillation Column (tray, packed)
+    - [x] Add styles/sizes/ports for Tank/Vessel (storage, surge, accumulator)
+    - [x] Write unit tests for equipment shape resolution and port definitions
 
 - [ ] Task: Expand PFD validator (`validators/pfd.js`)
     - [ ] Write failing tests for each new rule
