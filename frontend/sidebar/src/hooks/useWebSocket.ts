@@ -95,13 +95,16 @@ export const useWebSocket = ({
   }, [sessionId, apiKey])
 
   const sendMessage = (text: string, diagramXml?: string | null) => {
+    console.log('[DrawioAgentWS] sendMessage called with text:', text, 'hasXml:', !!diagramXml)
     const envelope = {
       type: 'chat_message',
       payload: {
         text,
         diagramXml: diagramXml || null,
         sessionId
-      }
+      },
+      id: 'msg-' + Math.random().toString(36).substring(2, 11),
+      timestamp: new Date().toISOString()
     }
 
     const payloadStr = JSON.stringify(envelope)

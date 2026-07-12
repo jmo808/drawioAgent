@@ -102,6 +102,8 @@ class ConversationManager:
         
         if "aws" in content_lower:
             detected.append("aws-well-architected-reviewer.md")
+        if any(k in content_lower for k in ["gcp", "google cloud", "gke", "kubernetes"]):
+            detected.append("gcp-well-architected-reviewer.md")
         if "pfd" in content_lower:
             detected.append("pfd-engineering-expert.md")
         if "pid" in content_lower or "p&id" in content_lower:

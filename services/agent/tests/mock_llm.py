@@ -49,6 +49,13 @@ async def chat_completions(request: Request):
                             "type": "subnet",
                             "parentId": "vpc-1",
                             "tier": "public"
+                        },
+                        {
+                            "id": "db-subnet-1",
+                            "label": "Database Subnet (Private)",
+                            "type": "subnet",
+                            "parentId": "vpc-1",
+                            "tier": "private"
                         }
                     ],
                     "nodes": [
@@ -63,6 +70,12 @@ async def chat_completions(request: Request):
                             "label": "Application Load Balancer",
                             "type": "alb",
                             "parentId": "pub-subnet-1"
+                        },
+                        {
+                            "id": "rds-db-1",
+                            "label": "Multi-AZ RDS DB",
+                            "type": "rds",
+                            "parentId": "db-subnet-1"
                         }
                     ],
                     "edges": [
@@ -70,6 +83,11 @@ async def chat_completions(request: Request):
                             "sourceId": "internet-client",
                             "targetId": "alb-1",
                             "label": "HTTPS Request"
+                        },
+                        {
+                            "sourceId": "alb-1",
+                            "targetId": "rds-db-1",
+                            "label": "DB Query"
                         }
                     ]
                 }

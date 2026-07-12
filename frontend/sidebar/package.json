@@ -13,13 +13,16 @@
   },
   "dependencies": {
     "@drawio-agent/shared": "*",
+    "dompurify": "^3.4.12",
     "lucide-react": "^0.475.0",
+    "marked": "^18.0.6",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.4.2",
-    "@testing-library/react": "^14.2.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/dompurify": "^3.0.5",
     "@types/node": "^24.13.2",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",

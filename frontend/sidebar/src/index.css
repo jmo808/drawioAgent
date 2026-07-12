@@ -2,62 +2,63 @@
 
 :root {
   --ag-font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --ag-bg-light: rgba(255, 255, 255, 0.85);
-  --ag-bg-dark: rgba(30, 31, 38, 0.9);
-  --ag-border-light: rgba(229, 228, 231, 0.5);
-  --ag-border-dark: rgba(46, 48, 58, 0.6);
+  
+  /* Light theme colors */
+  --ag-bg-light: rgba(255, 255, 255, 0.95);
+  --ag-border-light: rgba(229, 228, 231, 0.8);
   --ag-text-light: #2c2a2e;
-  --ag-text-dark: #e3e1e6;
   --ag-text-muted-light: #7a7580;
-  --ag-text-muted-dark: #928f99;
+  --ag-bubble-user-light: #aa3bff;
+  --ag-bubble-assistant-light: rgba(244, 243, 236, 0.9);
+  
+  /* Dark theme colors */
+  --ag-bg-dark: #1e1f26;
+  --ag-border-dark: #2e303a;
+  --ag-text-dark: #f0f0f3;
+  --ag-text-muted-dark: #a29fb0;
+  --ag-bubble-user-dark: #aa3bff;
+  --ag-bubble-assistant-dark: #272832;
+
   --ag-accent: #aa3bff;
   --ag-accent-hover: #912ae6;
-  --ag-bubble-user-light: #aa3bff;
-  --ag-bubble-user-dark: #be5eff;
-  --ag-bubble-assistant-light: rgba(244, 243, 236, 0.8);
-  --ag-bubble-assistant-dark: rgba(47, 48, 58, 0.7);
-  --ag-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.15);
-  --ag-shadow-fab: 0 4px 16px 0 rgba(170, 59, 255, 0.3);
+  --ag-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25);
+  --ag-shadow-fab: 0 4px 16px 0 rgba(170, 59, 255, 0.4);
 }
 
 /* Core styles for sidebar container */
 #drawio-agent-sidebar-root {
   font-family: var(--ag-font-family);
   font-size: 14px;
+  position: fixed;
+  z-index: 9999;
+}
+
+.drawio-agent-app-container {
+  width: 100%;
+  height: 100%;
 }
 
 /* Sidebar panel */
 .drawio-agent-sidebar {
-  position: fixed;
-  top: 60px; /* offset top header bar in draw.io */
-  right: 16px;
-  bottom: 16px;
-  width: 380px;
-  z-index: 9999;
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   border-radius: 16px;
   overflow: hidden;
   box-shadow: var(--ag-shadow);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   
   background: var(--ag-bg-light);
   border: 1px solid var(--ag-border-light);
   color: var(--ag-text-light);
 }
 
-/* Dark mode theme check */
-@media (prefers-color-scheme: dark) {
-  .drawio-agent-sidebar {
-    background: var(--ag-bg-dark);
-    border: 1px solid var(--ag-border-dark);
-    color: var(--ag-text-dark);
-  }
-}
-/* If dark theme class added dynamically on parent body */
+/* Apply Dark Mode backgrounds when Draw.io body is styled dark */
 body.geDarkPage .drawio-agent-sidebar,
+body.geDark .drawio-agent-sidebar,
 body.dark .drawio-agent-sidebar {
   background: var(--ag-bg-dark);
   border: 1px solid var(--ag-border-dark);
@@ -69,8 +70,8 @@ body.dark .drawio-agent-sidebar {
   position: fixed;
   right: 24px;
   bottom: 24px;
-  width: 52px;
-  height: 52px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   background: var(--ag-accent);
   color: #fff;
@@ -87,6 +88,11 @@ body.dark .drawio-agent-sidebar {
   transform: scale(1.08);
   background: var(--ag-accent-hover);
 }
+.drawio-agent-toggle-fab svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+  opacity: 1 !important;
+}
 
 /* Header */
 .drawio-agent-header {
@@ -96,12 +102,9 @@ body.dark .drawio-agent-sidebar {
   justify-content: space-between;
   border-bottom: 1px solid var(--ag-border-light);
 }
-@media (prefers-color-scheme: dark) {
-  .drawio-agent-header {
-    border-bottom: 1px solid var(--ag-border-dark);
-  }
-}
-body.geDarkPage .drawio-agent-header {
+body.geDarkPage .drawio-agent-header,
+body.geDark .drawio-agent-header,
+body.dark .drawio-agent-header {
   border-bottom: 1px solid var(--ag-border-dark);
 }
 
@@ -114,71 +117,209 @@ body.geDarkPage .drawio-agent-header {
   color: var(--ag-accent);
 }
 .drawio-agent-title {
-  font-weight: 600;
-  letter-spacing: -0.2px;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.3px;
 }
 
-.drawio-agent-header-actions {
+.drawio-agent-header-controls {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
-.drawio-agent-status-icon {
-  transition: color 0.2s ease;
+
+.drawio-agent-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  background: rgba(0, 0, 0, 0.05);
 }
-.drawio-agent-status-icon.connected {
-  color: #10b981;
+body.geDarkPage .drawio-agent-status-badge,
+body.geDark .drawio-agent-status-badge,
+body.dark .drawio-agent-status-badge {
+  background: rgba(255, 255, 255, 0.06);
 }
-.drawio-agent-status-icon.disconnected {
-  color: #ef4444;
+
+.drawio-agent-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+.drawio-agent-dot.connected {
+  background: #10b981;
+}
+.drawio-agent-dot.connecting {
+  background: #f59e0b;
+  animation: pulse 1.5s infinite;
+}
+.drawio-agent-dot.disconnected {
+  background: #ef4444;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.4; }
+  50% { opacity: 1; }
+  100% { opacity: 0.4; }
 }
 
 .drawio-agent-close-btn {
   background: transparent;
   border: none;
+  color: inherit;
+  opacity: 0.6;
   cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: inherit;
-  opacity: 0.6;
-  transition: opacity 0.2s;
+  padding: 4px;
+  border-radius: 4px;
 }
 .drawio-agent-close-btn:hover {
   opacity: 1;
+  background: rgba(0, 0, 0, 0.05);
+}
+body.geDarkPage .drawio-agent-close-btn:hover,
+body.geDark .drawio-agent-close-btn:hover,
+body.dark .drawio-agent-close-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
 }
 
-/* Connection Banner */
-.drawio-agent-connection-banner {
-  padding: 6px 12px;
-  text-align: center;
-  font-size: 11px;
-  font-weight: 500;
-}
-.drawio-agent-connection-banner.connecting {
-  background: rgba(245, 158, 11, 0.15);
-  color: #d97706;
-}
-.drawio-agent-connection-banner.disconnected {
-  background: rgba(239, 68, 68, 0.15);
-  color: #dc2626;
-}
-
-/* Body / Messages List */
+/* Body / Chat Area */
 .drawio-agent-body {
   flex: 1;
   overflow-y: auto;
   padding: 16px;
   display: flex;
   flex-direction: column;
+  gap: 16px;
 }
 
-.drawio-agent-msg-list {
+/* Provider Selector dropdown styling */
+.drawio-agent-provider-selector {
+  margin-bottom: 4px;
+}
+.drawio-agent-select {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid var(--ag-border-light);
+  background: #fff;
+  color: var(--ag-text-light);
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+body.geDarkPage .drawio-agent-select,
+body.geDark .drawio-agent-select,
+body.dark .drawio-agent-select {
+  border: 1px solid var(--ag-border-dark);
+  background: #272832;
+  color: var(--ag-text-dark);
+}
+
+/* Template Library Grid styling */
+.drawio-agent-template-library {
+  margin-top: 4px;
+}
+.drawio-agent-library-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  opacity: 0.6;
+  margin-bottom: 8px;
+}
+.drawio-agent-category-section {
+  margin-bottom: 8px;
+}
+.drawio-agent-category-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+.drawio-agent-category-header:hover {
+  opacity: 1;
+}
+.drawio-agent-template-grid {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 6px;
+  margin-top: 4px;
+  margin-left: 10px;
+}
+.drawio-agent-template-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--ag-border-light);
+  background: rgba(255, 255, 255, 0.6);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+body.geDarkPage .drawio-agent-template-card,
+body.geDark .drawio-agent-template-card,
+body.dark .drawio-agent-template-card {
+  border: 1px solid var(--ag-border-dark);
+  background: rgba(255, 255, 255, 0.03);
+}
+.drawio-agent-template-card:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+body.geDarkPage .drawio-agent-template-card:hover,
+body.geDark .drawio-agent-template-card:hover,
+body.dark .drawio-agent-template-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+.drawio-agent-template-icon {
+  margin-top: 2px;
+  color: var(--ag-accent);
+  flex-shrink: 0;
+}
+.drawio-agent-template-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.drawio-agent-template-name {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.drawio-agent-template-desc {
+  font-size: 11px;
+  opacity: 0.65;
+  line-height: 130%;
+}
+
+/* Chat Messages */
+.drawio-agent-messages-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .drawio-agent-msg-row {
@@ -193,10 +334,11 @@ body.geDarkPage .drawio-agent-header {
 }
 
 .drawio-agent-msg-bubble {
-  max-width: 80%;
+  max-width: 85%;
   padding: 10px 14px;
   border-radius: 12px;
   line-height: 140%;
+  font-size: 13px;
 }
 
 .drawio-agent-msg-user {
@@ -204,12 +346,9 @@ body.geDarkPage .drawio-agent-header {
   color: #fff;
   border-bottom-right-radius: 4px;
 }
-@media (prefers-color-scheme: dark) {
-  .drawio-agent-msg-user {
-    background: var(--ag-bubble-user-dark);
-  }
-}
-body.geDarkPage .drawio-agent-msg-user {
+body.geDarkPage .drawio-agent-msg-user,
+body.geDark .drawio-agent-msg-user,
+body.dark .drawio-agent-msg-user {
   background: var(--ag-bubble-user-dark);
 }
 
@@ -219,14 +358,9 @@ body.geDarkPage .drawio-agent-msg-user {
   border-bottom-left-radius: 4px;
   border: 1px solid var(--ag-border-light);
 }
-@media (prefers-color-scheme: dark) {
-  .drawio-agent-msg-bubble.drawio-agent-msg-assistant {
-    background: var(--ag-bubble-assistant-dark);
-    color: var(--ag-text-dark);
-    border: 1px solid var(--ag-border-dark);
-  }
-}
-body.geDarkPage .drawio-agent-msg-bubble.drawio-agent-msg-assistant {
+body.geDarkPage .drawio-agent-msg-bubble.drawio-agent-msg-assistant,
+body.geDark .drawio-agent-msg-bubble.drawio-agent-msg-assistant,
+body.dark .drawio-agent-msg-bubble.drawio-agent-msg-assistant {
   background: var(--ag-bubble-assistant-dark);
   color: var(--ag-text-dark);
   border: 1px solid var(--ag-border-dark);
@@ -243,12 +377,9 @@ body.geDarkPage .drawio-agent-msg-bubble.drawio-agent-msg-assistant {
   border-radius: 8px;
   background: rgba(0, 0, 0, 0.04);
 }
-@media (prefers-color-scheme: dark) {
-  .drawio-agent-tool-progress {
-    background: rgba(255, 255, 255, 0.04);
-  }
-}
-body.geDarkPage .drawio-agent-tool-progress {
+body.geDarkPage .drawio-agent-tool-progress,
+body.geDark .drawio-agent-tool-progress,
+body.dark .drawio-agent-tool-progress {
   background: rgba(255, 255, 255, 0.04);
 }
 
@@ -284,31 +415,24 @@ body.geDarkPage .drawio-agent-tool-progress {
   padding: 14px;
   border-top: 1px solid var(--ag-border-light);
 }
-@media (prefers-color-scheme: dark) {
-  .drawio-agent-footer {
-    border-top: 1px solid var(--ag-border-dark);
-  }
-}
-body.geDarkPage .drawio-agent-footer {
+body.geDarkPage .drawio-agent-footer,
+body.geDark .drawio-agent-footer,
+body.dark .drawio-agent-footer {
   border-top: 1px solid var(--ag-border-dark);
 }
 
 .drawio-agent-input-container {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 8px;
   background: rgba(0, 0, 0, 0.03);
-  padding: 6px 12px;
-  border-radius: 20px;
+  padding: 8px 12px;
+  border-radius: 12px;
   border: 1px solid var(--ag-border-light);
 }
-@media (prefers-color-scheme: dark) {
-  .drawio-agent-input-container {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--ag-border-dark);
-  }
-}
-body.geDarkPage .drawio-agent-input-container {
+body.geDarkPage .drawio-agent-input-container,
+body.geDark .drawio-agent-input-container,
+body.dark .drawio-agent-input-container {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--ag-border-dark);
 }
@@ -320,28 +444,190 @@ body.geDarkPage .drawio-agent-input-container {
   outline: none;
   font-size: 13px;
   color: inherit;
+  font-family: inherit;
+  line-height: 140%;
+  height: 42px;
+  margin: 0;
+  padding: 0;
 }
 .drawio-agent-input::placeholder {
   opacity: 0.5;
 }
 
 .drawio-agent-send-btn {
-  background: var(--ag-accent);
-  color: #fff;
+  background: transparent;
+  color: var(--ag-accent);
   border: none;
-  border-radius: 50%;
-  width: 28px;
-  height: 28px;
+  padding: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: color 0.2s, transform 0.1s;
 }
 .drawio-agent-send-btn:hover:not(:disabled) {
-  background: var(--ag-accent-hover);
+  color: var(--ag-accent-hover);
+  transform: scale(1.08);
 }
 .drawio-agent-send-btn:disabled {
-  opacity: 0.5;
+  color: var(--ag-text-muted-light);
+  opacity: 0.4;
   cursor: not-allowed;
+}
+body.geDarkPage .drawio-agent-send-btn:disabled,
+body.geDark .drawio-agent-send-btn:disabled,
+body.dark .drawio-agent-send-btn:disabled {
+  color: var(--ag-text-muted-dark);
+}
+
+/* Markdown formatting inside chat messages */
+.drawio-agent-msg-text p {
+  margin: 0 0 8px 0;
+  line-height: 145%;
+}
+.drawio-agent-msg-text p:last-child {
+  margin-bottom: 0;
+}
+.drawio-agent-msg-text ul,
+.drawio-agent-msg-text ol {
+  margin: 0 0 8px 0;
+  padding-left: 20px;
+}
+.drawio-agent-msg-text li {
+  margin-bottom: 4px;
+  line-height: 140%;
+}
+.drawio-agent-msg-text h1,
+.drawio-agent-msg-text h2,
+.drawio-agent-msg-text h3 {
+  font-size: 13px;
+  font-weight: 700;
+  margin: 12px 0 6px 0;
+}
+.drawio-agent-msg-text code {
+  font-family: monospace;
+  background: rgba(0, 0, 0, 0.06);
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-size: 11.5px;
+}
+body.dark .drawio-agent-msg-text code,
+body.geDarkPage .drawio-agent-msg-text code,
+body.geDark .drawio-agent-msg-text code {
+  background: rgba(255, 255, 255, 0.08);
+}
+.drawio-agent-msg-text pre {
+  background: rgba(0, 0, 0, 0.04);
+  padding: 8px 10px;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin: 8px 0;
+}
+body.dark .drawio-agent-msg-text pre,
+body.geDarkPage .drawio-agent-msg-text pre,
+body.geDark .drawio-agent-msg-text pre {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--ag-border-dark);
+}
+.drawio-agent-msg-text pre code {
+  background: transparent;
+  padding: 0;
+  font-size: 11px;
+}
+
+/* Markdown Tables */
+.drawio-agent-msg-text table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0;
+  font-size: 12px;
+}
+.drawio-agent-msg-text th,
+.drawio-agent-msg-text td {
+  border: 1px solid var(--ag-border-light);
+  padding: 6px 8px;
+  text-align: left;
+}
+body.dark .drawio-agent-msg-text th,
+body.dark .drawio-agent-msg-text td,
+body.geDarkPage .drawio-agent-msg-text th,
+body.geDarkPage .drawio-agent-msg-text td,
+body.geDark .drawio-agent-msg-text th,
+body.geDark .drawio-agent-msg-text td {
+  border: 1px solid var(--ag-border-dark);
+}
+.drawio-agent-msg-text th {
+  background: rgba(0, 0, 0, 0.03);
+  font-weight: 600;
+}
+body.dark .drawio-agent-msg-text th,
+body.geDarkPage .drawio-agent-msg-text th,
+body.geDark .drawio-agent-msg-text th {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* Resize Handles */
+.drawio-agent-resize-handle {
+  position: absolute;
+  z-index: 10001;
+}
+
+/* Edges */
+.drawio-agent-resize-handle.top {
+  top: 0;
+  left: 8px;
+  right: 8px;
+  height: 8px;
+  cursor: n-resize;
+}
+.drawio-agent-resize-handle.bottom {
+  bottom: 0;
+  left: 8px;
+  right: 8px;
+  height: 8px;
+  cursor: s-resize;
+}
+.drawio-agent-resize-handle.left {
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 8px;
+  cursor: w-resize;
+}
+.drawio-agent-resize-handle.right {
+  right: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 8px;
+  cursor: e-resize;
+}
+
+/* Corners */
+.drawio-agent-resize-handle.top-left {
+  top: 0;
+  left: 0;
+  width: 14px;
+  height: 14px;
+  cursor: nw-resize;
+}
+.drawio-agent-resize-handle.top-right {
+  top: 0;
+  right: 0;
+  width: 14px;
+  height: 14px;
+  cursor: ne-resize;
+}
+.drawio-agent-resize-handle.bottom-left {
+  bottom: 0;
+  left: 0;
+  width: 14px;
+  height: 14px;
+  cursor: sw-resize;
+}
+.drawio-agent-resize-handle.bottom-right {
+  bottom: 0;
+  right: 0;
+  width: 14px;
+  height: 14px;
+  cursor: se-resize;
 }

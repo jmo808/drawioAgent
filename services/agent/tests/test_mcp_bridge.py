@@ -37,6 +37,7 @@ async def test_mcp_bridge_lifecycle_and_call():
     
     mock_process = AsyncMock()
     mock_process.stdin = AsyncMock()
+    mock_process.stdin.close = MagicMock()
     mock_process.returncode = None
     
     response_list = '{"jsonrpc": "2.0", "result": {"tools": [{"name": "add_node", "description": "Add node"}]}, "id": 1}\n'
@@ -87,6 +88,7 @@ async def test_mcp_bridge_timeout():
     
     mock_process = AsyncMock()
     mock_process.stdin = AsyncMock()
+    mock_process.stdin.close = MagicMock()
     mock_process.returncode = None
     
     response_list = '{"jsonrpc": "2.0", "result": {"tools": []}, "id": 1}\n'
@@ -139,6 +141,8 @@ async def test_mcp_bridge_discover_tools_error():
     # Mock _send_request to throw exception
     with patch.object(bridge, "_send_request", side_effect=Exception("Connection broken")):
         mock_process = AsyncMock()
+        mock_process.stdin = AsyncMock()
+        mock_process.stdin.close = MagicMock()
         with patch("asyncio.create_subprocess_exec", return_value=mock_process):
             # start will try to discover tools, fail, but start successfully with empty tools list
             await bridge.start()
@@ -151,6 +155,7 @@ async def test_mcp_bridge_read_loop_resilience():
     
     mock_process = AsyncMock()
     mock_process.stdin = AsyncMock()
+    mock_process.stdin.close = MagicMock()
     mock_process.returncode = None
     
     # stdout yields: empty line, invalid JSON, correct tools list, then EOF

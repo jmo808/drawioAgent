@@ -18,22 +18,25 @@ export const MessageInput: React.FC<MessageInputProps> = ({ onSend, isLoading })
     }
   }
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    // Submit on Enter, unless Shift is held (for typing multiline text)
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
       handleSend()
     }
   }
 
   return (
     <div className="drawio-agent-input-container">
-      <input
-        type="text"
+      <textarea
         className="drawio-agent-input"
-        placeholder="Ask Antigravity..."
+        placeholder="Ask Archimedes..."
         value={text}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={handleKeyDown}
         disabled={isLoading}
+        rows={2}
+        style={{ resize: 'none' }}
       />
       <button
         className="drawio-agent-send-btn"
@@ -41,7 +44,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({ onSend, isLoading })
         disabled={isLoading || !text.trim()}
         aria-label="Send"
       >
-        <Send size={16} />
+        <Send size={18} />
       </button>
     </div>
   )

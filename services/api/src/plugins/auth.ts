@@ -1,5 +1,7 @@
 import { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import fp from 'fastify-plugin';
+import crypto from 'crypto';
+
 
 export interface AuthPluginOptions {
   bypassRoutes?: string[];
@@ -27,15 +29,27 @@ const authPluginCallback: FastifyPluginAsync<AuthPluginOptions> = async (
 
     // Read API key from headers or query parameters
     const apiKeyHeader = request.headers['x-api-key'];
-    const apiKeyQuery = (request.query as Record<string, string>)?.apiKey;
-    const providedKey = apiKeyHeader || apiKeyQuery;
+    
+    // Safely cast query parameters and check apiKey
+    const queryParams = request.query as Record<string, unknown>;
+    const apiKeyQuery = typeof queryParams?.apiKey === 'string' ? queryParams.apiKey : undefined;
+    
+    // Note: Query parameter authentication is supported primarily as a fallback
+    // for WebSocket upgrades where custom headers are not supported by browser clients.
+    const providedKey = typeof apiKeyHeader === 'string' ? apiKeyHeader : apiKeyQuery;
 
     if (!providedKey) {
       reply.code(401).send({ error: 'Unauthorized', message: 'API key is missing' });
       return;
     }
 
-    if (providedKey !== expectedKey) {
+    const expectedBuffer = Buffer.from(expectedKey);
+    const providedBuffer = Buffer.from(providedKey);
+
+    if (
+      expectedBuffer.length !== providedBuffer.length ||
+      !crypto.timingSafeEqual(expectedBuffer, providedBuffer)
+    ) {
       reply.code(403).send({ error: 'Forbidden', message: 'Invalid API key' });
       return;
     }

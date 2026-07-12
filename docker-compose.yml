@@ -68,8 +68,11 @@ services:
       - HOST=0.0.0.0
       - PYTHONPATH=/app/agent/src
       - MCP_SERVER_PATH=/app/mcp-server/scripts/mcp-wrapper.js
-      - LLM_PROVIDER=ollama
-      - LLM_MODEL=llama3
+      - LLM_PROVIDER=${LLM_PROVIDER:-gemini}
+      - LLM_MODEL=${LLM_MODEL:-gemini-3.5-flash}
+      - LLM_API_KEY=${GEMINI_API_KEY:-}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GOOGLE_API_KEY=${GEMINI_API_KEY:-}
     command: uvicorn agent.server:app --host 0.0.0.0 --port 8000 --reload
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]

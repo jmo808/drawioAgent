@@ -34,7 +34,7 @@ class MCPBridge:
             *args,
             stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.DEVNULL,
+            stderr=None,
             cwd=self.settings.mcp_workspace_root
         )
 
@@ -78,7 +78,7 @@ class MCPBridge:
         """
         return self.tools
 
-    async def call_tool(self, name: str, arguments: Dict[str, Any], timeout: float = 10.0) -> Any:
+    async def call_tool(self, name: str, arguments: Dict[str, Any], timeout: float = 30.0) -> Any:
         """
         Executes an MCP tool call and returns the result dictionary.
         """

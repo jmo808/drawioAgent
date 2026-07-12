@@ -27,6 +27,10 @@ class LLMService:
     def __init__(self, config: Settings):
         self.config = config
         self.model_string = f"{config.llm_provider}/{config.llm_model}"
+        if config.llm_api_key:
+            import os
+            os.environ["GEMINI_API_KEY"] = config.llm_api_key
+            os.environ["GOOGLE_API_KEY"] = config.llm_api_key
 
     async def generate(self, prompt: str, tools: list[dict[str, Any]] | None = None) -> str:
         """

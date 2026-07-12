@@ -3,6 +3,9 @@ import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js'
 
 // https://vite.dev/config/
 export default {
+  define: {
+    'process.env.NODE_ENV': process.env.VITEST ? JSON.stringify('test') : JSON.stringify('production')
+  },
   plugins: [
     react() as any,
     cssInjectedByJsPlugin() as any

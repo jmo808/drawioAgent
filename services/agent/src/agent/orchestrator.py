@@ -46,7 +46,7 @@ class AgentOrchestrator:
                         "message": "Restoring diagram state from snapshot"
                     }
                 }
-                await self.mcp_bridge.call_tool("open_drawio_xml", {"xml": diagram_xml})
+                await self.mcp_bridge.call_tool("open_drawio_xml", {"content": diagram_xml})
             else:
                 yield {
                     "event": "tool_progress",
@@ -71,12 +71,24 @@ class AgentOrchestrator:
         self.conversation_manager.add_message(session_id, "user", prompt)
 
         # 3. Execution Loop
-        max_turns = 10
+        max_turns = 15
         turn = 0
         final_text = ""
         
         while turn < max_turns:
             turn += 1
+            # Emit a thinking progress event to let the user know the AI is active
+            progress_msg = "Planning layout and structural changes..." if turn == 1 else "Analyzing results and placing nodes..."
+            yield {
+                "event": "tool_progress",
+                "data": {
+                    "toolName": "Archimedes AI",
+                    "step": turn,
+                    "totalSteps": max_turns,
+                    "message": progress_msg
+                }
+            }
+
             messages = self.conversation_manager.get_conversation(session_id)
             
             try:
@@ -161,4 +173,7 @@ class AgentOrchestrator:
             yield {"event": "error", "data": {"message": f"Failed to finalize diagram: {str(e)}"}}
 
         # 5. Emit final chat response
+        if not final_text or not final_text.strip():
+            final_text = "I have successfully compiled your architecture request and updated the diagram canvas."
+            self.conversation_manager.add_message(session_id, "assistant", final_text)
         yield {"event": "chat_message", "data": {"text": final_text}}

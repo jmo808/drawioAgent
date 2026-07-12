@@ -64,20 +64,42 @@ async def test_orchestrator_successful_flow():
             "data": {"toolName": "init_diagram", "step": 0, "totalSteps": 2, "message": "Initializing new diagram"}
         }
         
-        # 2. Tool progress event during execution
+        # 2. Archimedes AI thinking (turn 1)
         assert events[1] == {
+            "event": "tool_progress",
+            "data": {
+                "toolName": "Archimedes AI",
+                "step": 1,
+                "totalSteps": 15,
+                "message": "Planning layout and structural changes..."
+            }
+        }
+        
+        # 3. Tool progress event during execution
+        assert events[2] == {
             "event": "tool_progress",
             "data": {"toolName": "add_node", "step": 1, "totalSteps": 1, "message": "Executing tool add_node"}
         }
         
-        # 3. Final XML diagram update
-        assert events[2] == {
+        # 4. Archimedes AI thinking (turn 2)
+        assert events[3] == {
+            "event": "tool_progress",
+            "data": {
+                "toolName": "Archimedes AI",
+                "step": 2,
+                "totalSteps": 15,
+                "message": "Analyzing results and placing nodes..."
+            }
+        }
+        
+        # 5. Final XML diagram update
+        assert events[4] == {
             "event": "diagram_update",
             "data": {"xml": "<mxfile>mock-xml</mxfile>"}
         }
         
-        # 4. Final chat message
-        assert events[3] == {
+        # 6. Final chat message
+        assert events[5] == {
             "event": "chat_message",
             "data": {"text": "Diagram completed!"}
         }
@@ -117,10 +139,19 @@ async def test_orchestrator_restore_xml():
             "data": {"toolName": "open_drawio_xml", "step": 0, "totalSteps": 2, "message": "Restoring diagram state from snapshot"}
         }
         assert events[1] == {
+            "event": "tool_progress",
+            "data": {
+                "toolName": "Archimedes AI",
+                "step": 1,
+                "totalSteps": 15,
+                "message": "Planning layout and structural changes..."
+            }
+        }
+        assert events[2] == {
             "event": "diagram_update",
             "data": {"xml": "<mxfile>restored-xml</mxfile>"}
         }
-        mcp_bridge.call_tool.assert_any_call("open_drawio_xml", {"xml": "<mxfile>existing</mxfile>"})
+        mcp_bridge.call_tool.assert_any_call("open_drawio_xml", {"content": "<mxfile>existing</mxfile>"})
 
 @pytest.mark.asyncio
 async def test_orchestrator_initialization_error():
@@ -197,8 +228,8 @@ async def test_orchestrator_tool_execution_error():
             events.append(event)
             
         assert events[1]["event"] == "tool_progress"
-        assert events[2]["event"] == "diagram_update"
-        assert events[2]["data"]["xml"] == "<mxfile>error-recovery</mxfile>"
+        assert events[4]["event"] == "diagram_update"
+        assert events[4]["data"]["xml"] == "<mxfile>error-recovery</mxfile>"
         
         # Verify that tool message in history reflects the error
         history = conversation_manager.get_conversation("session-tool-err")

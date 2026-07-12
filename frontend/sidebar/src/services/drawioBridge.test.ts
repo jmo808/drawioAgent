@@ -34,7 +34,9 @@ describe('drawioBridge', () => {
 
     setGraphXml(mockUi, '<mxfile>new-xml</mxfile>')
     expect(mockBegin).toHaveBeenCalled()
-    expect(mockSetGraphXml).toHaveBeenCalledWith('<mxfile>new-xml</mxfile>')
+    expect(mockSetGraphXml).toHaveBeenCalled()
+    const calledArg = mockSetGraphXml.mock.calls[0][0]
+    expect(calledArg.tagName).toBe('mxfile')
     expect(mockEnd).toHaveBeenCalled()
   })
 

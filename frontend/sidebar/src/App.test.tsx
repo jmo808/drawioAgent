@@ -1,12 +1,12 @@
-import { describe, test, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
-import App from './App'
+import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { App } from './App';
 
 const mockProviders = {
   providers: [
     { provider: 'ollama', model: 'llama3' }
   ]
-}
+};
 
 describe('App', () => {
   beforeEach(() => {
@@ -15,11 +15,11 @@ describe('App', () => {
         ok: true,
         json: () => Promise.resolve(mockProviders)
       })
-    ) as any
-  })
+    ) as any;
+  });
 
   test('renders ChatPanel container initially', () => {
-    render(<App />)
-    expect(screen.getByPlaceholderText(/ask antigravity/i)).toBeInTheDocument()
-  })
-})
+    render(<App />);
+    expect(screen.getByPlaceholderText(/ask archimedes/i)).toBeInTheDocument();
+  });
+});

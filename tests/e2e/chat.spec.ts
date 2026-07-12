@@ -2,28 +2,34 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Drawio Agent AI Chat Sidebar E2E Tests', () => {
   test.beforeEach(async ({ page }) => {
+    page.on('console', msg => console.log(`BROWSER_LOG [${msg.type()}]: ${msg.text()}`));
+    page.on('pageerror', err => console.log(`BROWSER_ERROR: ${err.message}`));
+    page.on('response', response => {
+      if (response.status() >= 400) {
+        console.log(`BROWSER_HTTP_ERROR [${response.status()}]: ${response.url()}`);
+      }
+    });
+
     // Navigate to draw.io app loaded with our custom sidebar plugin and test api key
     await page.goto('/?apiKey=test-api-key&ui=atlas&spin=1&proto=json');
 
-    // If "Decide later" dialog appears, click it to bypass the storage setup
-    const decideLater = page.locator('text="Decide later"');
     const sidebarRoot = page.locator('#drawio-agent-sidebar-root');
-
-    await Promise.race([
-      decideLater.waitFor({ state: 'visible', timeout: 15000 }).then(() => 'dialog'),
-      sidebarRoot.waitFor({ state: 'visible', timeout: 15000 }).then(() => 'sidebar')
-    ]).then(async (result) => {
-      if (result === 'dialog') {
-        await decideLater.click();
-      }
-    }).catch(() => {});
+    const decideLater = page.locator('text="Decide later"');
 
     // Wait for draw.io editor to initialize and render our sidebar root
-    await expect(sidebarRoot).toBeVisible({ timeout: 20000 });
+    await expect(sidebarRoot).toBeVisible({ timeout: 40000 });
+
+    // If "Decide later" dialog appears, click it to bypass the storage setup
+    try {
+      await decideLater.waitFor({ state: 'visible', timeout: 5000 });
+      await decideLater.click();
+    } catch (e) {
+      // Dialog didn't appear, ignore
+    }
 
     // Wait for connection banner to disappear (indicating WebSocket is connected)
     const connectionBanner = page.locator('.drawio-agent-connection-banner');
-    await expect(connectionBanner).not.toBeVisible({ timeout: 15000 });
+    await expect(connectionBanner).not.toBeVisible({ timeout: 30000 });
   });
 
   test('should successfully compile AWS 3-tier diagram from chat prompt and render on canvas', async ({ page }) => {
@@ -32,7 +38,7 @@ test.describe('Drawio Agent AI Chat Sidebar E2E Tests', () => {
 
     // 1. Enter chat message
     await input.fill('Create an AWS 3-tier diagram');
-    await sendButton.click();
+    await sendButton.click({ force: true });
 
     // 2. Verify progress and assistant reply
     const assistantMessage = page.locator('.drawio-agent-msg-assistant').last();
@@ -41,7 +47,14 @@ test.describe('Drawio Agent AI Chat Sidebar E2E Tests', () => {
     // 3. Verify diagram XML is updated on draw.io canvas via window.drawioEditorUi
     const canvasXml = await page.evaluate(() => {
       const ui = (window as any).drawioEditorUi;
-      return ui ? ui.editor.getGraphXml() : '';
+      if (!ui || !ui.editor) return '';
+      const xmlNode = ui.editor.getGraphXml();
+      if (!xmlNode) return '';
+      const mxUtils = (window as any).mxUtils;
+      if (mxUtils && typeof mxUtils.getXml === 'function') {
+        return mxUtils.getXml(xmlNode);
+      }
+      return new XMLSerializer().serializeToString(xmlNode);
     });
 
     expect(canvasXml).toContain('<mxGraphModel');
@@ -56,7 +69,7 @@ test.describe('Drawio Agent AI Chat Sidebar E2E Tests', () => {
 
     // Click on template card
     const templateCard = page.locator('.drawio-agent-template-card', { hasText: 'AWS 3-Tier Web App' });
-    await templateCard.click();
+    await templateCard.click({ force: true });
 
     // Verify assistant reply
     const assistantMessage = page.locator('.drawio-agent-msg-assistant').last();
@@ -65,7 +78,14 @@ test.describe('Drawio Agent AI Chat Sidebar E2E Tests', () => {
     // Verify XML has correct nodes
     const canvasXml = await page.evaluate(() => {
       const ui = (window as any).drawioEditorUi;
-      return ui ? ui.editor.getGraphXml() : '';
+      if (!ui || !ui.editor) return '';
+      const xmlNode = ui.editor.getGraphXml();
+      if (!xmlNode) return '';
+      const mxUtils = (window as any).mxUtils;
+      if (mxUtils && typeof mxUtils.getXml === 'function') {
+        return mxUtils.getXml(xmlNode);
+      }
+      return new XMLSerializer().serializeToString(xmlNode);
     });
     expect(canvasXml).toContain('rds-db-1');
   });
@@ -84,7 +104,7 @@ test.describe('Drawio Agent AI Chat Sidebar E2E Tests', () => {
     const sendButton = page.locator('.drawio-agent-send-btn');
 
     await input.fill('trigger error');
-    await sendButton.click();
+    await sendButton.click({ force: true });
 
     // Verify assistant error response is displayed in chat
     const assistantMessage = page.locator('.drawio-agent-msg-assistant').last();

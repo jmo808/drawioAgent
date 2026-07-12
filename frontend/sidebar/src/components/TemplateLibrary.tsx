@@ -49,7 +49,7 @@ const CATEGORIES: Category[] = [
 ]
 
 export const TemplateLibrary: React.FC<TemplateLibraryProps> = ({ onSelectTemplate }) => {
-  const [expandedCategory, setExpandedCategory] = useState<string | null>('Cloud Architecture Templates')
+  const [expandedCategory, setExpandedCategory] = useState<string | null>(null)
 
   const toggleCategory = (name: string) => {
     setExpandedCategory(expandedCategory === name ? null : name)
