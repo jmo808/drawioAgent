@@ -92,9 +92,9 @@
     - [x] Register in `validate.js` VALIDATOR_TYPE_MAP
     - [x] Verify all tests pass
 
-- [~] Task: Register K8s keyword triggers in `conversation.py`
-    - [ ] Add kubernetes/k8s/pod/namespace/deployment keyword scan flags
-    - [ ] Mount `kubernetes-topology-expert.md` when keywords detected
+- [x] Task: Register K8s keyword triggers in `conversation.py` (08a46c9)
+    - [x] Add kubernetes/k8s/pod/namespace/deployment keyword scan flags
+    - [x] Mount `kubernetes-topology-expert.md` when keywords detected
 
 - [ ] Task: Conductor - User Manual Verification 'K8s Expert' (Protocol in workflow.md)
 
