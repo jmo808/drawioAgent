@@ -77,10 +77,10 @@
 
 ### 1.3 — Kubernetes Topology Expert (New)
 
-- [~] Task: Create K8s reference guide (`kubernetes-topology-expert.md`)
-    - [ ] Document K8s resource hierarchy and nesting rules
-    - [ ] Document service discovery and networking patterns
-    - [ ] Document common architecture patterns (sidecar, ambassador, adapter)
+- [x] Task: Create K8s reference guide (`kubernetes-topology-expert.md`) (d990dca)
+    - [x] Document K8s resource hierarchy and nesting rules
+    - [x] Document service discovery and networking patterns
+    - [x] Document common architecture patterns (sidecar, ambassador, adapter)
 
 - [ ] Task: Create K8s validator (`validators/kubernetes.js`)
     - [ ] Write failing tests for each rule
