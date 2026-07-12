@@ -133,22 +133,65 @@ class AgentOrchestrator:
                     tool_name = tc.function.name
                     step_num = idx + 1
                     
-                    tool_desc = self._get_prettified_tool_description(tool_name)
-                    yield {
-                        "event": "tool_progress",
-                        "data": {
-                            "toolName": tool_desc["name"],
-                            "step": step_num,
-                            "totalSteps": total_steps,
-                            "message": tool_desc["message"]
-                        }
-                    }
-                    
-                    # Small sleep to ensure the frontend renders the tool progress step
-                    await asyncio.sleep(0.8)
-                    
                     try:
                         args = json.loads(tc.function.arguments) if isinstance(tc.function.arguments, str) else tc.function.arguments
+                    except Exception:
+                        args = {}
+
+                    if tool_name == "compile_json_spec" and isinstance(args, dict):
+                        spec = args.get("spec", {}) or {}
+                        num_containers = len(spec.get("containers", []) or [])
+                        num_nodes = len(spec.get("nodes", []) or [])
+                        num_edges = len(spec.get("edges", []) or [])
+                        
+                        compile_steps = []
+                        if num_containers > 0:
+                            compile_steps.append({
+                                "name": "Boundary Group",
+                                "message": f"Adding {num_containers} container boundaries..."
+                            })
+                        if num_nodes > 0:
+                            compile_steps.append({
+                                "name": "Shape Placer",
+                                "message": f"Placing {num_nodes} shapes onto diagram..."
+                            })
+                        if num_edges > 0:
+                            compile_steps.append({
+                                "name": "Connector Router",
+                                "message": f"Routing {num_edges} links and process lines..."
+                            })
+                        compile_steps.append({
+                            "name": "Layout Compiler",
+                            "message": "Compiling full diagram specification..."
+                        })
+                        
+                        total_substeps = len(compile_steps)
+                        for s_idx, step_info in enumerate(compile_steps):
+                            yield {
+                                "event": "tool_progress",
+                                "data": {
+                                    "toolName": step_info["name"],
+                                    "step": s_idx + 1,
+                                    "totalSteps": total_substeps,
+                                    "message": step_info["message"]
+                                }
+                            }
+                            await asyncio.sleep(0.8)
+                    else:
+                        tool_desc = self._get_prettified_tool_description(tool_name)
+                        yield {
+                            "event": "tool_progress",
+                            "data": {
+                                "toolName": tool_desc["name"],
+                                "step": step_num,
+                                "totalSteps": total_steps,
+                                "message": tool_desc["message"]
+                            }
+                        }
+                        # Small sleep to ensure the frontend renders the tool progress step
+                        await asyncio.sleep(0.8)
+                    
+                    try:
                         tool_res = await self.mcp_bridge.call_tool(tool_name, args)
                         tool_res_content = json.dumps(tool_res)
                     except Exception as err:
@@ -171,6 +214,18 @@ class AgentOrchestrator:
 
         # 4. Finalize diagram and emit diagram_update
         try:
+            # Yield finalizer and validator progress
+            yield {
+                "event": "tool_progress",
+                "data": {
+                    "toolName": "Finalizer & Validator",
+                    "step": 1,
+                    "totalSteps": 1,
+                    "message": "Running validations and updating canvas..."
+                }
+            }
+            await asyncio.sleep(0.8)
+            
             finalize_res = await self.mcp_bridge.call_tool("finalize", {})
             final_xml = ""
             if isinstance(finalize_res, dict):

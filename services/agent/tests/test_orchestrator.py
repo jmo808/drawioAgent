@@ -92,14 +92,25 @@ async def test_orchestrator_successful_flow():
             }
         }
         
-        # 5. Final XML diagram update
+        # 5. Finalizer progress
         assert events[4] == {
+            "event": "tool_progress",
+            "data": {
+                "toolName": "Finalizer & Validator",
+                "step": 1,
+                "totalSteps": 1,
+                "message": "Running validations and updating canvas..."
+            }
+        }
+
+        # 6. Final XML diagram update
+        assert events[5] == {
             "event": "diagram_update",
             "data": {"xml": "<mxfile>mock-xml</mxfile>"}
         }
         
-        # 6. Final chat message
-        assert events[5] == {
+        # 7. Final chat message
+        assert events[6] == {
             "event": "chat_message",
             "data": {"text": "Diagram completed!"}
         }
@@ -148,6 +159,15 @@ async def test_orchestrator_restore_xml():
             }
         }
         assert events[2] == {
+            "event": "tool_progress",
+            "data": {
+                "toolName": "Finalizer & Validator",
+                "step": 1,
+                "totalSteps": 1,
+                "message": "Running validations and updating canvas..."
+            }
+        }
+        assert events[3] == {
             "event": "diagram_update",
             "data": {"xml": "<mxfile>restored-xml</mxfile>"}
         }
@@ -228,8 +248,9 @@ async def test_orchestrator_tool_execution_error():
             events.append(event)
             
         assert events[1]["event"] == "tool_progress"
-        assert events[4]["event"] == "diagram_update"
-        assert events[4]["data"]["xml"] == "<mxfile>error-recovery</mxfile>"
+        assert events[4]["event"] == "tool_progress"
+        assert events[5]["event"] == "diagram_update"
+        assert events[5]["data"]["xml"] == "<mxfile>error-recovery</mxfile>"
         
         # Verify that tool message in history reflects the error
         history = conversation_manager.get_conversation("session-tool-err")
