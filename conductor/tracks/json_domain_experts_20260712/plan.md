@@ -45,7 +45,7 @@
 
 - [x] Task: Conductor - User Manual Verification 'Universal JSON Engine' (Protocol in workflow.md)
 
-### 1.2 — PFD Domain Expert Expansion
+### 1.2 — PFD Domain Expert Expansion [checkpoint: b0a31ed]
 
 - [x] Task: Add PFD equipment shape library to `diagram-builder.js` (e5c1142)
     - [x] Add styles/sizes/ports for Separator (2-phase, 3-phase)
@@ -73,7 +73,7 @@
     - [x] Add standard P&ID symbol cross-reference table
     - [x] Add feed-left / product-right layout convention documentation
 
-- [ ] Task: Conductor - User Manual Verification 'PFD Expansion' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'PFD Expansion' (Protocol in workflow.md)
 
 ### 1.3 — Kubernetes Topology Expert (New)
 
