@@ -141,9 +141,9 @@
     - [x] Register in `validate.js` VALIDATOR_TYPE_MAP
     - [x] Verify all tests pass
 
-- [~] Task: Register Network keyword triggers in `conversation.py`
-    - [ ] Add network/topology/switch/router/firewall/vlan keyword scan flags
-    - [ ] Mount `network-topology-expert.md` when keywords detected
+- [x] Task: Register Network keyword triggers in `conversation.py` (01b2e86)
+    - [x] Add network/topology/switch/router/firewall/vlan keyword scan flags
+    - [x] Mount `network-topology-expert.md` when keywords detected
 
 - [ ] Task: Conductor - User Manual Verification 'Network Expert' (Protocol in workflow.md)
 
