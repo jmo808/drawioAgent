@@ -105,14 +105,14 @@
     - [x] Document normalization guidance (1NF–3NF)
     - [x] Document common schema patterns (junction tables, polymorphic associations)
 
-- [~] Task: Create ERD validator (`validators/erd.js`)
-    - [ ] Write failing tests for each rule
-    - [ ] Implement FK_WITHOUT_TARGET rule
-    - [ ] Implement ORPHAN_TABLE rule (warning)
-    - [ ] Implement DUPLICATE_PK rule
-    - [ ] Implement SELF_REFERENCE_MISSING rule
-    - [ ] Register in `validate.js` VALIDATOR_TYPE_MAP
-    - [ ] Verify all tests pass
+- [x] Task: Create ERD validator (`validators/erd.js`) (46dde5b)
+    - [x] Write failing tests for each rule
+    - [x] Implement FK_WITHOUT_TARGET rule
+    - [x] Implement ORPHAN_TABLE rule (warning)
+    - [x] Implement DUPLICATE_PK rule
+    - [x] Implement SELF_REFERENCE_MISSING rule
+    - [x] Register in `validate.js` VALIDATOR_TYPE_MAP
+    - [x] Verify all tests pass
 
 - [ ] Task: Implement ERD table card rendering in `diagram-builder.js`
     - [ ] Parse `columns` array from JSON spec into multi-line cell labels
