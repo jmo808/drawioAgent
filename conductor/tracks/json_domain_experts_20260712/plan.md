@@ -75,7 +75,7 @@
 
 - [x] Task: Conductor - User Manual Verification 'PFD Expansion' (Protocol in workflow.md)
 
-### 1.3 — Kubernetes Topology Expert (New)
+### 1.3 — Kubernetes Topology Expert (New) [checkpoint: 47c10be]
 
 - [x] Task: Create K8s reference guide (`kubernetes-topology-expert.md`) (d990dca)
     - [x] Document K8s resource hierarchy and nesting rules
@@ -96,7 +96,7 @@
     - [x] Add kubernetes/k8s/pod/namespace/deployment keyword scan flags
     - [x] Mount `kubernetes-topology-expert.md` when keywords detected
 
-- [ ] Task: Conductor - User Manual Verification 'K8s Expert' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'K8s Expert' (Protocol in workflow.md)
 
 ### 1.4 — ER Diagram Expert (New)
 
