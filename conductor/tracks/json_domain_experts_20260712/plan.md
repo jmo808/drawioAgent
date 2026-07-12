@@ -132,7 +132,7 @@
     - [x] Document segmentation best practices
     - [x] Document standard network device icons and conventions
 
-- [ ] Task: Create Network validator (`validators/network.js`)
+- [~] Task: Create Network validator (`validators/network.js`)
     - [ ] Write failing tests for each rule
     - [ ] Implement DIRECT_WAN_TO_LAN rule
     - [ ] Implement ORPHAN_DEVICE rule
