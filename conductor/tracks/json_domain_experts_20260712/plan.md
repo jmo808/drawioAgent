@@ -171,3 +171,15 @@
     - [x] Verify all three produce valid XML via `compile_json_spec` in ≤ 3 tool turns
 
 - [x] Task: Conductor - User Manual Verification 'Integration & SKILL.md' (Protocol in workflow.md)
+
+## Phase: Review Fixes
+
+- [x] Task: Apply review suggestions (25f63b2, 7caf8b8)
+    - [x] H1: Replace substring keyword matching with regex word-boundary patterns
+    - [x] H2: Remove null from VALIDATOR_TYPE_MAP to prevent false-positive validator firing
+    - [x] H3: Narrow compressor inlet threshold and clarify error message
+    - [x] H4: Remove 'kubernetes' from GCP keyword list
+    - [x] H5: Add missing GCP reference file to test fixture
+    - [x] H6: Replace mxCells[findIndex()] with Array.find() (17 occurrences)
+    - [x] H7: Add null guards for stale nodeId references in validators
+    - [x] M2: Remove unused Set import
