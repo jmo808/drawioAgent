@@ -141,7 +141,7 @@
     - [x] Register in `validate.js` VALIDATOR_TYPE_MAP
     - [x] Verify all tests pass
 
-- [ ] Task: Register Network keyword triggers in `conversation.py`
+- [~] Task: Register Network keyword triggers in `conversation.py`
     - [ ] Add network/topology/switch/router/firewall/vlan keyword scan flags
     - [ ] Mount `network-topology-expert.md` when keywords detected
 
