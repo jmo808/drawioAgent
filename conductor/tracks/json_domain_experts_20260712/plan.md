@@ -82,15 +82,15 @@
     - [x] Document service discovery and networking patterns
     - [x] Document common architecture patterns (sidecar, ambassador, adapter)
 
-- [~] Task: Create K8s validator (`validators/kubernetes.js`)
-    - [ ] Write failing tests for each rule
-    - [ ] Implement ORPHAN_POD rule
-    - [ ] Implement SERVICE_WITHOUT_TARGET rule
-    - [ ] Implement INGRESS_BYPASS rule
-    - [ ] Implement PVC_WITHOUT_PV rule
-    - [ ] Implement NAMESPACE_LEAK rule
-    - [ ] Register in `validate.js` VALIDATOR_TYPE_MAP
-    - [ ] Verify all tests pass
+- [x] Task: Create K8s validator (`validators/kubernetes.js`) (47c10be)
+    - [x] Write failing tests for each rule
+    - [x] Implement ORPHAN_POD rule
+    - [x] Implement SERVICE_WITHOUT_TARGET rule
+    - [x] Implement INGRESS_BYPASS rule
+    - [x] Implement PVC_WITHOUT_PV rule
+    - [x] Implement NAMESPACE_LEAK rule
+    - [x] Register in `validate.js` VALIDATOR_TYPE_MAP
+    - [x] Verify all tests pass
 
 - [ ] Task: Register K8s keyword triggers in `conversation.py`
     - [ ] Add kubernetes/k8s/pod/namespace/deployment keyword scan flags
