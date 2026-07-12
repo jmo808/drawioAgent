@@ -30,7 +30,7 @@
 
 
 
-- [ ] Task: Add diagram-type-aware layout strategies to `compileSpecToBuilder`
+- [~] Task: Add diagram-type-aware layout strategies to `compileSpecToBuilder`
     - [ ] Flowchart: top-to-bottom node spacing with decision branching
     - [ ] Sequence: left-to-right participant lanes, vertical message stacking
     - [ ] Mind map: radial/tree layout from central node
@@ -40,6 +40,7 @@
     - [ ] Network: WAN → DMZ → LAN → VLAN tiered nesting
     - [ ] PFD: left-to-right flow with port-aware node placement
     - [ ] Write unit tests for each layout strategy
+
 
 - [ ] Task: Conductor - User Manual Verification 'Universal JSON Engine' (Protocol in workflow.md)
 
