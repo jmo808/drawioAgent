@@ -160,9 +160,9 @@
     - [x] Reference all 7 domain expert guides
     - [x] Mandate `compile_json_spec` for all new diagram generation
 
-- [~] Task: Update `conversation.py` docs index
-    - [ ] Register all new reference guides in DOCS_INDEX
-    - [ ] Verify keyword triggers mount correct references
+- [x] Task: Update `conversation.py` docs index (01b2e86)
+    - [x] Register all new reference guides in DOCS_INDEX
+    - [x] Verify keyword triggers mount correct references
 
 - [ ] Task: End-to-end integration smoke test
     - [ ] Run orchestrator simulation for a GCP architecture prompt
