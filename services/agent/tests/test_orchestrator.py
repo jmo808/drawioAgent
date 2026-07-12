@@ -71,7 +71,7 @@ async def test_orchestrator_successful_flow():
                 "toolName": "Archimedes AI",
                 "step": 1,
                 "totalSteps": 15,
-                "message": "Planning layout and structural changes..."
+                "message": "Reasoning about requirements and planning diagram layout..."
             }
         }
         
@@ -88,7 +88,7 @@ async def test_orchestrator_successful_flow():
                 "toolName": "Archimedes AI",
                 "step": 2,
                 "totalSteps": 15,
-                "message": "Analyzing results and placing nodes..."
+                "message": "Added node to diagram. Re-aligning container boundaries..."
             }
         }
         
@@ -144,7 +144,7 @@ async def test_orchestrator_restore_xml():
                 "toolName": "Archimedes AI",
                 "step": 1,
                 "totalSteps": 15,
-                "message": "Planning layout and structural changes..."
+                "message": "Reasoning about requirements and planning diagram layout..."
             }
         }
         assert events[2] == {

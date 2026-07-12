@@ -78,7 +78,7 @@ class AgentOrchestrator:
         while turn < max_turns:
             turn += 1
             # Emit a thinking progress event to let the user know the AI is active
-            progress_msg = "Planning layout and structural changes..." if turn == 1 else "Analyzing results and placing nodes..."
+            progress_msg = self._get_progress_message(session_id, turn)
             yield {
                 "event": "tool_progress",
                 "data": {
@@ -162,18 +162,83 @@ class AgentOrchestrator:
             finalize_res = await self.mcp_bridge.call_tool("finalize", {})
             final_xml = ""
             if isinstance(finalize_res, dict):
+                # Handle validation errors returned by downstream builder / wrapper
+                if finalize_res.get("isError"):
+                    err_msg = "Cannot finalize diagram - validation failed."
+                    if "content" in finalize_res and finalize_res["content"]:
+                        try:
+                            detail_json = json.loads(finalize_res["content"][0].get("text", "{}"))
+                            err_msg = detail_json.get("error", err_msg)
+                            if "details" in detail_json and detail_json["details"]:
+                                err_msg += "\n" + "\n".join(detail_json["details"])
+                        except Exception:
+                            err_msg = finalize_res["content"][0].get("text", err_msg)
+                    raise RuntimeError(err_msg)
+                
                 if "xml" in finalize_res:
                     final_xml = finalize_res["xml"]
                 elif "content" in finalize_res and finalize_res["content"]:
-                    final_xml = finalize_res["content"][0].get("text", "")
+                    text = finalize_res["content"][0].get("text", "")
+                    if text.strip().startswith("<"):
+                        final_xml = text
+                    else:
+                        raise RuntimeError(f"Unexpected finalize response format: {text[:100]}")
+                else:
+                    raise RuntimeError("No XML returned from finalize")
             
             yield {"event": "diagram_update", "data": {"xml": final_xml}}
         except Exception as e:
             logger.error(f"Failed to finalize diagram: {e}")
             yield {"event": "error", "data": {"message": f"Failed to finalize diagram: {str(e)}"}}
 
-        # 5. Emit final chat response
         if not final_text or not final_text.strip():
             final_text = "I have successfully compiled your architecture request and updated the diagram canvas."
             self.conversation_manager.add_message(session_id, "assistant", final_text)
         yield {"event": "chat_message", "data": {"text": final_text}}
+
+    def _get_progress_message(self, session_id: str, turn: int) -> str:
+        """
+        Dynamically computes a descriptive progress message based on the 
+        current conversation state and the outcome of the last step.
+        """
+        messages = self.conversation_manager.get_conversation(session_id)
+        if not messages:
+            return "Starting agent session..."
+        
+        last_msg = messages[-1]
+        role = last_msg.get("role")
+        
+        if turn == 1:
+            return "Reasoning about requirements and planning diagram layout..."
+            
+        if role == "tool":
+            tool_name = last_msg.get("name")
+            content = last_msg.get("content", "")
+            
+            if tool_name == "init_diagram":
+                return "Canvas initialized. Generating diagram components..."
+            elif tool_name == "compile_json_spec":
+                if "error" in content.lower() or "fail" in content.lower():
+                    return "Compilation failed. Rethinking diagram specification..."
+                return "Diagram specification compiled. Applying topological layout rules..."
+            elif tool_name in ["validate_file", "builder_validate"]:
+                if "error" in content.lower() or "violation" in content.lower() or "collision" in content.lower():
+                    return "Topological/domain errors detected. Adjusting component placement..."
+                return "Validation passed. Preparing final layout update..."
+            elif tool_name == "add_node":
+                return "Added node to diagram. Re-aligning container boundaries..."
+            elif tool_name == "add_container":
+                return "Added group boundary. Re-computing layout coordinates..."
+            elif tool_name == "connect":
+                return "Connecting nodes and routing process streams..."
+            
+            return f"Processed tool response for {tool_name}. Determining next steps..."
+            
+        elif role == "assistant":
+            tool_calls = last_msg.get("tool_calls", [])
+            if tool_calls:
+                names = [tc["function"]["name"] for tc in tool_calls]
+                return f"Executing diagram updates: {', '.join(names)}..."
+        
+        return "Analyzing results and refining component layout..."
+
