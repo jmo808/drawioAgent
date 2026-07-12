@@ -20,6 +20,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track 6: Universal JSON Diagram Compilation & Domain Expert Expansion**
+- [~] **Track 6: Universal JSON Diagram Compilation & Domain Expert Expansion**
   *Link: [./tracks/json_domain_experts_20260712/](./tracks/json_domain_experts_20260712/)*
+
 
