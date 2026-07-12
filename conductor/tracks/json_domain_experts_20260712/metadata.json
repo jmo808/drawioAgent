@@ -1,8 +1,0 @@
-{
-  "track_id": "json_domain_experts_20260712",
-  "type": "feature",
-  "status": "new",
-  "created_at": "2026-07-12T04:12:00Z",
-  "updated_at": "2026-07-12T04:12:00Z",
-  "description": "Universal JSON Diagram Compilation & Domain Expert Expansion — standardize all diagram generation on compile_json_spec, expand PFD equipment suite, add K8s/ERD/Network topology experts"
-}
