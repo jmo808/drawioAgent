@@ -77,7 +77,7 @@
 
 ### 1.3 — Kubernetes Topology Expert (New)
 
-- [ ] Task: Create K8s reference guide (`kubernetes-topology-expert.md`)
+- [~] Task: Create K8s reference guide (`kubernetes-topology-expert.md`)
     - [ ] Document K8s resource hierarchy and nesting rules
     - [ ] Document service discovery and networking patterns
     - [ ] Document common architecture patterns (sidecar, ambassador, adapter)
