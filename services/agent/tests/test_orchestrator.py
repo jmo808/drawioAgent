@@ -278,3 +278,11 @@ def test_strip_drawio_links():
     text = "You can open the diagram using this link: https://embed.diagrams.net/?abc. Let me explain the nodes."
     assert orchestrator._strip_drawio_links(text) == "Let me explain the nodes."
 
+    # Test 5: Subdomain app.diagrams.net and draw.io domains
+    text = "Click here to open: https://app.diagrams.net/?grid=0. Also you can open: [Open](https://draw.io/xyz)."
+    assert orchestrator._strip_drawio_links(text) == "Also you can open: ."
+
+    # Test 6: Relative local URL path
+    text = "Please view the diagram: [Local Editor](/draw/?grid=0). Have fun!"
+    assert orchestrator._strip_drawio_links(text) == "Please view the diagram: . Have fun!"
+

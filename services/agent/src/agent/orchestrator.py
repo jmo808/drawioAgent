@@ -273,15 +273,15 @@ class AgentOrchestrator:
         to prevent duplicate or confusing links when the diagram is already loaded.
         """
         import re
-        # Remove markdown links pointing to embed.diagrams.net or diagrams.net
+        # Remove markdown links pointing to diagrams.net, draw.io, or relative /draw/
         text = re.sub(
-            r'\[[^\]]*\]\(https?://(?:embed\.)?diagrams\.net/[^\)]*\)',
+            r'\[[^\]]*\]\((?:https?://(?:[a-z0-9-]+\.)?(?:diagrams\.net|draw\.io)|/draw)/?[^\)]*\)',
             '',
             text
         )
-        # Remove raw URLs pointing to embed.diagrams.net or diagrams.net
+        # Remove raw URLs pointing to diagrams.net, draw.io, or relative /draw/
         text = re.sub(
-            r'https?://(?:embed\.)?diagrams\.net/\S*',
+            r'(?:https?://(?:[a-z0-9-]+\.)?(?:diagrams\.net|draw\.io)|/draw)/\S*',
             '',
             text
         )
