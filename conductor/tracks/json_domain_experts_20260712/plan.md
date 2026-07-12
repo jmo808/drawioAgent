@@ -98,7 +98,7 @@
 
 - [x] Task: Conductor - User Manual Verification 'K8s Expert' (Protocol in workflow.md)
 
-### 1.4 — ER Diagram Expert (New)
+### 1.4 — ER Diagram Expert (New) [checkpoint: 52af02b]
 
 - [x] Task: Create ERD reference guide (`erd-database-expert.md`) (4640b69)
     - [x] Document notation conventions (crow's-foot, chen)
@@ -123,7 +123,7 @@
     - [x] Add erd/database/schema/table/entity keyword scan flags
     - [x] Mount `erd-database-expert.md` when keywords detected
 
-- [ ] Task: Conductor - User Manual Verification 'ERD Expert' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'ERD Expert' (Protocol in workflow.md)
 
 ### 1.5 — Network Topology Expert (New)
 
