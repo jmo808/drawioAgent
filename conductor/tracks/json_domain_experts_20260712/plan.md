@@ -100,7 +100,7 @@
 
 ### 1.4 — ER Diagram Expert (New)
 
-- [ ] Task: Create ERD reference guide (`erd-database-expert.md`)
+- [~] Task: Create ERD reference guide (`erd-database-expert.md`)
     - [ ] Document notation conventions (crow's-foot, chen)
     - [ ] Document normalization guidance (1NF–3NF)
     - [ ] Document common schema patterns (junction tables, polymorphic associations)
