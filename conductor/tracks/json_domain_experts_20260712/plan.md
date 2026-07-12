@@ -125,7 +125,7 @@
 
 - [x] Task: Conductor - User Manual Verification 'ERD Expert' (Protocol in workflow.md)
 
-### 1.5 — Network Topology Expert (New)
+### 1.5 — Network Topology Expert (New) [checkpoint: b072d34]
 
 - [x] Task: Create Network reference guide (`network-topology-expert.md`) (b8c7461)
     - [x] Document three-tier architecture (Core → Distribution → Access)
@@ -145,7 +145,7 @@
     - [x] Add network/topology/switch/router/firewall/vlan keyword scan flags
     - [x] Mount `network-topology-expert.md` when keywords detected
 
-- [ ] Task: Conductor - User Manual Verification 'Network Expert' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Network Expert' (Protocol in workflow.md)
 
 ### 1.6 — Tool Descriptions, SKILL.md & Integration
 
