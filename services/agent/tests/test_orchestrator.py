@@ -78,7 +78,7 @@ async def test_orchestrator_successful_flow():
         # 3. Tool progress event during execution
         assert events[2] == {
             "event": "tool_progress",
-            "data": {"toolName": "add_node", "step": 1, "totalSteps": 1, "message": "Executing tool add_node"}
+            "data": {"toolName": "Shape Placer", "step": 1, "totalSteps": 1, "message": "Placing shapes onto diagram..."}
         }
         
         # 4. Archimedes AI thinking (turn 2)
@@ -236,3 +236,24 @@ async def test_orchestrator_tool_execution_error():
         tool_msg = next(m for m in history if m["role"] == "tool")
         assert "Error executing tool" in tool_msg["content"]
         assert "Tool failed dramatically" in tool_msg["content"]
+
+def test_strip_drawio_links():
+    settings = Settings(skills_dir="skills/drawio")
+    orchestrator = AgentOrchestrator(settings, AsyncMock(), AsyncMock(), MagicMock())
+    
+    # Test 1: Markdown link
+    text = "Here is the diagram: [Open in Draw.io](https://embed.diagrams.net/?lightbox=1#Rxxx) hope you like it."
+    assert orchestrator._strip_drawio_links(text) == "Here is the diagram: hope you like it."
+    
+    # Test 2: Raw URL
+    text = "Link: https://embed.diagrams.net/?lightbox=1#Rxxx"
+    assert orchestrator._strip_drawio_links(text) == "Link:"
+    
+    # Test 3: Introduce labels
+    text = "Draw.io Editor URL:\nhttps://embed.diagrams.net/?lightbox=1#Rxxx\nHave a nice day!"
+    assert orchestrator._strip_drawio_links(text) == "Have a nice day!"
+    
+    # Test 4: Mixed text
+    text = "You can open the diagram using this link: https://embed.diagrams.net/?abc. Let me explain the nodes."
+    assert orchestrator._strip_drawio_links(text) == "Let me explain the nodes."
+

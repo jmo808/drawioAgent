@@ -125,13 +125,14 @@ class AgentOrchestrator:
                     tool_name = tc.function.name
                     step_num = idx + 1
                     
+                    tool_desc = self._get_prettified_tool_description(tool_name)
                     yield {
                         "event": "tool_progress",
                         "data": {
-                            "toolName": tool_name,
+                            "toolName": tool_desc["name"],
                             "step": step_num,
                             "totalSteps": total_steps,
-                            "message": f"Executing tool {tool_name}"
+                            "message": tool_desc["message"]
                         }
                     }
                     
@@ -191,10 +192,80 @@ class AgentOrchestrator:
             logger.error(f"Failed to finalize diagram: {e}")
             yield {"event": "error", "data": {"message": f"Failed to finalize diagram: {str(e)}"}}
 
+        # 5. Emit final chat response
         if not final_text or not final_text.strip():
             final_text = "I have successfully compiled your architecture request and updated the diagram canvas."
-            self.conversation_manager.add_message(session_id, "assistant", final_text)
+        else:
+            final_text = self._strip_drawio_links(final_text)
+            
+        self.conversation_manager.add_message(session_id, "assistant", final_text)
         yield {"event": "chat_message", "data": {"text": final_text}}
+
+    def _strip_drawio_links(self, text: str) -> str:
+        """
+        Strips draw.io diagram links and editor URLs from the assistant text response
+        to prevent duplicate or confusing links when the diagram is already loaded.
+        """
+        import re
+        # Remove markdown links pointing to embed.diagrams.net or diagrams.net
+        text = re.sub(
+            r'\[[^\]]*\]\(https?://(?:embed\.)?diagrams\.net/[^\)]*\)',
+            '',
+            text
+        )
+        # Remove raw URLs pointing to embed.diagrams.net or diagrams.net
+        text = re.sub(
+            r'https?://(?:embed\.)?diagrams\.net/\S*',
+            '',
+            text
+        )
+        # Clean up labels introducing the URL
+        text = re.sub(r'(?i)Draw\.io\s+Editor\s+URL\s*:\s*\n?', '', text)
+        text = re.sub(r'(?i)you can open the diagram using this link\s*:\s*\n?', '', text)
+        text = re.sub(r'(?i)click here to open\s*:\s*\n?', '', text)
+        # Clean up layout artifacts (extra spaces and duplicate newlines)
+        text = re.sub(r' +', ' ', text)
+        text = re.sub(r'\n\s*\n', '\n\n', text)
+        return text.strip()
+
+    def _get_prettified_tool_description(self, tool_name: str) -> Dict[str, str]:
+        """
+        Maps raw MCP tool names to user-friendly titles and progress descriptions.
+        """
+        mapping = {
+            "init_diagram": {
+                "name": "Canvas Initializer",
+                "message": "Initializing diagram workspace..."
+            },
+            "compile_json_spec": {
+                "name": "Layout Compiler",
+                "message": "Compiling full diagram specification..."
+            },
+            "finalize": {
+                "name": "Finalizer & Validator",
+                "message": "Running validations and updating canvas..."
+            },
+            "open_drawio_xml": {
+                "name": "Diagram Loader",
+                "message": "Opening existing diagram snapshot..."
+            },
+            "add_node": {
+                "name": "Shape Placer",
+                "message": "Placing shapes onto diagram..."
+            },
+            "add_container": {
+                "name": "Boundary Group",
+                "message": "Adding container boundaries..."
+            },
+            "connect": {
+                "name": "Connector Router",
+                "message": "Routing links and process lines..."
+            }
+        }
+        return mapping.get(tool_name, {
+            "name": tool_name.replace("_", " ").title(),
+            "message": f"Running {tool_name}..."
+        })
 
     def _get_progress_message(self, session_id: str, turn: int) -> str:
         """
