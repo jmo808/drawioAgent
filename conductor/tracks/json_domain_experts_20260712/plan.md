@@ -127,10 +127,10 @@
 
 ### 1.5 — Network Topology Expert (New)
 
-- [~] Task: Create Network reference guide (`network-topology-expert.md`)
-    - [ ] Document three-tier architecture (Core → Distribution → Access)
-    - [ ] Document segmentation best practices
-    - [ ] Document standard network device icons and conventions
+- [x] Task: Create Network reference guide (`network-topology-expert.md`) (b8c7461)
+    - [x] Document three-tier architecture (Core → Distribution → Access)
+    - [x] Document segmentation best practices
+    - [x] Document standard network device icons and conventions
 
 - [ ] Task: Create Network validator (`validators/network.js`)
     - [ ] Write failing tests for each rule
