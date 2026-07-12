@@ -147,7 +147,7 @@
 
 - [x] Task: Conductor - User Manual Verification 'Network Expert' (Protocol in workflow.md)
 
-### 1.6 — Tool Descriptions, SKILL.md & Integration
+### 1.6 — Tool Descriptions, SKILL.md & Integration [checkpoint: 287279e]
 
 - [x] Task: Update tool descriptions in `mcp-wrapper.js` (85b83ef)
     - [x] `compile_json_spec`: MANDATORY for all new diagram generation
@@ -170,4 +170,4 @@
     - [x] Run orchestrator simulation for a K8s topology prompt
     - [x] Verify all three produce valid XML via `compile_json_spec` in ≤ 3 tool turns
 
-- [ ] Task: Conductor - User Manual Verification 'Integration & SKILL.md' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Integration & SKILL.md' (Protocol in workflow.md)
