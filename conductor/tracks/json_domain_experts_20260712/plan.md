@@ -119,9 +119,9 @@
     - [x] Render PK/FK badges, type annotations, and nullable indicators
     - [x] Write unit tests for table card rendering
 
-- [~] Task: Register ERD keyword triggers in `conversation.py`
-    - [ ] Add erd/database/schema/table/entity keyword scan flags
-    - [ ] Mount `erd-database-expert.md` when keywords detected
+- [x] Task: Register ERD keyword triggers in `conversation.py` (3e20d9b)
+    - [x] Add erd/database/schema/table/entity keyword scan flags
+    - [x] Mount `erd-database-expert.md` when keywords detected
 
 - [ ] Task: Conductor - User Manual Verification 'ERD Expert' (Protocol in workflow.md)
 
