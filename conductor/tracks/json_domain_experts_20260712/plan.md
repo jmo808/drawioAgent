@@ -11,7 +11,7 @@
     - [x] Write unit tests for each new container layout calculation
 
 
-- [ ] Task: Extend `addNode` with new node type mappings
+- [~] Task: Extend `addNode` with new node type mappings
     - [ ] Add node styles/sizes for flowchart types: `process`, `decision`, `start`, `end`, `io`, `subroutine`
     - [ ] Add node styles/sizes for K8s types: `pod`, `service`, `ingress`, `configmap`, `secret`, `pv`, `pvc`, `hpa`
     - [ ] Add node styles/sizes for network types: `router`, `switch`, `firewall`, `server`, `workstation`, `wireless_ap`, `load_balancer`, `storage`
@@ -19,6 +19,7 @@
     - [ ] Add node styles/sizes for sequence types: `participant`, `activation`, `note`
     - [ ] Add node styles/sizes for mind map types: `central`, `branch`, `leaf`
     - [ ] Write unit tests for each new node type's style and size
+
 
 - [ ] Task: Extend `connect` with new edge/connector styles
     - [ ] Add crow's-foot notation styles for ERD: `1:1`, `1:N`, `N:M`
