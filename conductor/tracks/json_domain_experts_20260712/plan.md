@@ -164,10 +164,10 @@
     - [x] Register all new reference guides in DOCS_INDEX
     - [x] Verify keyword triggers mount correct references
 
-- [~] Task: End-to-end integration smoke test
-    - [ ] Run orchestrator simulation for a GCP architecture prompt
-    - [ ] Run orchestrator simulation for a flowchart prompt
-    - [ ] Run orchestrator simulation for a K8s topology prompt
-    - [ ] Verify all three produce valid XML via `compile_json_spec` in ≤ 3 tool turns
+- [x] Task: End-to-end integration smoke test (cbdcc1b)
+    - [x] Run orchestrator simulation for a GCP architecture prompt
+    - [x] Run orchestrator simulation for a flowchart prompt
+    - [x] Run orchestrator simulation for a K8s topology prompt
+    - [x] Verify all three produce valid XML via `compile_json_spec` in ≤ 3 tool turns
 
 - [ ] Task: Conductor - User Manual Verification 'Integration & SKILL.md' (Protocol in workflow.md)
