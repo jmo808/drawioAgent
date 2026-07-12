@@ -81,7 +81,16 @@ class MCPBridge:
     async def call_tool(self, name: str, arguments: Dict[str, Any], timeout: float = 30.0) -> Any:
         """
         Executes an MCP tool call and returns the result dictionary.
+
+        Args:
+            name: MCP tool name.
+            arguments: Tool arguments dict.
+            timeout: Seconds to wait for a response. ``finalize`` uses a longer
+                default because the downstream draw.io MCP server must finish
+                an I/O round-trip before returning.
         """
+        if name == "finalize" and timeout == 30.0:
+            timeout = 60.0
         payload = {
             "jsonrpc": "2.0",
             "method": "tools/call",
