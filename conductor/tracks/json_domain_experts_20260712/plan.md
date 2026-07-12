@@ -164,7 +164,7 @@
     - [x] Register all new reference guides in DOCS_INDEX
     - [x] Verify keyword triggers mount correct references
 
-- [ ] Task: End-to-end integration smoke test
+- [~] Task: End-to-end integration smoke test
     - [ ] Run orchestrator simulation for a GCP architecture prompt
     - [ ] Run orchestrator simulation for a flowchart prompt
     - [ ] Run orchestrator simulation for a K8s topology prompt
