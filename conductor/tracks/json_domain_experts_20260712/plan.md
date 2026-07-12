@@ -114,10 +114,10 @@
     - [x] Register in `validate.js` VALIDATOR_TYPE_MAP
     - [x] Verify all tests pass
 
-- [~] Task: Implement ERD table card rendering in `diagram-builder.js`
-    - [ ] Parse `columns` array from JSON spec into multi-line cell labels
-    - [ ] Render PK/FK badges, type annotations, and nullable indicators
-    - [ ] Write unit tests for table card rendering
+- [x] Task: Implement ERD table card rendering in `diagram-builder.js` (52af02b)
+    - [x] Parse `columns` array from JSON spec into multi-line cell labels
+    - [x] Render PK/FK badges, type annotations, and nullable indicators
+    - [x] Write unit tests for table card rendering
 
 - [ ] Task: Register ERD keyword triggers in `conversation.py`
     - [ ] Add erd/database/schema/table/entity keyword scan flags
