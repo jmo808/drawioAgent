@@ -47,7 +47,7 @@
 
 ### 1.2 — PFD Domain Expert Expansion
 
-- [ ] Task: Add PFD equipment shape library to `diagram-builder.js`
+- [~] Task: Add PFD equipment shape library to `diagram-builder.js`
     - [ ] Add styles/sizes/ports for Separator (2-phase, 3-phase)
     - [ ] Add styles/sizes/ports for Heat Exchanger (shell-and-tube, plate)
     - [ ] Add styles/sizes/ports for Pump (centrifugal, positive displacement)
