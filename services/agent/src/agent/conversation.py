@@ -112,6 +112,8 @@ class ConversationManager:
             detected.append("erd-database-expert.md")
         if "pid" in content_lower or "p&id" in content_lower:
             detected.append("pid-reference.md")
+        if any(k in content_lower for k in ["network", "topology", "switch", "router", "firewall", "vlan", "wan", "lan"]):
+            detected.append("network-topology-expert.md")
             
         return detected
 
