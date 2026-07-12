@@ -132,14 +132,14 @@
     - [x] Document segmentation best practices
     - [x] Document standard network device icons and conventions
 
-- [~] Task: Create Network validator (`validators/network.js`)
-    - [ ] Write failing tests for each rule
-    - [ ] Implement DIRECT_WAN_TO_LAN rule
-    - [ ] Implement ORPHAN_DEVICE rule
-    - [ ] Implement VLAN_LEAK rule
-    - [ ] Implement REDUNDANCY_WARNING rule
-    - [ ] Register in `validate.js` VALIDATOR_TYPE_MAP
-    - [ ] Verify all tests pass
+- [x] Task: Create Network validator (`validators/network.js`) (b072d34)
+    - [x] Write failing tests for each rule
+    - [x] Implement DIRECT_WAN_TO_LAN rule
+    - [x] Implement ORPHAN_DEVICE rule
+    - [x] Implement VLAN_LEAK rule
+    - [x] Implement REDUNDANCY_WARNING rule
+    - [x] Register in `validate.js` VALIDATOR_TYPE_MAP
+    - [x] Verify all tests pass
 
 - [ ] Task: Register Network keyword triggers in `conversation.py`
     - [ ] Add network/topology/switch/router/firewall/vlan keyword scan flags
