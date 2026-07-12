@@ -29,6 +29,8 @@ def temp_skills_dir():
             f.write("ERD reference doc content.")
         with open(os.path.join(ref_dir, "network-topology-expert.md"), "w") as f:
             f.write("Network reference doc content.")
+        with open(os.path.join(ref_dir, "gcp-well-architected-reviewer.md"), "w") as f:
+            f.write("GCP reference doc content.")
             
         yield tmpdir
 

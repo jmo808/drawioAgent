@@ -1,7 +1,8 @@
 import os
 import json
 import logging
-from typing import Any, Dict, List, Set
+import re
+from typing import Any, Dict, List
 from agent.config import Settings
 
 logger = logging.getLogger(__name__)
@@ -93,28 +94,48 @@ class ConversationManager:
             
         self.conversations[session_id]["history"] = [system_prompt] + recent_history
 
+    # Pre-compiled word-boundary patterns for short keywords
+    # that are prone to substring false positives.
+    _AWS_PATTERN = re.compile(r'\baws\b')
+    _GCP_PATTERN = re.compile(r'\b(?:gcp|gke)\b|google cloud')
+    _K8S_PATTERN = re.compile(
+        r'\b(?:kubernetes|k8s|pod|namespace|deployment)\b'
+    )
+    _PFD_PATTERN = re.compile(r'\bpfd\b')
+    _ERD_PATTERN = re.compile(
+        r'\b(?:erd|database|schema|table|entity|relationship|pk|fk)\b'
+    )
+    _PID_PATTERN = re.compile(r'\bpid\b|p&id')
+    _NET_PATTERN = re.compile(
+        r'\b(?:network|topology|switch|router|firewall|'
+        r'vlan|wan|lan)\b'
+    )
+
     def _scan_for_keywords(self, content: str) -> List[str]:
         """
         Scans content for expert domain keywords and returns matching doc names.
+
+        Uses word-boundary-aware regex to avoid false positives from
+        substring matches (e.g. 'lan' inside 'balance').
         """
         detected = []
         content_lower = content.lower()
-        
-        if "aws" in content_lower:
+
+        if self._AWS_PATTERN.search(content_lower):
             detected.append("aws-well-architected-reviewer.md")
-        if any(k in content_lower for k in ["gcp", "google cloud", "gke", "kubernetes"]):
+        if self._GCP_PATTERN.search(content_lower):
             detected.append("gcp-well-architected-reviewer.md")
-        if any(k in content_lower for k in ["kubernetes", "k8s", "pod", "namespace", "deployment"]):
+        if self._K8S_PATTERN.search(content_lower):
             detected.append("kubernetes-topology-expert.md")
-        if "pfd" in content_lower:
+        if self._PFD_PATTERN.search(content_lower):
             detected.append("pfd-engineering-expert.md")
-        if any(k in content_lower for k in ["erd", "database", "schema", "table", "entity", "relationship", "pk", "fk"]):
+        if self._ERD_PATTERN.search(content_lower):
             detected.append("erd-database-expert.md")
-        if "pid" in content_lower or "p&id" in content_lower:
+        if self._PID_PATTERN.search(content_lower):
             detected.append("pid-reference.md")
-        if any(k in content_lower for k in ["network", "topology", "switch", "router", "firewall", "vlan", "wan", "lan"]):
+        if self._NET_PATTERN.search(content_lower):
             detected.append("network-topology-expert.md")
-            
+
         return detected
 
     def _rebuild_system_prompt(self, session_id: str) -> str:
