@@ -155,7 +155,7 @@
     - [x] `add_node`/`add_container`/`connect`: Incremental modifications only
     - [x] Write tests verifying tool description interception in tools/list
 
-- [ ] Task: Update SKILL.md with universal diagram type catalog
+- [~] Task: Update SKILL.md with universal diagram type catalog
     - [ ] Add JSON spec examples for each of the 10 diagram types
     - [ ] Reference all 7 domain expert guides
     - [ ] Mandate `compile_json_spec` for all new diagram generation
