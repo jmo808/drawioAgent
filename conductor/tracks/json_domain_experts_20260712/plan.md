@@ -67,11 +67,11 @@
     - [x] Implement COMPRESSOR_INLET_AT_BOTTOM rule
     - [x] Verify all tests pass
 
-- [ ] Task: Update PFD reference guide (`pfd-engineering-expert.md`)
-    - [ ] Add complete equipment class catalog with port maps
-    - [ ] Add stream routing conventions (solid/dashed/dotted)
-    - [ ] Add standard P&ID symbol cross-reference table
-    - [ ] Add feed-left / product-right layout convention documentation
+- [x] Task: Update PFD reference guide (`pfd-engineering-expert.md`) (b0a31ed)
+    - [x] Add complete equipment class catalog with port maps
+    - [x] Add stream routing conventions (solid/dashed/dotted)
+    - [x] Add standard P&ID symbol cross-reference table
+    - [x] Add feed-left / product-right layout convention documentation
 
 - [ ] Task: Conductor - User Manual Verification 'PFD Expansion' (Protocol in workflow.md)
 
