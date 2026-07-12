@@ -228,9 +228,31 @@ class AgentOrchestrator:
             
             finalize_res = await self.mcp_bridge.call_tool("finalize", {})
             final_xml = ""
+            validation_errors = []
+            
             if isinstance(finalize_res, dict):
-                # Handle validation errors returned by downstream builder / wrapper
-                if finalize_res.get("isError"):
+                # Check for XML directly in response dict first
+                if "xml" in finalize_res:
+                    final_xml = finalize_res["xml"]
+                
+                # Check content for serialized json details
+                if "content" in finalize_res and finalize_res["content"]:
+                    text = finalize_res["content"][0].get("text", "")
+                    if text.strip().startswith("<"):
+                        final_xml = text
+                    else:
+                        try:
+                            detail_json = json.loads(text)
+                            if isinstance(detail_json, dict):
+                                if "xml" in detail_json:
+                                    final_xml = detail_json["xml"]
+                                if "errors" in detail_json:
+                                    validation_errors = detail_json["errors"]
+                        except Exception:
+                            pass
+                
+                # If we still don't have XML and it's a validation error, we fall back to raising
+                if finalize_res.get("isError") and not final_xml:
                     err_msg = "Cannot finalize diagram - validation failed."
                     if "content" in finalize_res and finalize_res["content"]:
                         try:
@@ -241,19 +263,14 @@ class AgentOrchestrator:
                         except Exception:
                             err_msg = finalize_res["content"][0].get("text", err_msg)
                     raise RuntimeError(err_msg)
-                
-                if "xml" in finalize_res:
-                    final_xml = finalize_res["xml"]
-                elif "content" in finalize_res and finalize_res["content"]:
-                    text = finalize_res["content"][0].get("text", "")
-                    if text.strip().startswith("<"):
-                        final_xml = text
-                    else:
-                        raise RuntimeError(f"Unexpected finalize response format: {text[:100]}")
-                else:
-                    raise RuntimeError("No XML returned from finalize")
             
-            yield {"event": "diagram_update", "data": {"xml": final_xml}}
+            if final_xml:
+                yield {"event": "diagram_update", "data": {"xml": final_xml}}
+                if validation_errors:
+                    warnings_list = "\n".join([f"- {err}" for err in validation_errors])
+                    logger.warning(f"Diagram finalized with validation warnings:\n{warnings_list}")
+            else:
+                raise RuntimeError("No XML returned from finalize")
         except Exception as e:
             logger.error(f"Failed to finalize diagram: {e}")
             yield {"event": "error", "data": {"message": f"Failed to finalize diagram: {str(e)}"}}
