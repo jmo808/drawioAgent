@@ -2,7 +2,7 @@
 
 ## Phase 1: Universal JSON Engine & All Domain Experts
 
-### 1.1 — Universal JSON Spec Engine (diagram-builder.js)
+### 1.1 — Universal JSON Spec Engine (diagram-builder.js) [checkpoint: 4b40802]
 
 - [x] Task: Extend `_layoutContainer` with new container type mappings (30d26e4)
     - [x] Add layout rules for `cluster`, `namespace`, `deployment` (K8s)
@@ -43,7 +43,7 @@
 
 
 
-- [ ] Task: Conductor - User Manual Verification 'Universal JSON Engine' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Universal JSON Engine' (Protocol in workflow.md)
 
 ### 1.2 — PFD Domain Expert Expansion
 
