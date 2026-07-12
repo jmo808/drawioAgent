@@ -22,11 +22,12 @@
 
 
 
-- [~] Task: Extend `connect` with new edge/connector styles
-    - [ ] Add crow's-foot notation styles for ERD: `1:1`, `1:N`, `N:M`
-    - [ ] Add sequence diagram message arrow styles (sync, async, return)
-    - [ ] Add PFD stream styles (solid process, dashed utility, dotted instrument)
-    - [ ] Write unit tests for connector style resolution
+- [x] Task: Extend `connect` with new edge/connector styles (fa36680)
+    - [x] Add crow's-foot notation styles for ERD: `1:1`, `1:N`, `N:M`
+    - [x] Add sequence diagram message arrow styles (sync, async, return)
+    - [x] Add PFD stream styles (solid process, dashed utility, dotted instrument)
+    - [x] Write unit tests for connector style resolution
+
 
 
 - [ ] Task: Add diagram-type-aware layout strategies to `compileSpecToBuilder`
