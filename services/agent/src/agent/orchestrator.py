@@ -207,6 +207,35 @@ class AgentOrchestrator:
                     }
                     self.conversation_manager.get_conversation(session_id).append(tool_msg)
             else:
+                # Check if the last tool execution was compile_json_spec and if it failed validation
+                history = self.conversation_manager.get_conversation(session_id)
+                last_tool_msg = None
+                for msg in reversed(history):
+                    if msg.get("role") == "tool":
+                        last_tool_msg = msg
+                        break
+                
+                if last_tool_msg and last_tool_msg.get("name") == "compile_json_spec":
+                    try:
+                        res_data = json.loads(last_tool_msg.get("content", "{}"))
+                        if isinstance(res_data, dict) and not res_data.get("valid", True):
+                            errors = res_data.get("validation_errors", [])
+                            err_msg = "\n".join([f"- {e}" for e in errors])
+                            system_feedback = {
+                                "role": "user",
+                                "content": (
+                                    "Your last diagram specification is invalid and failed validation with the following errors:\n"
+                                    f"{err_msg}\n\n"
+                                    "You MUST correct these errors by modifying the spec and calling compile_json_spec again. "
+                                    "Do not finish or output final text until the validation errors are fully resolved."
+                                )
+                            }
+                            self.conversation_manager.get_conversation(session_id).append(system_feedback)
+                            logger.info("Spec validation failed. Forcing LLM to correct the spec.")
+                            continue
+                    except Exception as ex:
+                        logger.error(f"Error checking last tool message validation: {ex}")
+
                 # Final turn - text response only
                 final_text = response_msg.content or ""
                 self.conversation_manager.add_message(session_id, "assistant", final_text)
