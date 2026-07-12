@@ -127,7 +127,7 @@
 
 ### 1.5 — Network Topology Expert (New)
 
-- [ ] Task: Create Network reference guide (`network-topology-expert.md`)
+- [~] Task: Create Network reference guide (`network-topology-expert.md`)
     - [ ] Document three-tier architecture (Core → Distribution → Access)
     - [ ] Document segmentation best practices
     - [ ] Document standard network device icons and conventions
