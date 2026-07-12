@@ -105,7 +105,7 @@
     - [x] Document normalization guidance (1NF–3NF)
     - [x] Document common schema patterns (junction tables, polymorphic associations)
 
-- [ ] Task: Create ERD validator (`validators/erd.js`)
+- [~] Task: Create ERD validator (`validators/erd.js`)
     - [ ] Write failing tests for each rule
     - [ ] Implement FK_WITHOUT_TARGET rule
     - [ ] Implement ORPHAN_TABLE rule (warning)
