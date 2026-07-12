@@ -108,6 +108,8 @@ class ConversationManager:
             detected.append("kubernetes-topology-expert.md")
         if "pfd" in content_lower:
             detected.append("pfd-engineering-expert.md")
+        if any(k in content_lower for k in ["erd", "database", "schema", "table", "entity", "relationship", "pk", "fk"]):
+            detected.append("erd-database-expert.md")
         if "pid" in content_lower or "p&id" in content_lower:
             detected.append("pid-reference.md")
             

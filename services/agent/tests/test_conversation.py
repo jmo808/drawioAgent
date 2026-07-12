@@ -25,6 +25,8 @@ def temp_skills_dir():
             f.write("PID reference doc content.")
         with open(os.path.join(ref_dir, "kubernetes-topology-expert.md"), "w") as f:
             f.write("Kubernetes reference doc content.")
+        with open(os.path.join(ref_dir, "erd-database-expert.md"), "w") as f:
+            f.write("ERD reference doc content.")
             
         yield tmpdir
 
@@ -71,6 +73,11 @@ def test_on_demand_reference_loading(temp_skills_dir):
     mgr.add_message(session_id, "user", "And deploy it on k8s.")
     messages = mgr.get_conversation(session_id)
     assert "Kubernetes reference doc content" in messages[0]["content"]
+
+    # Now append message mentioning erd
+    mgr.add_message(session_id, "user", "I also need a database schema.")
+    messages = mgr.get_conversation(session_id)
+    assert "ERD reference doc content" in messages[0]["content"]
 
 def test_dynamic_tool_schemas(temp_skills_dir):
     settings = Settings(skills_dir=temp_skills_dir)
