@@ -30,16 +30,17 @@
 
 
 
-- [~] Task: Add diagram-type-aware layout strategies to `compileSpecToBuilder`
-    - [ ] Flowchart: top-to-bottom node spacing with decision branching
-    - [ ] Sequence: left-to-right participant lanes, vertical message stacking
-    - [ ] Mind map: radial/tree layout from central node
-    - [ ] Swimlane: reuse existing `lane` container with cross-lane edge support
-    - [ ] ERD: grid layout of table cards
-    - [ ] K8s: cluster → namespace → deployment nesting
-    - [ ] Network: WAN → DMZ → LAN → VLAN tiered nesting
-    - [ ] PFD: left-to-right flow with port-aware node placement
-    - [ ] Write unit tests for each layout strategy
+- [x] Task: Add diagram-type-aware layout strategies to `compileSpecToBuilder` (4b40802)
+    - [x] Flowchart: top-to-bottom node spacing with decision branching
+    - [x] Sequence: left-to-right participant lanes, vertical message stacking
+    - [x] Mind map: radial/tree layout from central node
+    - [x] Swimlane: reuse existing `lane` container with cross-lane edge support
+    - [x] ERD: grid layout of table cards
+    - [x] K8s: cluster → namespace → deployment nesting
+    - [x] Network: WAN → DMZ → LAN → VLAN tiered nesting
+    - [x] PFD: left-to-right flow with port-aware node placement
+    - [x] Write unit tests for each layout strategy
+
 
 
 - [ ] Task: Conductor - User Manual Verification 'Universal JSON Engine' (Protocol in workflow.md)
