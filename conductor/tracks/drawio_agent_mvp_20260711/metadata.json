@@ -1,8 +1,0 @@
-{
-  "track_id": "drawio_agent_mvp_20260711",
-  "type": "feature",
-  "status": "new",
-  "created_at": "2026-07-11T14:04:00Z",
-  "updated_at": "2026-07-11T14:04:00Z",
-  "description": "Build DrawIO Agent MVP: Helm-packaged self-hosted draw.io with AI chat sidebar"
-}
