@@ -57,15 +57,15 @@
     - [x] Add styles/sizes/ports for Tank/Vessel (storage, surge, accumulator)
     - [x] Write unit tests for equipment shape resolution and port definitions
 
-- [ ] Task: Expand PFD validator (`validators/pfd.js`)
-    - [ ] Write failing tests for each new rule
-    - [ ] Implement PHASE_PORT_VIOLATION rule
-    - [ ] Implement DEAD_END_STREAM rule
-    - [ ] Implement OPPOSING_FLOW rule
-    - [ ] Implement GRAVITY_VIOLATION rule
-    - [ ] Implement INSTRUMENT_IN_PROCESS_LINE rule
-    - [ ] Implement COMPRESSOR_INLET_AT_BOTTOM rule
-    - [ ] Verify all tests pass
+- [x] Task: Expand PFD validator (`validators/pfd.js`) (d02aae2)
+    - [x] Write failing tests for each new rule
+    - [x] Implement PHASE_PORT_VIOLATION rule
+    - [x] Implement DEAD_END_STREAM rule
+    - [x] Implement OPPOSING_FLOW rule
+    - [x] Implement GRAVITY_VIOLATION rule
+    - [x] Implement INSTRUMENT_IN_PROCESS_LINE rule
+    - [x] Implement COMPRESSOR_INLET_AT_BOTTOM rule
+    - [x] Verify all tests pass
 
 - [ ] Task: Update PFD reference guide (`pfd-engineering-expert.md`)
     - [ ] Add complete equipment class catalog with port maps
