@@ -1,5 +1,6 @@
 import json
 import logging
+import asyncio
 from typing import AsyncGenerator, Dict, Any, List
 from agent.config import Settings
 from agent.llm_service import LLMService
@@ -92,8 +93,15 @@ class AgentOrchestrator:
             messages = self.conversation_manager.get_conversation(session_id)
             
             try:
-                # Call LLM with current history and tools
-                response_msg = await self.llm_service.generate_chat(messages, tools=tools)
+                # Call LLM with current history and tools, streaming heartbeats in real-time
+                response_msg = None
+                async for event_or_res in self._generate_chat_with_heartbeat(
+                    session_id, messages, tools, turn, max_turns
+                ):
+                    if isinstance(event_or_res, dict) and event_or_res.get("event") == "tool_progress":
+                        yield event_or_res
+                    else:
+                        response_msg = event_or_res
             except Exception as e:
                 logger.error(f"LLM generation failed: {e}")
                 yield {"event": "error", "data": {"message": f"LLM generation failed: {str(e)}"}}
@@ -135,6 +143,9 @@ class AgentOrchestrator:
                             "message": tool_desc["message"]
                         }
                     }
+                    
+                    # Small sleep to ensure the frontend renders the tool progress step
+                    await asyncio.sleep(0.8)
                     
                     try:
                         args = json.loads(tc.function.arguments) if isinstance(tc.function.arguments, str) else tc.function.arguments
@@ -312,4 +323,43 @@ class AgentOrchestrator:
                 return f"Executing diagram updates: {', '.join(names)}..."
         
         return "Analyzing results and refining component layout..."
+
+    async def _generate_chat_with_heartbeat(
+        self, 
+        session_id: str, 
+        messages: List[Dict[str, Any]], 
+        tools: List[Dict[str, Any]] | None, 
+        turn: int, 
+        max_turns: int
+    ) -> AsyncGenerator[Any, None]:
+        """
+        Calls generate_chat while concurrently yielding periodic heartbeat progress events
+        to keep the thinking bubble active and responsive.
+        """
+        llm_task = asyncio.create_task(self.llm_service.generate_chat(messages, tools=tools))
+        base_msg = self._get_progress_message(session_id, turn)
+        dots = 0
+        
+        while not llm_task.done():
+            # Wait for 1.5 seconds or until the LLM task completes
+            done, pending = await asyncio.wait([llm_task], timeout=1.5)
+            if llm_task.done():
+                break
+                
+            dots = (dots + 1) % 4
+            heartbeat_msg = f"{base_msg}{'.' * dots}"
+            
+            yield {
+                "event": "tool_progress",
+                "data": {
+                    "toolName": "Archimedes AI",
+                    "step": turn,
+                    "totalSteps": max_turns,
+                    "message": heartbeat_msg
+                }
+            }
+            
+        # Retrieve the final LLM response
+        response_msg = await llm_task
+        yield response_msg
 
