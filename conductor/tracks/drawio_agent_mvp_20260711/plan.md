@@ -274,27 +274,32 @@
     - [x] Write Tests: Test `helm template --dry-run` succeeds with default values
     - [x] Write Tests: Test `helm template --dry-run` succeeds with all values overridden
     - [x] Write Tests: Verify `helm lint` passes with strict mode
-- [~] Task: Conductor - User Manual Verification 'Phase 7: Template Library & Integration Testing' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 7: Template Library & Integration Testing' (Protocol in workflow.md)
 
 ## Phase 8: Documentation & Polish
 
-- [ ] Task: Write comprehensive README.md
-    - [ ] Project overview with architecture diagram (generated via drawio_plugin)
-    - [ ] Quickstart guide — local development with `docker-compose up`
-    - [ ] Helm deployment guide with `values.yaml` reference
-    - [ ] Configuration reference for all LLM providers (OpenAI, Gemini, Claude, Ollama)
-    - [ ] Air-gapped deployment guide (Ollama + private registry)
-    - [ ] Contributing guide with development workflow
-- [ ] Task: Write Helm chart documentation
-    - [ ] Create `chart/drawio-agent/README.md` with full parameter table
-    - [ ] Document all `values.yaml` parameters with descriptions, types, and defaults
-    - [ ] Include example deployment commands (minimal, full, air-gapped)
-    - [ ] Document Gateway API prerequisites (Cilium, GatewayClass)
-- [ ] Task: Final cleanup and code quality
-    - [ ] Run full test suite across all services (`npm test`, `pytest`, `helm lint`)
-    - [ ] Verify code coverage meets >80% threshold for all modules
-    - [ ] Run linters — ESLint for TypeScript, Ruff for Python
-    - [ ] Ensure all public APIs have JSDoc (TypeScript) and docstrings (Python)
-    - [ ] Verify docker-compose local dev environment works end-to-end
-    - [ ] Final `helm lint --strict` verification
-- [ ] Task: Conductor - User Manual Verification 'Phase 8: Documentation & Polish' (Protocol in workflow.md)
+- [x] Task: Write comprehensive README.md
+    - [x] Project overview with architecture diagram (generated via drawio_plugin)
+    - [x] Quickstart guide — local development with `docker-compose up`
+    - [x] Helm deployment guide with `values.yaml` reference
+    - [x] Configuration reference for all LLM providers (OpenAI, Gemini, Claude, Ollama)
+    - [x] Air-gapped deployment guide (Ollama + private registry)
+    - [x] Contributing guide with development workflow
+- [x] Task: Write Helm chart documentation
+    - [x] Create `chart/drawio-agent/README.md` with full parameter table
+    - [x] Document all `values.yaml` parameters with descriptions, types, and defaults
+    - [x] Include example deployment commands (minimal, full, air-gapped)
+    - [x] Document Gateway API prerequisites (Cilium, GatewayClass)
+- [x] Task: Final cleanup and code quality
+    - [x] Run full test suite across all services (`npm test`, `pytest`, `helm lint`)
+    - [x] Verify code coverage meets >80% threshold for all modules
+    - [x] Run linters — ESLint for TypeScript, Ruff for Python
+    - [x] Ensure all public APIs have JSDoc (TypeScript) and docstrings (Python)
+    - [x] Verify docker-compose local dev environment works end-to-end
+    - [x] Final `helm lint --strict` verification
+- [x] Task: Conductor - User Manual Verification 'Phase 8: Documentation & Polish' (Protocol in workflow.md)
+
+## Phase: Review Fixes
+
+- [x] Task: Apply review suggestions (c369404)
+
