@@ -149,7 +149,7 @@
 
 ### 1.6 — Tool Descriptions, SKILL.md & Integration
 
-- [ ] Task: Update tool descriptions in `mcp-wrapper.js`
+- [~] Task: Update tool descriptions in `mcp-wrapper.js`
     - [ ] `compile_json_spec`: MANDATORY for all new diagram generation
     - [ ] `open_drawio_xml`: Only for loading existing diagrams from files
     - [ ] `add_node`/`add_container`/`connect`: Incremental modifications only
