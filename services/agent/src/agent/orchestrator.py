@@ -75,9 +75,13 @@ class AgentOrchestrator:
         max_turns = 15
         turn = 0
         final_text = ""
+        text_already_added = False
         
         while turn < max_turns:
             turn += 1
+            # Truncate conversation to keep context window manageable
+            if turn > 1:
+                self.conversation_manager.truncate_conversation(session_id, max_history_messages=40)
             # Emit a thinking progress event to let the user know the AI is active
             progress_msg = self._get_progress_message(session_id, turn)
             yield {
@@ -103,9 +107,19 @@ class AgentOrchestrator:
                     else:
                         response_msg = event_or_res
             except Exception as e:
+                err_str = str(e)
+                # Handle "empty output" errors from the model API — retry instead of crashing
+                if "empty" in err_str.lower() and "tool calls" in err_str.lower():
+                    logger.warning(f"LLM returned empty response on turn {turn} — retrying.")
+                    continue
                 logger.error(f"LLM generation failed: {e}")
-                yield {"event": "error", "data": {"message": f"LLM generation failed: {str(e)}"}}
+                yield {"event": "error", "data": {"message": f"LLM generation failed: {err_str}"}}
                 return
+
+            # Guard: if the LLM response is None or has no content and no tool calls, retry
+            if response_msg is None:
+                logger.warning(f"LLM returned None response on turn {turn} — retrying.")
+                continue
 
             # Check if LLM generated tool calls
             tool_calls = getattr(response_msg, "tool_calls", None)
@@ -238,7 +252,24 @@ class AgentOrchestrator:
 
                 # Final turn - text response only
                 final_text = response_msg.content or ""
+
+                # Guard: Detect if the LLM dumped raw JSON/XML as text instead of calling a tool.
+                # This happens when max_tokens truncates mid-tool-call or the model fails to use function calling.
+                if final_text and self._looks_like_raw_spec(final_text) and turn < max_turns:
+                    logger.warning("Detected raw JSON/XML spec dumped as text — forcing retry via tool call.")
+                    correction = {
+                        "role": "user",
+                        "content": (
+                            "You output a raw JSON or XML diagram specification as text instead of calling the compile_json_spec tool. "
+                            "NEVER output raw JSON or XML in chat. You MUST use the compile_json_spec tool with the spec as its argument. "
+                            "Call compile_json_spec now with the complete specification."
+                        )
+                    }
+                    self.conversation_manager.get_conversation(session_id).append(correction)
+                    continue
+
                 self.conversation_manager.add_message(session_id, "assistant", final_text)
+                text_already_added = True
                 break
 
         # 4. Finalize diagram and emit diagram_update
@@ -310,7 +341,8 @@ class AgentOrchestrator:
         else:
             final_text = self._strip_drawio_links(final_text)
             
-        self.conversation_manager.add_message(session_id, "assistant", final_text)
+        if not text_already_added:
+            self.conversation_manager.add_message(session_id, "assistant", final_text)
         yield {"event": "chat_message", "data": {"text": final_text}}
 
     def _strip_drawio_links(self, text: str) -> str:
@@ -339,6 +371,30 @@ class AgentOrchestrator:
         text = re.sub(r' +', ' ', text)
         text = re.sub(r'\n\s*\n', '\n\n', text)
         return text.strip()
+
+    def _looks_like_raw_spec(self, text: str) -> bool:
+        """
+        Detects if the LLM has dumped a raw JSON spec or XML diagram as text
+        instead of properly calling compile_json_spec or open_drawio_xml.
+        """
+        stripped = text.strip()
+
+        # Check for raw XML (mxGraphModel)
+        if '<mxGraphModel' in stripped or '<mxCell' in stripped:
+            return True
+
+        # Check for JSON spec patterns — look for the characteristic keys
+        # that indicate a compile_json_spec argument was dumped as text
+        json_indicators = ['"containers"', '"nodes"', '"edges"', '"sourceId"', '"targetId"']
+        indicator_count = sum(1 for ind in json_indicators if ind in stripped)
+        if indicator_count >= 3:
+            return True
+
+        # Check for JSON code blocks containing spec-like content
+        if '```json' in stripped and ('"nodes"' in stripped or '"edges"' in stripped):
+            return True
+
+        return False
 
     def _get_prettified_tool_description(self, tool_name: str) -> Dict[str, str]:
         """

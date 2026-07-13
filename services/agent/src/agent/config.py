@@ -26,5 +26,7 @@ class Settings(BaseModel):
     mcp_workspace_root: str = Field(default_factory=lambda: os.getenv("MCP_WORKSPACE_ROOT", "."))
     port: int = Field(default_factory=lambda: int(os.getenv("PORT", "8000")))
     skills_dir: str = Field(default_factory=_get_default_skills_dir)
+    llm_temperature: float = Field(default_factory=lambda: float(os.getenv("LLM_TEMPERATURE", "0.2")))
+
 
 settings = Settings()

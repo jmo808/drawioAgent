@@ -18,4 +18,7 @@ This file tracks all major tracks for the project. Each track has its own detail
   *Link: [./tracks/security_hardening_20260711/](./tracks/security_hardening_20260711/)*
   *TRA Report: [../TRA-Report.html](../TRA-Report.html) | 19 findings (1C/7H/10M/1L) | FIPS-199: MODERATE*
 
+- [ ] **Track 6: Decoupled Domain Expert Architecture**
+  *Link: [./tracks/domain_separation_20260712/](./tracks/domain_separation_20260712/)*
+
 ---

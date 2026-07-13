@@ -15,6 +15,7 @@ class MCPBridge:
         self.settings = settings
         self.process: asyncio.subprocess.Process | None = None
         self.read_task: asyncio.Task | None = None
+        self._stderr_task: asyncio.Task | None = None
         self.next_id = 1
         self.pending_requests: Dict[int, asyncio.Future[Any]] = {}
         self.tools: List[Dict[str, Any]] = []
@@ -34,18 +35,44 @@ class MCPBridge:
             *args,
             stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE,
-            stderr=None,
+            stderr=asyncio.subprocess.PIPE,
             cwd=self.settings.mcp_workspace_root
         )
 
         self.read_task = asyncio.create_task(self._read_loop())
+        self._stderr_task = asyncio.create_task(self._read_stderr())
 
         await self._discover_tools()
+
+    def is_healthy(self) -> bool:
+        """Check if the MCP child process is still running."""
+        return self.process is not None and self.process.returncode is None
+
+    async def _read_stderr(self):
+        """Read and log MCP server stderr for debugging."""
+        try:
+            while True:
+                line = await self.process.stderr.readline()
+                if not line:
+                    break
+                text = line.decode('utf-8', errors='replace').strip()
+                if text:
+                    logger.debug(f"[MCP stderr] {text}")
+        except Exception as e:
+            logger.warning(f"MCP stderr reader stopped: {e}")
 
     async def stop(self) -> None:
         """
         Gracefully terminates the MCP child process and cancels the reader loop.
         """
+        if self._stderr_task:
+            self._stderr_task.cancel()
+            try:
+                await self._stderr_task
+            except asyncio.CancelledError:
+                pass
+            self._stderr_task = None
+
         if self.read_task:
             self.read_task.cancel()
             try:
@@ -89,6 +116,8 @@ class MCPBridge:
                 default because the downstream draw.io MCP server must finish
                 an I/O round-trip before returning.
         """
+        if not self.is_healthy():
+            raise RuntimeError("MCP server process is not running. The diagram server may have crashed.")
         if name == "finalize" and timeout == 30.0:
             timeout = 60.0
         payload = {

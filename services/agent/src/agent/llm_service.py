@@ -1,6 +1,12 @@
+import asyncio
+import logging
+import random
+
 import litellm
 from typing import AsyncGenerator, Any
 from agent.config import Settings
+
+logger = logging.getLogger(__name__)
 
 def format_mcp_tool(mcp_tool: dict[str, Any]) -> dict[str, Any]:
     """
@@ -27,6 +33,7 @@ class LLMService:
     def __init__(self, config: Settings):
         self.config = config
         self.model_string = f"{config.llm_provider}/{config.llm_model}"
+        self.temperature = config.llm_temperature
         if config.llm_api_key:
             import os
             os.environ["GEMINI_API_KEY"] = config.llm_api_key
@@ -80,10 +87,12 @@ class LLMService:
     async def generate_chat(self, messages: list[dict[str, Any]], tools: list[dict[str, Any]] | None = None) -> Any:
         """
         Sends conversation messages to the LLM and returns the response message object.
+        Includes retry logic with exponential backoff for transient failures.
         """
         kwargs: dict[str, Any] = {
             "model": self.model_string,
-            "messages": messages
+            "messages": messages,
+            "temperature": self.temperature,
         }
         
         if self.config.llm_api_key:
@@ -92,5 +101,16 @@ class LLMService:
         if tools:
             kwargs["tools"] = [format_mcp_tool(t) for t in tools]
 
-        response = await litellm.acompletion(**kwargs)
-        return response.choices[0].message
+        max_retries = 3
+        base_delay = 1.0
+
+        for attempt in range(max_retries):
+            try:
+                response = await litellm.acompletion(**kwargs)
+                return response.choices[0].message
+            except Exception as e:
+                if attempt == max_retries - 1:
+                    raise  # Re-raise on final attempt
+                delay = base_delay * (2 ** attempt) + random.uniform(0, 0.5)
+                logger.warning(f"LLM call failed (attempt {attempt + 1}/{max_retries}): {e}. Retrying in {delay:.1f}s...")
+                await asyncio.sleep(delay)

@@ -45,6 +45,8 @@ async def test_mcp_bridge_lifecycle_and_call():
     
     stream_reader = MockStreamReader()
     mock_process.stdout = stream_reader
+    mock_stderr = MockStreamReader()
+    mock_process.stderr = mock_stderr
     
     stdin_writes = []
     def mock_write(data):
@@ -95,6 +97,8 @@ async def test_mcp_bridge_timeout():
     
     stream_reader = MockStreamReader()
     mock_process.stdout = stream_reader
+    mock_stderr = MockStreamReader()
+    mock_process.stderr = mock_stderr
     
     stdin_writes = []
     def mock_write(data):
@@ -125,10 +129,10 @@ async def test_mcp_bridge_not_started():
     settings = Settings(mcp_server_path="node", mcp_workspace_root=".")
     bridge = MCPBridge(settings)
     
-    # call_tool should raise RuntimeError if process is not running
+    # call_tool should raise RuntimeError if process is not running (is_healthy check)
     with pytest.raises(RuntimeError) as exc_info:
         await bridge.call_tool("add_node", {})
-    assert "process not running" in str(exc_info.value)
+    assert "not running" in str(exc_info.value)
     
     # stop should not throw when called on unstarted bridge
     await bridge.stop()
@@ -143,6 +147,8 @@ async def test_mcp_bridge_discover_tools_error():
         mock_process = AsyncMock()
         mock_process.stdin = AsyncMock()
         mock_process.stdin.close = MagicMock()
+        mock_process.stdout = MockStreamReader()
+        mock_process.stderr = MockStreamReader()
         with patch("asyncio.create_subprocess_exec", return_value=mock_process):
             # start will try to discover tools, fail, but start successfully with empty tools list
             await bridge.start()
@@ -162,6 +168,8 @@ async def test_mcp_bridge_read_loop_resilience():
     response_list = '{"jsonrpc": "2.0", "result": {"tools": []}, "id": 1}\n'
     stream_reader = MockStreamReader()
     mock_process.stdout = stream_reader
+    mock_stderr = MockStreamReader()
+    mock_process.stderr = mock_stderr
     
     def mock_write(data):
         try:
