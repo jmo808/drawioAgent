@@ -2,8 +2,8 @@
 FROM docker.io/node:22-slim AS builder
 WORKDIR /app
 
-# Copy root config and package manifests
-COPY package*.json ./
+# Copy root config, tsconfig, and package manifests
+COPY package*.json tsconfig.json ./
 COPY packages/shared/package*.json packages/shared/
 COPY services/api/package*.json services/api/
 
@@ -15,6 +15,8 @@ COPY packages/shared packages/shared
 COPY services/api services/api
 
 # Build typescript packages
+RUN cd packages/shared && npx tsc -b --clean
+RUN cd services/api && npx tsc -b --clean
 RUN npm run build -w @drawio-agent/shared
 RUN npm run build -w drawio-agent-api
 
