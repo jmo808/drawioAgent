@@ -6,7 +6,7 @@ window.urlParams = window.urlParams || {};
 
 // Inject the plugin script directly to bypass draw.io's registry checks
 var script = document.createElement('script');
-script.src = '/draw/js/drawio-agent-plugin.js';
+script.src = '/draw/js/drawio-agent-plugin.js?t=' + Date.now();
 script.defer = true;
 var t = document.getElementsByTagName('script')[0];
 if (t != null) {

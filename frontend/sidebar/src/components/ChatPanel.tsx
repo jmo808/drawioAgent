@@ -216,7 +216,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
       {/* Footer / Input */}
       <div className="drawio-agent-footer">
         {aiWorkingFor && (
-          <div className="ai-working-status" style={{ padding: '4px 8px', fontSize: '12px', color: '#ef4444', animation: 'pulse-badge 2s infinite' }}>
+          <div className="drawio-agent-ai-status ai-working-status" style={{ padding: '4px 8px', fontSize: '12px', color: '#ef4444', animation: 'pulse-badge 2s infinite' }}>
             {`AI is working for ${aiWorkingFor}...`}
           </div>
         )}

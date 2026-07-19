@@ -1,0 +1,80 @@
+{
+  "promptPattern": "aws-3tier|create|generate",
+  "toolCalls": [
+    {
+      "name": "compile_json_spec",
+      "arguments": {
+        "spec": {
+          "title": "AWS 3-Tier Web App",
+          "theme": "light",
+          "type": "architecture",
+          "containers": [
+            {
+              "id": "vpc-1",
+              "label": "AWS VPC (10.0.0.0/16)",
+              "type": "vpc"
+            },
+            {
+              "id": "pub-subnet-1",
+              "label": "Public Subnet (Ingress)",
+              "type": "subnet",
+              "parentId": "vpc-1",
+              "tier": "public"
+            },
+            {
+              "id": "db-subnet-1",
+              "label": "Database Subnet (Private)",
+              "type": "subnet",
+              "parentId": "vpc-1",
+              "tier": "private"
+            }
+          ],
+          "nodes": [
+            {
+              "id": "internet-client",
+              "label": "Internet Client",
+              "type": "user",
+              "parentId": "1"
+            },
+            {
+              "id": "cloudfront-1",
+              "label": "CloudFront CDN",
+              "type": "cloudfront",
+              "parentId": "1"
+            },
+            {
+              "id": "alb-1",
+              "label": "Application Load Balancer",
+              "type": "alb",
+              "parentId": "pub-subnet-1"
+            },
+            {
+              "id": "rds-db-1",
+              "label": "Multi-AZ RDS DB",
+              "type": "rds",
+              "parentId": "db-subnet-1"
+            }
+          ],
+          "edges": [
+            {
+              "sourceId": "internet-client",
+              "targetId": "cloudfront-1",
+              "label": "HTTPS Request"
+            },
+            {
+              "sourceId": "cloudfront-1",
+              "targetId": "alb-1",
+              "label": "Forwarded Request"
+            },
+            {
+              "sourceId": "alb-1",
+              "targetId": "rds-db-1",
+              "label": "DB Query"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "finalResponse": "I have created the AWS 3-Tier Web Application architecture diagram for you."
+}

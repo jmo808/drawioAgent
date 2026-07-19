@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { ChatPanel } from './components/ChatPanel'
 import { TemplateLibrary } from './components/TemplateLibrary'
 import { DisplayNamePrompt } from './components/DisplayNamePrompt'
-import type { ToolProgress, ChatMessage, DiagramUpdate, ErrorPayload } from '@drawio-agent/shared'
+import type { ToolProgress, DiagramUpdate, ErrorPayload } from '@drawio-agent/shared'
 import { MESSAGES } from './i18n'
 import { useChatStore } from './hooks/useChatStore'
 import { useWebSocket } from './hooks/useWebSocket'
@@ -75,7 +75,7 @@ function App({ ui }: AppProps) {
       try {
         const host = window.location.host || 'localhost:3000'
         const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:'
-        const res = await fetch(`${protocol}//${host}/api/providers`)
+        const res = await fetch(`${protocol}//${host}/api/v1/providers`)
         if (res.ok) {
           const data = await res.json()
           if (data.providers) {
@@ -267,10 +267,17 @@ function App({ ui }: AppProps) {
           }
         });
       } else if (message.type === 'chat_message') {
-        const payload = message.payload as unknown as ChatMessage;
+        const payload = message.payload as any;
+        const senderConnId = (message as any).senderConnId;
+        const senderName = (message as any).senderName || 'Anonymous';
+        const isAgent = !senderConnId || senderConnId === 'agent';
         dispatch({
-          type: 'RECEIVE_CHAT_MESSAGE',
-          payload: payload.text
+          type: 'RECEIVE_COLLAB_CHAT',
+          payload: {
+            text: payload.text,
+            senderName,
+            isAgent
+          }
         });
       } else if (message.type === 'diagram_update') {
         const payload = message.payload as unknown as DiagramUpdate;
@@ -299,8 +306,10 @@ function App({ ui }: AppProps) {
         }
       } else if (message.type === 'member_joined') {
         const payload = message.payload as any;
-        dispatch({ type: 'ADD_MEMBER', payload: { connId: payload.connId, displayName: payload.displayName } });
-        showToast(`${payload.displayName} joined the session`);
+        dispatch({ type: 'ADD_MEMBER', payload: { connId: payload.connId, displayName: payload.displayName, disconnected: payload.disconnected } });
+        if (!payload.disconnected) {
+          showToast(`${payload.displayName} joined the session`);
+        }
       } else if (message.type === 'member_left') {
         const payload = message.payload as any;
         dispatch({ type: 'REMOVE_MEMBER', payload: payload.connId });
@@ -384,12 +393,12 @@ function App({ ui }: AppProps) {
   }, [collabEnabled, state.connectionStatus]);
 
   useEffect(() => {
-    if (!ui) return
+    if (!ui || !state.sessionId) return
     const unsubscribe = drawioBridge.subscribeToGraphChanges(ui, (xml) => {
       broadcastDiagram(xml)
     }, 500)
     return () => unsubscribe()
-  }, [ui, broadcastDiagram])
+  }, [ui, state.sessionId, broadcastDiagram])
 
   const handleSendMessage = (text: string) => {
     console.log('[DrawioAgent] handleSendMessage called');
@@ -416,6 +425,16 @@ function App({ ui }: AppProps) {
     dispatch({ type: 'ADD_USER_MESSAGE', payload: text })
     sendMessage(text, snapshotXml)
   }
+
+  // Expose for testing
+  useEffect(() => {
+    (window as any).sendCollabMessage = (text: string) => {
+      handleSendMessage(text)
+    }
+    return () => {
+      delete (window as any).sendCollabMessage
+    }
+  }, [handleSendMessage])
 
   // Prevent browser from auto-scrolling the body when inputs are focused,
   // which shifts the entire Draw.io app layout upward.

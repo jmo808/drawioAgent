@@ -27,9 +27,11 @@ async def chat_completions(request: Request):
     if messages and messages[-1].get("role") == "tool":
         content = "Diagram generated successfully."
     else:
+        import asyncio
         prompt = messages[-1].get("content", "") if messages else ""
         
         if "aws-3tier" in prompt.lower() or "create" in prompt.lower() or "generate" in prompt.lower():
+            await asyncio.sleep(2.5)
             # Check if compile_json_spec tool is present
             has_compile_tool = any(t.get("function", {}).get("name") == "compile_json_spec" for t in tools)
             if has_compile_tool:
@@ -66,6 +68,12 @@ async def chat_completions(request: Request):
                             "parentId": "1"
                         },
                         {
+                            "id": "cloudfront-1",
+                            "label": "CloudFront CDN",
+                            "type": "cloudfront",
+                            "parentId": "1"
+                        },
+                        {
                             "id": "alb-1",
                             "label": "Application Load Balancer",
                             "type": "alb",
@@ -81,8 +89,13 @@ async def chat_completions(request: Request):
                     "edges": [
                         {
                             "sourceId": "internet-client",
-                            "targetId": "alb-1",
+                            "targetId": "cloudfront-1",
                             "label": "HTTPS Request"
+                        },
+                        {
+                            "sourceId": "cloudfront-1",
+                            "targetId": "alb-1",
+                            "label": "Forwarded Request"
                         },
                         {
                             "sourceId": "alb-1",

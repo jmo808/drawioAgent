@@ -371,7 +371,7 @@ export async function chatRoutes(app: FastifyInstance) {
               connId,
               displayName,
               text: chatPayload.text,
-              diagramXml: chatPayload.diagramXml,
+              diagramXml: chatPayload.diagramXml || undefined,
               classification,
               clientMsgId
             };
@@ -410,7 +410,7 @@ export async function chatRoutes(app: FastifyInstance) {
               await agentProxy.sendChatMessage(
                 {
                   message: chatPayload.text,
-                  diagramXml: chatPayload.diagramXml,
+                  diagramXml: chatPayload.diagramXml || undefined,
                   sessionId,
                   classification
                 },

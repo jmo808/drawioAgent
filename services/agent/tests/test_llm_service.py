@@ -93,3 +93,62 @@ async def test_llm_service_generate_error():
         with pytest.raises(Exception) as exc_info:
             await service.generate("hello")
         assert "Invalid API Key" in str(exc_info.value)
+
+@pytest.mark.asyncio
+async def test_llm_service_mock_llm_create_aws():
+    settings = Settings(
+        mock_llm=True
+    )
+    service = LLMService(settings)
+    
+    # Verify fixtures are loaded
+    assert len(service.fixtures) > 0
+    
+    # 1. First Turn: user prompt matching AWS 3-tier
+    messages = [{"role": "user", "content": "Create an AWS 3-tier application diagram"}]
+    response = await service.generate_chat(messages)
+    
+    assert response.content is None
+    assert response.tool_calls is not None
+    assert len(response.tool_calls) == 1
+    assert response.tool_calls[0].function.name == "compile_json_spec"
+    
+    # 2. Second Turn: tool response passed back
+    messages.append({
+        "role": "assistant",
+        "content": None,
+        "tool_calls": [
+            {
+                "id": response.tool_calls[0].id,
+                "type": "function",
+                "function": {
+                    "name": "compile_json_spec",
+                    "arguments": response.tool_calls[0].function.arguments
+                }
+            }
+        ]
+    })
+    messages.append({
+        "role": "tool",
+        "name": "compile_json_spec",
+        "tool_call_id": response.tool_calls[0].id,
+        "content": "success"
+    })
+    
+    response2 = await service.generate_chat(messages)
+    assert response2.content == "I have created the AWS 3-Tier Web Application architecture diagram for you."
+    assert response2.tool_calls is None
+
+@pytest.mark.asyncio
+async def test_llm_service_mock_llm_unknown():
+    settings = Settings(
+        mock_llm=True
+    )
+    service = LLMService(settings)
+    
+    messages = [{"role": "user", "content": "tell me a joke"}]
+    response = await service.generate_chat(messages)
+    
+    assert "I can help with diagrams" in response.content
+    assert response.tool_calls is None
+

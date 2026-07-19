@@ -1,0 +1,190 @@
+name: PR Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint:
+    name: Lint & Style Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Root Dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Install Python Linting Tools
+        run: pip install ruff
+
+      - name: Run Ruff
+        run: ruff check .
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+
+      - name: Run Helm Lint
+        run: helm lint --strict chart/drawio-agent
+
+  typecheck:
+    name: TypeScript Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install Root Dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Run Type Check
+        run: npm run typecheck
+
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Root Dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Run TS Unit Tests (with Coverage)
+        run: npm run test -- --coverage --run
+
+      - name: Install Python Dependencies
+        run: |
+          cd services/agent
+          pip install -r requirements.txt pytest pytest-cov
+
+      - name: Run Python Unit Tests (with Coverage)
+        run: |
+          cd services/agent
+          pytest --cov=src --cov-fail-under=80 --cov-report=term-missing tests/
+
+  trivy-scan:
+    name: Trivy Filesystem Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy Vulnerability Scanner
+        uses: aquasecurity/trivy-action@v0.30.0
+        with:
+          scan-type: 'fs'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
+
+      - name: Upload Trivy Scan Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trivy-fs-results
+          path: trivy-results.sarif
+
+  docker-build-verify:
+    name: Verify Docker Builds
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Agent Repository
+        uses: actions/checkout@v4
+        with:
+          path: drawioAgent
+
+      - name: Checkout Plugin Repository
+        uses: actions/checkout@v4
+        with:
+          repository: jmo808/drawio_plugin
+          path: drawio_plugin
+
+      - name: Detect Changes
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            shared:
+              - 'drawioAgent/packages/shared/**'
+            frontend:
+              - 'drawioAgent/frontend/sidebar/**'
+              - 'drawioAgent/packages/shared/**'
+            api:
+              - 'drawioAgent/services/api/**'
+              - 'drawioAgent/packages/shared/**'
+            agent:
+              - 'drawioAgent/services/agent/**'
+              - 'drawioAgent/packages/shared/**'
+
+      - name: Setup Docker Buildx
+        if: steps.filter.outputs.frontend == 'true' || steps.filter.outputs.api == 'true' || steps.filter.outputs.agent == 'true'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Frontend (Verify)
+        if: steps.filter.outputs.frontend == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: drawioAgent
+          file: drawioAgent/frontend/sidebar/Dockerfile
+          push: false
+          tags: drawio-frontend:verify
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build API Server (Verify)
+        if: steps.filter.outputs.api == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: drawioAgent
+          file: drawioAgent/services/api/Dockerfile
+          push: false
+          tags: drawio-api:verify
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build Agent (Verify)
+        if: steps.filter.outputs.agent == 'true'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: drawioAgent/services/agent/Dockerfile
+          push: false
+          tags: drawio-agent:verify
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

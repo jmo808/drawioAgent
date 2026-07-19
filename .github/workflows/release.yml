@@ -1,0 +1,184 @@
+name: Release & Publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+
+jobs:
+  build-and-push:
+    name: Build & Push Service Images
+    strategy:
+      matrix:
+        service: [frontend, api, agent]
+        include:
+          - service: frontend
+            context: drawioAgent
+            file: drawioAgent/frontend/sidebar/Dockerfile
+            image_name: drawio-frontend
+          - service: api
+            context: drawioAgent
+            file: drawioAgent/services/api/Dockerfile
+            image_name: drawio-api
+          - service: agent
+            context: .
+            file: drawioAgent/services/agent/Dockerfile
+            image_name: drawio-agent
+    runs-on: k8s-cluster
+    outputs:
+      frontend-digest: ${{ steps.save-digests.outputs.frontend }}
+      api-digest: ${{ steps.save-digests.outputs.api }}
+      agent-digest: ${{ steps.save-digests.outputs.agent }}
+    steps:
+      - name: Checkout Agent Repository
+        uses: actions/checkout@v4
+        with:
+          path: drawioAgent
+
+      - name: Checkout Plugin Repository
+        uses: actions/checkout@v4
+        with:
+          repository: jmo808/drawio_plugin
+          path: drawio_plugin
+
+      - name: Extract Tag Info
+        id: tag-info
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          SEMVER=${VERSION#v}
+          echo "semver=${SEMVER}" >> $GITHUB_OUTPUT
+
+      - name: Build and Push Service Image
+        uses: ./drawioAgent/.github/workflows/reusable-docker-build.yml
+        id: build-service
+        with:
+          service-name: ${{ matrix.image_name }}
+          context-path: ${{ matrix.context }}
+          dockerfile-path: ${{ matrix.file }}
+          platforms: 'linux/amd64,linux/arm64'
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:${{ steps.tag-info.outputs.version }}
+            ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:latest
+
+      - name: Save Digest to Output
+        id: save-digests
+        run: |
+          echo "${{ matrix.service }}=${{ steps.build-service.outputs.image-digest }}" >> $GITHUB_OUTPUT
+
+  scan-and-sign:
+    name: Security Scan & Sign Images
+    needs: build-and-push
+    runs-on: k8s-cluster
+    strategy:
+      matrix:
+        service: [frontend, api, agent]
+        include:
+          - service: frontend
+            image_name: drawio-frontend
+          - service: api
+            image_name: drawio-api
+          - service: agent
+            image_name: drawio-agent
+    steps:
+      - name: Extract Tag Info
+        id: tag-info
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Run Trivy Vulnerability Scan
+        uses: aquasecurity/trivy-action@v0.30.0
+        with:
+          image-ref: 'ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:${{ steps.tag-info.outputs.version }}'
+          format: 'sarif'
+          output: 'trivy-${{ matrix.service }}.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Sign Image
+        run: |
+          cosign sign --yes "ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:${{ steps.tag-info.outputs.version }}"
+
+  publish-chart:
+    name: Package & Publish Helm Chart
+    runs-on: k8s-cluster
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Extract Tag Info
+        id: tag-info
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          SEMVER=${VERSION#v}
+          echo "semver=${SEMVER}" >> $GITHUB_OUTPUT
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Update Chart Version
+        run: |
+          sed -i "s/^version:.*/version: ${{ steps.tag-info.outputs.semver }}/g" chart/drawio-agent/Chart.yaml
+          sed -i "s/^appVersion:.*/appVersion: \"${{ steps.tag-info.outputs.version }}\"/g" chart/drawio-agent/Chart.yaml
+
+      - name: Package Helm Chart
+        run: helm package chart/drawio-agent --destination .
+
+      - name: Login to GHCR OCI
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Push Helm Chart OCI
+        run: helm push drawio-agent-${{ steps.tag-info.outputs.semver }}.tgz oci://ghcr.io/${{ github.repository_owner }}/charts
+
+  github-release:
+    name: Create GitHub Release
+    needs: [build-and-push, scan-and-sign, publish-chart]
+    runs-on: k8s-cluster
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Extract Tag Info
+        id: tag-info
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Release ${{ steps.tag-info.outputs.version }}
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+          body: |
+            ## Draw.io Agent Release ${{ steps.tag-info.outputs.version }}
+
+            All services and Helm charts have been built, vulnerability scanned, and signed successfully.
+
+            ### Published Container Images
+            - **Frontend**: `ghcr.io/${{ github.repository_owner }}/drawio-frontend:${{ steps.tag-info.outputs.version }}`
+            - **API Server**: `ghcr.io/${{ github.repository_owner }}/drawio-api:${{ steps.tag-info.outputs.version }}`
+            - **Agent Service**: `ghcr.io/${{ github.repository_owner }}/drawio-agent:${{ steps.tag-info.outputs.version }}`
+
+            ### Helm Chart (OCI Artifact)
+            `oci://ghcr.io/${{ github.repository_owner }}/charts/drawio-agent` version `${{ steps.tag-info.outputs.version }}`
+
+            ### Container Image Verification
+            Images can be verified using `cosign`:
+            ```bash
+            cosign verify \
+              --certificate-identity-regexp "https://github.com/${{ github.repository_owner }}/.github/workflows/release.yml@refs/tags/${{ steps.tag-info.outputs.version }}" \
+              --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+              ghcr.io/${{ github.repository_owner }}/drawio-api:${{ steps.tag-info.outputs.version }}
+            ```

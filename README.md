@@ -80,6 +80,57 @@ Draw.io AI Agent allows development teams, engineers, and architects to **genera
 
 ---
 
+## 👥 Multi-User Collaboration
+
+When collaboration mode is enabled (`COLLABORATION_ENABLED=true`), multiple engineers can join the same Draw.io diagram session to co-edit and collaborate with the AI.
+
+### 🔄 Collaboration Architecture
+
+```mermaid
+sequenceDiagram
+    participant User A (Browser)
+    participant User B (Browser)
+    participant API Gateway (Fastify)
+    participant Valkey (Redis/PubSub)
+    participant Agent Service (FastAPI)
+
+    Note over User A, User B: Session Created & Joined
+    User A->>API Gateway: Send AI request ("Add Cache")
+    API Gateway->>Valkey: Acquire AI Lock & Enqueue request
+    Valkey-->>API Gateway: Lock acquired (User A active)
+    API Gateway->>Agent Service: Send message to trigger AI
+    Note over User B: Sees progress badge: "AI is working for User A"
+    User B->>API Gateway: Send concurrent AI request ("Add DB")
+    API Gateway->>Valkey: Enqueue request (Queued behind User A)
+    Note over User B: Chat shows: "Your request has been queued..."
+    Agent Service-->>API Gateway: Stream response & Diagram XML
+    API Gateway->>Valkey: Publish diagram_broadcast Event
+    Valkey-->>User A: WebSocket: Apply diagram updates
+    Valkey-->>User B: WebSocket: Apply diagram updates
+    API Gateway->>Valkey: Release AI Lock & Process Next in Queue
+```
+
+### 🔒 AI Action Serialization & Queuing Lock
+- **Active Editing Lock:** Only one AI request is processed at a time per session. When a user triggers the AI, they acquire the session lock.
+- **Request Queuing:** If another collaborator sends a prompt while the AI is busy, the request is automatically enqueued in Valkey. The user receives a message notifying them that their request has been queued.
+- **Sequential Execution:** Once the active AI task completes and releases the lock, the next queued task is popped and processed automatically, preserving diagram consistency and preventing race conditions.
+
+### 🟢 Presence & Reconnection Status
+- **Real-Time Presence:** The sidebar features a presence bar displaying initials of all active session members.
+- **Graceful Disconnects:** If a user closes their browser tab or temporarily loses network connection, their presence badge dims (enters a `disconnected` state).
+- **Session Cleanup:** A 5-minute cleanup timer is started on disconnect. If the user reconnects within 5 minutes, their session state is restored. Otherwise, they are removed from the session members list.
+
+### 🔧 Configuration Guide
+
+Enable collaboration by defining these environment variables in your deployment or `.env`:
+
+```env
+COLLABORATION_ENABLED=true
+VALKEY_URL=redis://valkey:6379
+```
+
+---
+
 ## 📂 Project Structure
 
 ```
@@ -240,7 +291,7 @@ helm install drawio-agent ./chart/drawio-agent \
 
 ## 🗺️ Roadmap
 
-- [ ] Multi-user collaborative editing with CRDT sync
+- [x] Multi-user collaborative editing with real-time WebSocket sync, Valkey pub-sub, and AI locks/queuing
 - [ ] Diagram version history and diff viewer
 - [ ] Visual AI feedback — highlight nodes as the AI modifies them
 - [ ] Additional domain experts: UML class diagrams, C4 models, BPMN

@@ -41,6 +41,8 @@ export const setGraphXml = (ui: EditorUi, xml: string): void => {
   }
 }
 
+let isApplyingRemoteUpdate = false;
+
 export const setGraphXmlPreservingViewport = (ui: EditorUi, xml: string): void => {
   if (!ui || !ui.editor || !ui.editor.graph) {
     setGraphXml(ui, xml)
@@ -57,16 +59,21 @@ export const setGraphXmlPreservingViewport = (ui: EditorUi, xml: string): void =
   const scale = view.getScale()
   const translate = view.getTranslate() || { x: 0, y: 0 }
 
-  setGraphXml(ui, xml)
+  isApplyingRemoteUpdate = true
+  try {
+    setGraphXml(ui, xml)
 
-  if (typeof view.setScale === 'function') {
-    view.setScale(scale)
-  }
-  if (typeof view.setTranslate === 'function') {
-    view.setTranslate(translate.x, translate.y)
-  }
-  if (typeof graph.refresh === 'function') {
-    graph.refresh()
+    if (typeof view.setScale === 'function') {
+      view.setScale(scale)
+    }
+    if (typeof view.setTranslate === 'function') {
+      view.setTranslate(translate.x, translate.y)
+    }
+    if (typeof graph.refresh === 'function') {
+      graph.refresh()
+    }
+  } finally {
+    isApplyingRemoteUpdate = false
   }
 }
 
@@ -110,6 +117,7 @@ export const subscribeToGraphChanges = (
   let timeoutId: ReturnType<typeof setTimeout>
   
   const listener = () => {
+    if (isApplyingRemoteUpdate) return
     clearTimeout(timeoutId)
     timeoutId = setTimeout(() => {
       onChange(getGraphXml(ui))

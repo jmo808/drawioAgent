@@ -1,0 +1,55 @@
+{
+  "promptPattern": "template|microservice|microservices",
+  "toolCalls": [
+    {
+      "name": "compile_json_spec",
+      "arguments": {
+        "spec": {
+          "title": "Microservices Architecture",
+          "theme": "dark",
+          "type": "architecture",
+          "containers": [
+            {
+              "id": "k8s-cluster",
+              "label": "Kubernetes Cluster",
+              "type": "k8s"
+            }
+          ],
+          "nodes": [
+            {
+              "id": "api-gateway",
+              "label": "API Gateway Service",
+              "type": "service",
+              "parentId": "k8s-cluster"
+            },
+            {
+              "id": "auth-service",
+              "label": "Auth Service",
+              "type": "service",
+              "parentId": "k8s-cluster"
+            },
+            {
+              "id": "order-service",
+              "label": "Order Processing",
+              "type": "service",
+              "parentId": "k8s-cluster"
+            }
+          ],
+          "edges": [
+            {
+              "sourceId": "api-gateway",
+              "targetId": "auth-service",
+              "label": "Validate Token"
+            },
+            {
+              "sourceId": "api-gateway",
+              "targetId": "order-service",
+              "label": "Route Request"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "finalResponse": "I have successfully compiled the Microservices Architecture diagram from the template."
+}

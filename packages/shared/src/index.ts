@@ -3,8 +3,8 @@ import { z } from 'zod';
 // Zod Schemas
 export const ChatMessageSchema = z.object({
   text: z.string(),
-  diagramXml: z.string().optional(),
-  sessionId: z.string().optional()
+  diagramXml: z.string().nullable().optional(),
+  sessionId: z.string().nullable().optional()
 });
 
 export const ToolProgressSchema = z.object({

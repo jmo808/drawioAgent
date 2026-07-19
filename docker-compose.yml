@@ -43,6 +43,9 @@ services:
       - HOST=0.0.0.0
       - API_KEY=test-api-key
       - AGENT_SERVICE_URL=http://drawio-agent:8000
+      - COLLABORATION_ENABLED=true
+      - VALKEY_HOST=valkey
+      - VALKEY_PORT=6379
     command: npm run dev -w drawio-agent-api
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://localhost:3000/health').then(function(r){process.exit(r.ok?0:1)}).catch(function(){process.exit(1)})"]
@@ -52,6 +55,8 @@ services:
       start_period: 5s
     depends_on:
       drawio-agent:
+        condition: service_healthy
+      valkey:
         condition: service_healthy
     networks:
       - drawio-net
@@ -80,6 +85,18 @@ services:
       timeout: 5s
       retries: 5
       start_period: 5s
+    networks:
+      - drawio-net
+
+  valkey:
+    image: docker.io/valkey/valkey:8
+    ports:
+      - "6379"
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - drawio-net
 

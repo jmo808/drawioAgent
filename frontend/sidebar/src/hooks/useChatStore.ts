@@ -18,13 +18,14 @@ export type ChatAction =
   | { type: 'UPDATE_CONNECTION_STATUS'; payload: 'connecting' | 'connected' | 'disconnected' }
   | { type: 'RECEIVE_TOOL_PROGRESS'; payload: { toolName: string; step: number; totalSteps: number; message: string } }
   | { type: 'RECEIVE_CHAT_MESSAGE'; payload: string }
+  | { type: 'RECEIVE_COLLAB_CHAT'; payload: { text: string; senderName: string; isAgent: boolean } }
   | { type: 'SET_ERROR'; payload: string }
   | { type: 'SET_COLLABORATION_ENABLED'; payload: boolean }
   | { type: 'SET_SESSION'; payload: { sessionId: string; shortCode?: string } }
   | { type: 'CLEAR_SESSION' }
   | { type: 'SET_DISPLAY_NAME'; payload: string }
   | { type: 'SET_MEMBERS'; payload: { connId: string; displayName: string; disconnected?: boolean }[] }
-  | { type: 'ADD_MEMBER'; payload: { connId: string; displayName: string } }
+  | { type: 'ADD_MEMBER'; payload: { connId: string; displayName: string; disconnected?: boolean } }
   | { type: 'REMOVE_MEMBER'; payload: string }
   | { type: 'SET_AI_WORKING_FOR'; payload: string | null };
 
@@ -99,6 +100,20 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
         }
       }
     }
+    case 'RECEIVE_COLLAB_CHAT': {
+      const { text, senderName, isAgent } = action.payload;
+      const newMsg: MessageType = {
+        id: Math.random().toString(36).substring(2, 9),
+        role: isAgent ? 'assistant' : 'user',
+        text: isAgent ? text : `**${senderName}**: ${text}`
+      };
+      
+      return {
+        ...state,
+        messages: [...state.messages, newMsg],
+        isLoading: isAgent ? false : state.isLoading
+      };
+    }
     case 'SET_ERROR': {
       const errorMsg: MessageType = {
         id: Math.random().toString(36).substring(2, 9),
@@ -139,14 +154,23 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
         ...state,
         members: action.payload
       }
-    case 'ADD_MEMBER':
-      if (state.members.some(m => m.connId === action.payload.connId)) {
-        return state;
+    case 'ADD_MEMBER': {
+      const exists = state.members.some(m => m.connId === action.payload.connId);
+      if (exists) {
+        return {
+          ...state,
+          members: state.members.map(m =>
+            m.connId === action.payload.connId
+              ? { ...m, disconnected: action.payload.disconnected }
+              : m
+          )
+        };
       }
       return {
         ...state,
         members: [...state.members, action.payload]
-      }
+      };
+    }
     case 'REMOVE_MEMBER':
       return {
         ...state,

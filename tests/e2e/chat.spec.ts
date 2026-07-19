@@ -30,6 +30,15 @@ test.describe('Drawio Agent AI Chat Sidebar E2E Tests', () => {
     // Wait for connection banner to disappear (indicating WebSocket is connected)
     const connectionBanner = page.locator('.drawio-agent-connection-banner');
     await expect(connectionBanner).not.toBeVisible({ timeout: 30000 });
+
+    // Click on "Consent & Accept" if the privacy warning banner is visible
+    const acceptConsentBtn = page.locator('[data-testid="accept-consent-btn"]');
+    try {
+      await acceptConsentBtn.waitFor({ state: 'visible', timeout: 5000 });
+      await acceptConsentBtn.click();
+    } catch (e) {
+      // Consent banner didn't appear, ignore
+    }
   });
 
   test('should successfully compile AWS 3-tier diagram from chat prompt and render on canvas', async ({ page }) => {
@@ -66,6 +75,7 @@ test.describe('Drawio Agent AI Chat Sidebar E2E Tests', () => {
     // Expand category if not already expanded (default is expanded)
     const categoryHeader = page.locator('.drawio-agent-category-header', { hasText: 'Cloud Architecture Templates' });
     await expect(categoryHeader).toBeVisible();
+    await categoryHeader.click({ force: true });
 
     // Click on template card
     const templateCard = page.locator('.drawio-agent-template-card', { hasText: 'AWS 3-Tier Web App' });
