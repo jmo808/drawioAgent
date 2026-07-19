@@ -46,7 +46,7 @@
     - [x] Implement: Add configurable timeout to MCP tool call execution
 - [x] Task: Conductor - User Manual Verification 'Phase 2: MCP Sandboxing' (Protocol in walkthrough.md)
 
-## Phase 3: High — Data Flow Controls (F-03, F-07, F-04)
+## Phase 3: High — Data Flow Controls (F-03, F-07, F-04) [checkpoint: b2c4397]
 
 - [x] Task: Implement LLM provider safety controls (d21eca3)
     - [x] Write Tests: Test default provider is Ollama when no explicit provider configured
@@ -69,7 +69,7 @@
     - [x] Write Tests: Test confidential/restricted sessions reject cloud LLM providers
     - [x] Implement: Add classification field to session metadata
     - [x] Implement: Gate cloud LLM usage based on classification level
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Data Flow Controls' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Data Flow Controls' (Protocol in workflow.md) (b2c4397)
 
 ## Phase 4: High — Security Audit Logging (F-08)
 
