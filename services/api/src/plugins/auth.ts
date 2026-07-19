@@ -12,6 +12,29 @@ const authPluginCallback: FastifyPluginAsync<AuthPluginOptions> = async (
   options
 ) => {
   const bypassRoutes = options.bypassRoutes || ['/health', '/ready', '/metrics'];
+  const provider = (process.env.AUTH_PROVIDER || 'apikey').toLowerCase();
+  const expectedApiKey = process.env.API_KEY;
+  const jwksUri = process.env.AUTH_JWKS_URI;
+  const issuer = process.env.AUTH_ISSUER;
+  const audience = process.env.AUTH_AUDIENCE;
+
+  // Startup validation warnings
+  if (provider === 'apikey' && !expectedApiKey) {
+    fastify.log.warn('API_KEY environment variable is not set. All secure requests will fail.');
+  } else if (provider === 'oidc') {
+    if (!jwksUri || !issuer || !audience) {
+      fastify.log.warn('OIDC environment variables (AUTH_JWKS_URI, AUTH_ISSUER, AUTH_AUDIENCE) are not fully configured.');
+    }
+  } else if (provider === 'both') {
+    if (!expectedApiKey) {
+      fastify.log.warn('API_KEY environment variable is not set for "both" mode.');
+    }
+    if (!jwksUri || !issuer || !audience) {
+      fastify.log.warn('OIDC environment variables are not fully configured for "both" mode.');
+    }
+  } else if (provider !== 'apikey' && provider !== 'oidc' && provider !== 'both') {
+    fastify.log.error(`Unsupported auth provider configured at startup: ${provider}`);
+  }
 
   fastify.addHook('preHandler', async (request, reply) => {
     // Bypass authentication for defined routes
@@ -19,9 +42,6 @@ const authPluginCallback: FastifyPluginAsync<AuthPluginOptions> = async (
     if (bypassRoutes.includes(path)) {
       return;
     }
-
-    const provider = (process.env.AUTH_PROVIDER || 'apikey').toLowerCase();
-    const expectedApiKey = process.env.API_KEY;
 
     // Extract potential credentials
     const authHeader = request.headers['authorization'];
@@ -50,30 +70,28 @@ const authPluginCallback: FastifyPluginAsync<AuthPluginOptions> = async (
       request.log.info({
         audit: true,
         eventType: 'auth_success',
-        userIdentity: identity,
         requestId: request.id,
         clientIp: request.ip,
-        timestamp: new Date().toISOString(),
-        details: { method: request.method, url: request.url }
-      }, 'User authenticated successfully');
+        userIdentity: identity,
+        timestamp: new Date().toISOString()
+      }, `Auth success for identity: ${identity}`);
     };
 
-    const logFailure = (message: string) => {
+    const logFailure = (reason: string) => {
       request.log.warn({
         audit: true,
         eventType: 'auth_failure',
         requestId: request.id,
         clientIp: request.ip,
         timestamp: new Date().toISOString(),
-        details: { reason: message, method: request.method, url: request.url }
-      }, `Authentication failed: ${message}`);
+        details: { reason }
+      }, `Auth failure: ${reason}`);
     };
 
     // Strategy: API KEY ONLY
     if (provider === 'apikey') {
       if (!expectedApiKey) {
-        request.log.warn('API_KEY environment variable is not set. All secure requests will fail.');
-        logFailure('Server auth misconfigured (missing API_KEY)');
+        logFailure('Server auth misconfigured (API_KEY missing)');
         reply.code(403).send({ error: 'Forbidden', message: 'Server auth misconfigured' });
         return;
       }
@@ -83,7 +101,7 @@ const authPluginCallback: FastifyPluginAsync<AuthPluginOptions> = async (
         return;
       }
       if (!validateApiKey(providedApiKey)) {
-        logFailure('Invalid API key');
+        logFailure('Invalid API key provided');
         reply.code(403).send({ error: 'Forbidden', message: 'Invalid API key' });
         return;
       }
@@ -94,10 +112,6 @@ const authPluginCallback: FastifyPluginAsync<AuthPluginOptions> = async (
 
     // Strategy: OIDC ONLY
     if (provider === 'oidc') {
-      const jwksUri = process.env.AUTH_JWKS_URI;
-      const issuer = process.env.AUTH_ISSUER;
-      const audience = process.env.AUTH_AUDIENCE;
-
       if (!jwksUri || !issuer || !audience) {
         request.log.warn('OIDC environment variables (AUTH_JWKS_URI, AUTH_ISSUER, AUTH_AUDIENCE) are not fully configured.');
         logFailure('Server auth misconfigured (OIDC configuration missing)');
@@ -131,10 +145,6 @@ const authPluginCallback: FastifyPluginAsync<AuthPluginOptions> = async (
     if (provider === 'both') {
       // If Bearer token is provided, try to authenticate with it
       if (bearerToken) {
-        const jwksUri = process.env.AUTH_JWKS_URI;
-        const issuer = process.env.AUTH_ISSUER;
-        const audience = process.env.AUTH_AUDIENCE;
-
         if (!jwksUri || !issuer || !audience) {
           request.log.warn('OIDC environment variables are not fully configured for "both" mode.');
           logFailure('Server auth misconfigured (OIDC configuration missing for both mode)');

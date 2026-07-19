@@ -1,4 +1,5 @@
 import React from 'react'
+import { MESSAGES } from '../i18n'
 
 interface PrivacyNoticeProps {
   onAccept: () => void;
@@ -10,15 +11,15 @@ export const PrivacyNotice: React.FC<PrivacyNoticeProps> = ({ onAccept, onDismis
     <div className="drawio-agent-privacy-notice" data-testid="privacy-notice">
       <div className="drawio-agent-privacy-content">
         <p>
-          <strong>Privacy Warning:</strong> Using cloud LLM providers (Gemini or OpenAI) will send your diagram data to external third-party servers.
+          <strong>{MESSAGES.privacyWarningTitle}</strong> {MESSAGES.privacyWarningText}
         </p>
       </div>
       <div className="drawio-agent-privacy-actions">
         <button className="drawio-agent-btn primary" onClick={onAccept} data-testid="accept-consent-btn">
-          Consent & Accept
+          {MESSAGES.btnConsentAccept}
         </button>
         <button className="drawio-agent-btn secondary" onClick={onDismiss} data-testid="dismiss-consent-btn">
-          Dismiss
+          {MESSAGES.btnDismiss}
         </button>
       </div>
     </div>

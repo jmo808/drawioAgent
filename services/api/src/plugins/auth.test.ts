@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import Fastify from 'fastify';
 import { buildApp } from '../app.js';
 
 describe('API Key Authentication Middleware', () => {
-  let app: any;
+  let app: ReturnType<typeof Fastify>;
 
   beforeEach(async () => {
     process.env.API_KEY = 'super-secret-key';
@@ -16,6 +16,14 @@ describe('API Key Authentication Middleware', () => {
     app.get('/test-secure', async () => {
       return { secure: true };
     });
+  });
+
+  afterEach(async () => {
+    delete process.env.API_KEY;
+    delete process.env.AUTH_PROVIDER;
+    if (app) {
+      await app.close();
+    }
   });
 
   it('should allow bypass for /health', async () => {
@@ -87,8 +95,14 @@ describe('API Key Authentication Middleware', () => {
   });
 
   it('should return 403 with misconfiguration error if API_KEY is not set', async () => {
+    const localApp = Fastify();
     delete process.env.API_KEY;
-    const res = await app.inject({
+    await buildApp(localApp);
+    localApp.get('/test-secure', async () => {
+      return { secure: true };
+    });
+
+    const res = await localApp.inject({
       method: 'GET',
       url: '/test-secure',
       headers: {
@@ -97,5 +111,6 @@ describe('API Key Authentication Middleware', () => {
     });
     expect(res.statusCode).toBe(403);
     expect(res.json()).toEqual({ error: 'Forbidden', message: 'Server auth misconfigured' });
+    await localApp.close();
   });
 });

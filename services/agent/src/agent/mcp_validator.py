@@ -1,4 +1,7 @@
+"""MCP validation logic for allowlisted tools and arguments."""
+
 import logging
+import re
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -48,6 +51,7 @@ class MCPValidator:
         self._check_arguments(arguments)
 
     def _check_arguments(self, args: Any) -> None:
+        """Recursively check arguments for potential path traversal vectors."""
         if isinstance(args, dict):
             for val in args.values():
                 self._check_arguments(val)
@@ -57,9 +61,11 @@ class MCPValidator:
         elif isinstance(args, str):
             # Check for path traversal patterns (e.g., '..', absolute paths starting with '/' or '\\')
             # Normalized checks to prevent sneaky traversal bypasses
+            truncated = args[:30] + "..." if len(args) > 30 else args
             if ".." in args or args.startswith("/") or args.startswith("\\"):
-                raise ValidationError(f"Path traversal detected in argument value: '{args}'")
-            # Enforce that it doesn't contain windows-style drive letters (e.g. C:)
-            if ":" in args and not args.startswith("http://") and not args.startswith("https://"):
-                # Potential absolute windows path or URI scheme escape
-                raise ValidationError(f"Path traversal or invalid character ':' detected in argument value: '{args}'")
+                raise ValidationError(f"Path traversal detected in argument value: '{truncated}'")
+            # Enforce that it doesn't contain windows-style drive letters (e.g. C:\)
+            # Use regex to allow normal text with colons like "Time: 3pm"
+            if re.match(r'^[a-zA-Z]:[/\\]', args):
+                # Potential absolute windows path
+                raise ValidationError(f"Windows absolute path detected in argument value: '{truncated}'")

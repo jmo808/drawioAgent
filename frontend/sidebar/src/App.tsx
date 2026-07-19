@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { ChatPanel } from './components/ChatPanel'
 import { TemplateLibrary } from './components/TemplateLibrary'
+import type { ToolProgress, ChatMessage, DiagramUpdate, ErrorPayload } from '@drawio-agent/shared'
+import { MESSAGES } from './i18n'
 import { useChatStore } from './hooks/useChatStore'
 import { useWebSocket } from './hooks/useWebSocket'
 import * as drawioBridge from './services/drawioBridge'
@@ -213,48 +215,52 @@ function App({ ui }: AppProps) {
     sessionId,
     apiKey,
     onStatusChange: (status) => {
-      dispatch({ type: 'UPDATE_CONNECTION_STATUS', payload: status })
+      dispatch({ type: 'UPDATE_CONNECTION_STATUS', payload: status });
     },
     onMessageReceived: (message) => {
       if (message.type === 'tool_progress') {
+        const payload = message.payload as unknown as ToolProgress;
         dispatch({
           type: 'RECEIVE_TOOL_PROGRESS',
           payload: {
-            toolName: message.payload.toolName,
-            step: message.payload.step,
-            totalSteps: message.payload.totalSteps,
-            message: message.payload.message
+            toolName: payload.toolName,
+            step: payload.step,
+            totalSteps: payload.totalSteps,
+            message: payload.message || ''
           }
-        })
+        });
       } else if (message.type === 'chat_message') {
+        const payload = message.payload as unknown as ChatMessage;
         dispatch({
           type: 'RECEIVE_CHAT_MESSAGE',
-          payload: message.payload.text
-        })
+          payload: payload.text
+        });
       } else if (message.type === 'diagram_update') {
-        if (ui && message.payload.xml) {
+        const payload = message.payload as unknown as DiagramUpdate;
+        if (ui && payload.xml) {
           try {
-            console.log('[DrawioAgent] Applying diagram update XML...')
-            drawioBridge.setGraphXml(ui, message.payload.xml)
+            console.log('[DrawioAgent] Applying diagram update XML...');
+            drawioBridge.setGraphXml(ui, payload.xml);
           } catch (e) {
-            console.error('[DrawioAgent] Failed to set graph XML:', e)
-            dispatch({ type: 'SET_ERROR', payload: 'Failed to update canvas XML' })
+            console.error('[DrawioAgent] Failed to set graph XML:', e);
+            dispatch({ type: 'SET_ERROR', payload: MESSAGES.errorFailedToUpdateXml });
           }
         }
       } else if (message.type === 'error') {
-        dispatch({ type: 'SET_ERROR', payload: message.payload.message })
+        const payload = message.payload as unknown as ErrorPayload;
+        dispatch({ type: 'SET_ERROR', payload: payload.message });
       }
     }
-  })
+  });
 
   const handleSendMessage = (text: string) => {
-    console.log('[DrawioAgent] handleSendMessage called with text:', text)
+    console.log('[DrawioAgent] handleSendMessage called');
     
     // Block cloud provider requests if consent is not granted
-    const isCloud = ['gemini', 'openai'].includes(activeProvider)
+    const isCloud = ['gemini', 'openai'].includes(activeProvider);
     if (isCloud && !consent) {
-      dispatch({ type: 'SET_ERROR', payload: 'Cloud LLM requests are blocked because privacy consent has not been granted.' })
-      return
+      dispatch({ type: 'SET_ERROR', payload: MESSAGES.errorCloudRequestsBlocked });
+      return;
     }
 
     let snapshotXml: string | null = null

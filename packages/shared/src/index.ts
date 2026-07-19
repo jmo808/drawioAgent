@@ -90,7 +90,7 @@ export const WebSocketMessageSchema = z.object({
 // TypeScript interfaces
 export interface WebSocketMessage {
   type: WebSocketMessageType;
-  payload: Record<string, any>;
+  payload: Record<string, unknown>;
   id?: string;
   timestamp: string;
 }
@@ -108,7 +108,7 @@ export type MCPToolResult = z.infer<typeof MCPToolResultSchema>;
  * @param msg The raw message to validate.
  * @returns True if the message is a valid WebSocketMessage, false otherwise.
  */
-export function validateWebSocketMessage(msg: any): msg is WebSocketMessage {
+export function validateWebSocketMessage(msg: unknown): msg is WebSocketMessage {
   return WebSocketMessageSchema.safeParse(msg).success;
 }
 
@@ -117,7 +117,7 @@ export function validateWebSocketMessage(msg: any): msg is WebSocketMessage {
  * @param payload The raw payload to validate.
  * @returns True if the payload is a valid ChatMessage, false otherwise.
  */
-export function isChatMessage(payload: any): payload is ChatMessage {
+export function isChatMessage(payload: unknown): payload is ChatMessage {
   return ChatMessageSchema.safeParse(payload).success;
 }
 
@@ -126,7 +126,7 @@ export function isChatMessage(payload: any): payload is ChatMessage {
  * @param payload The raw payload to validate.
  * @returns True if the payload is a valid ToolProgress, false otherwise.
  */
-export function isToolProgress(payload: any): payload is ToolProgress {
+export function isToolProgress(payload: unknown): payload is ToolProgress {
   return ToolProgressSchema.safeParse(payload).success;
 }
 
@@ -135,7 +135,7 @@ export function isToolProgress(payload: any): payload is ToolProgress {
  * @param payload The raw payload to validate.
  * @returns True if the payload is a valid DiagramUpdate, false otherwise.
  */
-export function isDiagramUpdate(payload: any): payload is DiagramUpdate {
+export function isDiagramUpdate(payload: unknown): payload is DiagramUpdate {
   return DiagramUpdateSchema.safeParse(payload).success;
 }
 
@@ -144,17 +144,17 @@ export function isDiagramUpdate(payload: any): payload is DiagramUpdate {
  * @param payload The raw payload to validate.
  * @returns True if the payload is a valid ErrorPayload, false otherwise.
  */
-export function isErrorPayload(payload: any): payload is ErrorPayload {
+export function isErrorPayload(payload: unknown): payload is ErrorPayload {
   return ErrorPayloadSchema.safeParse(payload).success;
 }
 
 export type CollaborationJoinPayload = z.infer<typeof CollaborationJoinPayloadSchema>;
 export type CollaborationSyncPayload = z.infer<typeof CollaborationSyncPayloadSchema>;
 
-export function isCollaborationJoinPayload(payload: any): payload is CollaborationJoinPayload {
+export function isCollaborationJoinPayload(payload: unknown): payload is CollaborationJoinPayload {
   return CollaborationJoinPayloadSchema.safeParse(payload).success;
 }
 
-export function isCollaborationSyncPayload(payload: any): payload is CollaborationSyncPayload {
+export function isCollaborationSyncPayload(payload: unknown): payload is CollaborationSyncPayload {
   return CollaborationSyncPayloadSchema.safeParse(payload).success;
 }

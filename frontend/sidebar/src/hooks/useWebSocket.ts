@@ -1,9 +1,10 @@
 import { useEffect, useRef } from 'react'
+import type { WebSocketMessage } from '@drawio-agent/shared'
 
 interface UseWebSocketProps {
   sessionId: string;
   apiKey: string | null;
-  onMessageReceived: (message: any) => void;
+  onMessageReceived: (message: WebSocketMessage) => void;
   onStatusChange: (status: 'connecting' | 'connected' | 'disconnected') => void;
 }
 
@@ -15,8 +16,16 @@ export const useWebSocket = ({
 }: UseWebSocketProps) => {
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectDelayRef = useRef(100) // Start at 100ms per spec requirement
-  const reconnectTimeoutRef = useRef<any>(null)
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const messageQueueRef = useRef<string[]>([])
+
+  // Store callbacks in refs to prevent stale closure risk inside useEffect
+  const onMessageReceivedRef = useRef(onMessageReceived)
+  const onStatusChangeRef = useRef(onStatusChange)
+
+  // Keep refs up-to-date on every render
+  onMessageReceivedRef.current = onMessageReceived
+  onStatusChangeRef.current = onStatusChange
 
   useEffect(() => {
     let active = true
@@ -24,7 +33,7 @@ export const useWebSocket = ({
     const connect = () => {
       if (!active) return
 
-      onStatusChange('connecting')
+      onStatusChangeRef.current('connecting')
 
       const host = window.location.host || 'localhost:3000'
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
@@ -41,7 +50,7 @@ export const useWebSocket = ({
           return
         }
         console.log('[DrawioAgentWS] Connected!')
-        onStatusChange('connected')
+        onStatusChangeRef.current('connected')
         reconnectDelayRef.current = 100 // Reset backoff
 
         // Flush queued messages
@@ -55,8 +64,8 @@ export const useWebSocket = ({
       ws.onmessage = (event) => {
         if (!active) return
         try {
-          const data = JSON.parse(event.data)
-          onMessageReceived(data)
+          const data = JSON.parse(event.data) as WebSocketMessage
+          onMessageReceivedRef.current(data)
         } catch (e) {
           console.error('[DrawioAgentWS] Failed to parse message:', e)
         }
@@ -65,7 +74,7 @@ export const useWebSocket = ({
       ws.onclose = (event) => {
         if (!active) return
         console.log('[DrawioAgentWS] Closed:', event.reason)
-        onStatusChange('disconnected')
+        onStatusChangeRef.current('disconnected')
         
         // Retry connection with exponential backoff (e.g. 100ms, 200ms, 400ms...)
         const delay = reconnectDelayRef.current
@@ -95,7 +104,7 @@ export const useWebSocket = ({
   }, [sessionId, apiKey])
 
   const sendMessage = (text: string, diagramXml?: string | null) => {
-    console.log('[DrawioAgentWS] sendMessage called with text:', text, 'hasXml:', !!diagramXml)
+    console.log('[DrawioAgentWS] sendMessage called', { hasXml: !!diagramXml })
     const envelope = {
       type: 'chat_message',
       payload: {

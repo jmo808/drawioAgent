@@ -1,11 +1,12 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import Fastify from 'fastify';
 import { buildApp } from '../app.js';
 import { WebSocket } from 'ws';
+import { AddressInfo } from 'net';
 
 describe('Security Audit Logging', () => {
-  let app: any;
-  let loggedEvents: any[] = [];
+  let app: ReturnType<typeof Fastify>;
+  let loggedEvents: Record<string, unknown>[] = [];
 
   beforeEach(async () => {
     process.env.API_KEY = 'super-secret-key';
@@ -19,7 +20,7 @@ describe('Security Audit Logging', () => {
         stream: {
           write: (msg: string) => {
             try {
-              loggedEvents.push(JSON.parse(msg));
+              loggedEvents.push(JSON.parse(msg) as Record<string, unknown>);
             } catch {}
           }
         }
@@ -31,6 +32,15 @@ describe('Security Audit Logging', () => {
     app.get('/test-secure', async () => {
       return { secure: true };
     });
+  });
+
+  afterEach(async () => {
+    delete process.env.API_KEY;
+    delete process.env.RATE_LIMIT_MAX_TOKENS;
+    delete process.env.RATE_LIMIT_REFILL_RATE;
+    if (app) {
+      await app.close();
+    }
   });
 
   it('should log auth_success audit event with correct details and correlation ID', async () => {
@@ -70,7 +80,7 @@ describe('Security Audit Logging', () => {
     const audit = auditLogs[0];
     expect(audit.requestId).toBe('req-id-456');
     expect(audit.clientIp).toBeDefined();
-    expect(audit.details.reason).toContain('Invalid API key');
+    expect(typeof audit.details === 'object' && audit.details !== null && (audit.details as Record<string, string>).reason).toContain('Invalid API key');
   });
 
   it('should log rate_limit_violation audit event and reject message when limit is exceeded', async () => {
@@ -80,27 +90,37 @@ describe('Security Audit Logging', () => {
 
     // Start listening to allow websocket connection
     await app.listen({ port: 0 });
-    const address = app.server.address() as any;
+    const address = app.server.address() as AddressInfo;
     const wsUrl = `ws://localhost:${address.port}/api/v1/ws/chat?apiKey=super-secret-key`;
 
     const ws = new WebSocket(wsUrl);
     
     await new Promise<void>((resolve, reject) => {
       ws.on('open', () => {
+        const msg1 = JSON.stringify({
+          type: 'chat_message',
+          payload: { text: 'message 1' },
+          timestamp: new Date().toISOString()
+        });
+        const msg2 = JSON.stringify({
+          type: 'chat_message',
+          payload: { text: 'message 2' },
+          timestamp: new Date().toISOString()
+        });
         // First message consumes the 1 token
-        ws.send('message 1');
+        ws.send(msg1);
         // Second message violates the rate limit
-        ws.send('message 2');
+        ws.send(msg2);
       });
 
       ws.on('message', (data) => {
-        const msg = JSON.parse(data.toString());
-        // Malformed JSON (since we sent 'message 1' which is not JSON) will trigger a BAD_REQUEST
-        // or a RATE_LIMIT_EXCEEDED
-        if (msg.payload && msg.payload.code === 'RATE_LIMIT_EXCEEDED') {
-          ws.close();
-          resolve();
-        }
+        try {
+          const msg = JSON.parse(data.toString());
+          if (msg.payload && msg.payload.code === 'RATE_LIMIT_EXCEEDED') {
+            ws.close();
+            resolve();
+          }
+        } catch {}
       });
 
       ws.on('error', (err) => {
@@ -118,6 +138,6 @@ describe('Security Audit Logging', () => {
     expect(auditLogs.length).toBe(1);
     const audit = auditLogs[0];
     expect(audit.clientIp).toBeDefined();
-    expect(audit.details.sessionId).toBeDefined();
+    expect(typeof audit.details === 'object' && audit.details !== null && (audit.details as Record<string, string>).sessionId).toBeDefined();
   });
 });

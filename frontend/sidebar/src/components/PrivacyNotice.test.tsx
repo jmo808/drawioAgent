@@ -12,12 +12,13 @@ const mockProviders = {
 describe('Privacy Notice and Consent Flow', () => {
   beforeEach(() => {
     localStorage.clear()
-    global.fetch = vi.fn().mockImplementation(() =>
-      Promise.resolve({
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
         ok: true,
         json: () => Promise.resolve(mockProviders)
       })
-    ) as any
+    )
   })
 
   test('privacy banner renders when cloud provider is active and consent not given', async () => {

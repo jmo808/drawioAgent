@@ -8,6 +8,14 @@ class ContentFilter:
     IP_PATTERN = re.compile(
         r'\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b'
     )
+
+    # IP address patterns (IPv6 - standard and compressed formats)
+    IPV6_PATTERN = re.compile(
+        r'(?<![0-9a-fA-F])(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}(?![0-9a-fA-F])|'
+        r'(?<![0-9a-fA-F])(?:[0-9a-fA-F]{1,4}:){1,7}:[0-9a-fA-F]{0,4}(?![0-9a-fA-F])|'
+        r'(?<![0-9a-fA-F])::(?:[0-9a-fA-F]{1,4}:){0,7}[0-9a-fA-F]{1,4}(?![0-9a-fA-F])',
+        re.IGNORECASE
+    )
     
     # Hostname patterns (internal, local, dev domains)
     HOSTNAME_PATTERN = re.compile(
@@ -35,10 +43,15 @@ class ContentFilter:
         if not content:
             return findings
             
-        # Scan for IPs
+        # Scan for IPs (IPv4)
         ips = cls.IP_PATTERN.findall(content)
         for ip in ips:
             findings.append(f"Detected IP address: {ip}")
+
+        # Scan for IPs (IPv6)
+        ipv6s = cls.IPV6_PATTERN.findall(content)
+        for ipv6 in ipv6s:
+            findings.append(f"Detected IPv6 address: {ipv6}")
             
         # Scan for internal hostnames
         hostnames = cls.HOSTNAME_PATTERN.findall(content)

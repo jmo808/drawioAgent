@@ -3,6 +3,7 @@ import Fastify from 'fastify';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { buildApp } from '../app.js';
+import { resetJwksClient } from './jwt-auth.js';
 
 // Hoist the mock function so it is available before vi.mock executes
 const { mockGetSigningKey } = vi.hoisted(() => ({
@@ -16,7 +17,7 @@ vi.mock('jwks-rsa', () => ({
 }));
 
 describe('OIDC/JWT Authentication Middleware', () => {
-  let app: any;
+  let app: ReturnType<typeof Fastify>;
   let privateKey: string;
   let publicKey: string;
   let keyId = 'test-key-id';
@@ -39,7 +40,10 @@ describe('OIDC/JWT Authentication Middleware', () => {
     process.env.API_KEY = 'super-secret-key';
 
     // Mock signing key resolution
-    mockGetSigningKey.mockImplementation((kid: string, callback: any) => {
+    mockGetSigningKey.mockImplementation((
+      kid: string,
+      callback: (err: Error | null, key?: { getPublicKey: () => string }) => void
+    ) => {
       if (kid === keyId) {
         callback(null, {
           getPublicKey: () => publicKey,
@@ -53,7 +57,7 @@ describe('OIDC/JWT Authentication Middleware', () => {
     await buildApp(app);
 
     // Secure route to test auth
-    app.get('/test-secure', async (request: any) => {
+    app.get('/test-secure', async (request) => {
       return { secure: true, user: request.user };
     });
 
@@ -70,6 +74,10 @@ describe('OIDC/JWT Authentication Middleware', () => {
     delete process.env.AUTH_AUDIENCE;
     delete process.env.API_KEY;
     mockGetSigningKey.mockReset();
+    resetJwksClient();
+    if (app) {
+      await app.close();
+    }
     vi.restoreAllMocks();
   });
 
@@ -117,7 +125,7 @@ describe('OIDC/JWT Authentication Middleware', () => {
 
     expect(res.statusCode).toBe(401);
     expect(res.json().error).toBe('Unauthorized');
-    expect(res.json().message).toContain('jwt expired');
+    expect(res.json().message).toContain('Token has expired');
   });
 
   it('should return 403 if token signature is invalid', async () => {
@@ -147,7 +155,7 @@ describe('OIDC/JWT Authentication Middleware', () => {
 
     expect(res.statusCode).toBe(403);
     expect(res.json().error).toBe('Forbidden');
-    expect(res.json().message).toContain('invalid signature');
+    expect(res.json().message).toContain('Token validation failed');
   });
 
   it('should return 403 if issuer does not match', async () => {
@@ -169,7 +177,7 @@ describe('OIDC/JWT Authentication Middleware', () => {
     });
 
     expect(res.statusCode).toBe(403);
-    expect(res.json().message).toContain('jwt issuer invalid');
+    expect(res.json().message).toContain('Token validation failed');
   });
 
   it('should return 403 if audience does not match', async () => {
@@ -191,7 +199,7 @@ describe('OIDC/JWT Authentication Middleware', () => {
     });
 
     expect(res.statusCode).toBe(403);
-    expect(res.json().message).toContain('jwt audience invalid');
+    expect(res.json().message).toContain('Token validation failed');
   });
 
   it('should allow bypass for /health, /ready, /metrics', async () => {
@@ -207,9 +215,14 @@ describe('OIDC/JWT Authentication Middleware', () => {
 
   describe('Fallback scenarios with auth.provider configurations', () => {
     it('should fallback to API key when AUTH_PROVIDER is both and header is present', async () => {
+      const localApp = Fastify();
       process.env.AUTH_PROVIDER = 'both';
+      await buildApp(localApp);
+      localApp.get('/test-secure', async (request) => {
+        return { secure: true, user: request.user };
+      });
 
-      const res = await app.inject({
+      const res = await localApp.inject({
         method: 'GET',
         url: '/test-secure',
         headers: {
@@ -221,12 +234,18 @@ describe('OIDC/JWT Authentication Middleware', () => {
       expect(res.json().secure).toBe(true);
       expect(res.json().user).toBeDefined();
       expect(res.json().user.sub).toBe('apikey-client');
+      await localApp.close();
     });
 
     it('should fallback to API key when AUTH_PROVIDER is both and query param is present', async () => {
+      const localApp = Fastify();
       process.env.AUTH_PROVIDER = 'both';
+      await buildApp(localApp);
+      localApp.get('/test-secure', async (request) => {
+        return { secure: true, user: request.user };
+      });
 
-      const res = await app.inject({
+      const res = await localApp.inject({
         method: 'GET',
         url: '/test-secure?apiKey=super-secret-key',
       });
@@ -234,12 +253,18 @@ describe('OIDC/JWT Authentication Middleware', () => {
       expect(res.statusCode).toBe(200);
       expect(res.json().secure).toBe(true);
       expect(res.json().user.sub).toBe('apikey-client');
+      await localApp.close();
     });
 
     it('should reject API key when AUTH_PROVIDER is oidc', async () => {
+      const localApp = Fastify();
       process.env.AUTH_PROVIDER = 'oidc';
+      await buildApp(localApp);
+      localApp.get('/test-secure', async (request) => {
+        return { secure: true, user: request.user };
+      });
 
-      const res = await app.inject({
+      const res = await localApp.inject({
         method: 'GET',
         url: '/test-secure',
         headers: {
@@ -248,10 +273,17 @@ describe('OIDC/JWT Authentication Middleware', () => {
       });
 
       expect(res.statusCode).toBe(401); // No bearer token provided
+      await localApp.close();
     });
 
     it('should reject JWT when AUTH_PROVIDER is apikey', async () => {
+      const localApp = Fastify();
       process.env.AUTH_PROVIDER = 'apikey';
+      await buildApp(localApp);
+      localApp.get('/test-secure', async (request) => {
+        return { secure: true, user: request.user };
+      });
+
       const token = jwt.sign({ sub: 'alice' }, privateKey, {
         algorithm: 'RS256',
         keyid: keyId,
@@ -259,7 +291,7 @@ describe('OIDC/JWT Authentication Middleware', () => {
         audience: 'drawio-agent',
       });
 
-      const res = await app.inject({
+      const res = await localApp.inject({
         method: 'GET',
         url: '/test-secure',
         headers: {
@@ -268,6 +300,7 @@ describe('OIDC/JWT Authentication Middleware', () => {
       });
 
       expect(res.statusCode).toBe(401); // Expecting X-API-Key or query apiKey
+      await localApp.close();
     });
   });
 });

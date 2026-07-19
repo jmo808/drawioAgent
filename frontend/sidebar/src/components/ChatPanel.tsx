@@ -7,6 +7,7 @@ import { ProviderSelector } from './ProviderSelector'
 import type { ProviderInfo } from './ProviderSelector'
 import { ConsentToggle } from './ConsentToggle'
 import { PrivacyNotice } from './PrivacyNotice'
+import { MESSAGES } from '../i18n'
 
 interface ChatPanelProps {
   messages: MessageType[];
@@ -52,7 +53,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
         className="drawio-agent-toggle-fab"
         onClick={() => setIsOpen(true)}
         onMouseDown={onHeaderMouseDown}
-        title="Open Archimedes Drafting Agent"
+        title={MESSAGES.openSidebarFabTitle}
         id="drawio-agent-open-fab"
         style={{
           position: 'static',
@@ -73,34 +74,50 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
       <div
         className="drawio-agent-resize-handle top"
         onMouseDown={(e) => onResizeStart(e, 'n')}
+        role="separator"
+        aria-label={MESSAGES.ariaResizeTop}
       />
       <div
         className="drawio-agent-resize-handle right"
         onMouseDown={(e) => onResizeStart(e, 'e')}
+        role="separator"
+        aria-label={MESSAGES.ariaResizeRight}
       />
       <div
         className="drawio-agent-resize-handle bottom"
         onMouseDown={(e) => onResizeStart(e, 's')}
+        role="separator"
+        aria-label={MESSAGES.ariaResizeBottom}
       />
       <div
         className="drawio-agent-resize-handle left"
         onMouseDown={(e) => onResizeStart(e, 'w')}
+        role="separator"
+        aria-label={MESSAGES.ariaResizeLeft}
       />
       <div
         className="drawio-agent-resize-handle top-left"
         onMouseDown={(e) => onResizeStart(e, 'nw')}
+        role="separator"
+        aria-label={MESSAGES.ariaResizeTopLeft}
       />
       <div
         className="drawio-agent-resize-handle top-right"
         onMouseDown={(e) => onResizeStart(e, 'ne')}
+        role="separator"
+        aria-label={MESSAGES.ariaResizeTopRight}
       />
       <div
         className="drawio-agent-resize-handle bottom-left"
         onMouseDown={(e) => onResizeStart(e, 'sw')}
+        role="separator"
+        aria-label={MESSAGES.ariaResizeBottomLeft}
       />
       <div
         className="drawio-agent-resize-handle bottom-right"
         onMouseDown={(e) => onResizeStart(e, 'se')}
+        role="separator"
+        aria-label={MESSAGES.ariaResizeBottomRight}
       />
 
       {/* Header (Draggable) */}
@@ -111,7 +128,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
       >
         <div className="drawio-agent-title-section">
           <Sparkles className="drawio-agent-sparkle-icon" size={16} />
-          <span className="drawio-agent-title">Archimedes Drafting Agent</span>
+          <span className="drawio-agent-title">{MESSAGES.titleArchimedesDraftingAgent}</span>
         </div>
         <div className="drawio-agent-header-controls" onMouseDown={(e) => e.stopPropagation()}>
           {connectionStatus === 'connected' ? (
@@ -127,6 +144,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
             className="drawio-agent-close-btn"
             onClick={() => setIsOpen(false)}
             id="drawio-agent-close-btn"
+            aria-label={MESSAGES.ariaCloseSidebar}
           >
             <X size={16} />
           </button>
@@ -136,7 +154,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
       {/* Connection Banner */}
       {connectionStatus !== 'connected' && (
         <div className={`drawio-agent-connection-banner ${connectionStatus}`}>
-          {connectionStatus === 'connecting' ? 'Connecting to backend...' : 'Disconnected from backend'}
+          {connectionStatus === 'connecting' ? MESSAGES.statusConnecting : MESSAGES.statusDisconnected}
         </div>
       )}
 

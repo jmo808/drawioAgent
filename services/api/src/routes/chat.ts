@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify';
 import { validateWebSocketMessage } from '@drawio-agent/shared';
+import type { ChatMessage } from '@drawio-agent/shared';
 import { AgentProxy } from '../services/agent-proxy.js';
 import { TokenBucketLimiter } from '../services/rate-limiter.js';
 import crypto from 'crypto';
@@ -84,16 +85,17 @@ export async function chatRoutes(app: FastifyInstance) {
           req.log.info({ parsed, sessionId, classification }, 'Proxying chat message to agent');
           
           try {
+            const chatPayload = parsed.payload as unknown as ChatMessage;
             await agentProxy.sendChatMessage(
               {
-                message: parsed.payload.text,
-                diagramXml: parsed.payload.diagramXml,
+                message: chatPayload.text,
+                diagramXml: chatPayload.diagramXml,
                 sessionId,
                 classification
               },
               {
                 'X-Request-ID': req.id,
-                'X-User-Identity': req.user?.sub || 'anonymous'
+                'X-User-Identity': (req.user?.sub as string) || 'anonymous'
               },
               (agentEvent) => {
                 req.log.info({ event: agentEvent, sessionId }, 'Relaying agent event to client');

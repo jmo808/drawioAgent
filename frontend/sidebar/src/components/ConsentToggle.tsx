@@ -1,4 +1,5 @@
 import React from 'react'
+import { MESSAGES } from '../i18n'
 
 interface ConsentToggleProps {
   consented: boolean;
@@ -15,7 +16,7 @@ export const ConsentToggle: React.FC<ConsentToggleProps> = ({ consented, onChang
           onChange={(e) => onChange(e.target.checked)}
           data-testid="consent-checkbox"
         />
-        <span>I consent to sending diagram data to cloud LLM providers</span>
+        <span>{MESSAGES.consentCheckboxLabel}</span>
       </label>
     </div>
   )
