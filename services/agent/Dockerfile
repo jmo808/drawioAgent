@@ -6,7 +6,7 @@ WORKDIR /app/mcp-server
 
 # Copy drawio_plugin files from build context
 COPY drawio_plugin/package*.json ./
-RUN npm ci
+RUN npm ci --ignore-scripts
 
 COPY drawio_plugin/ ./
 
@@ -21,6 +21,13 @@ COPY drawioAgent/services/agent/requirements.txt ./
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Stage 2.5: Generate SBOM (F-04)
+FROM docker.io/aquasec/trivy:0.53.0 AS sbom-generator
+WORKDIR /app
+COPY --from=mcp-builder /app/mcp-server /app/mcp-server
+# Generate SBOM file
+RUN trivy fs --format github --output /app/sbom.json /app/mcp-server
 
 # Stage 3: Final runtime environment (Python 3.12-slim based on Debian)
 FROM docker.io/python:3.12-slim
@@ -46,6 +53,9 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 # Copy built MCP server files
 COPY --from=mcp-builder /app/mcp-server /app/mcp-server
+
+# Copy generated SBOM
+COPY --from=sbom-generator /app/sbom.json /app/sbom.json
 
 # Copy Python Agent code
 COPY drawioAgent/services/agent/src /app/agent/src

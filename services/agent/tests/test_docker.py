@@ -96,3 +96,14 @@ def test_agent_health(agent_container):
     response = httpx.get(url)
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
+
+
+def test_docker_contains_mcp_installed(agent_container):
+    name = agent_container["container_name"]
+    res = subprocess.run([
+        "podman", "exec", "-w", "/app/mcp-server", name,
+        "node", "-e", "require.resolve('@drawio/mcp')"
+    ], capture_output=True, text=True)
+    assert res.returncode == 0
+
+

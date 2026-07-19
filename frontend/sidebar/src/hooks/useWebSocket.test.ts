@@ -13,7 +13,7 @@ describe('useWebSocket', () => {
       readyState: 0 // CONNECTING
     }
     
-    mockWebSocketClass = vi.fn().mockImplementation(() => {
+    mockWebSocketClass = vi.fn().mockImplementation(function() {
       return mockWsInstance
     })
     

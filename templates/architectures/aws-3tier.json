@@ -38,6 +38,18 @@
       "parentId": "1"
     },
     {
+      "id": "waf-1",
+      "label": "WAF & Shield",
+      "type": "waf",
+      "parentId": "1"
+    },
+    {
+      "id": "cloudfront-1",
+      "label": "CloudFront CDN",
+      "type": "cloudfront",
+      "parentId": "1"
+    },
+    {
       "id": "alb-1",
       "label": "Application Load Balancer",
       "type": "alb",
@@ -60,8 +72,20 @@
   "edges": [
     {
       "sourceId": "internet-client",
+      "targetId": "waf-1",
+      "label": "Public Access",
+      "style": "solid"
+    },
+    {
+      "sourceId": "waf-1",
+      "targetId": "cloudfront-1",
+      "label": "Inspect & Forward",
+      "style": "solid"
+    },
+    {
+      "sourceId": "cloudfront-1",
       "targetId": "alb-1",
-      "label": "HTTP/S (80/443)",
+      "label": "HTTPS Request",
       "style": "solid"
     },
     {

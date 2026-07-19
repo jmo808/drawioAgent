@@ -58,12 +58,12 @@
     - [x] Implement: Create `src/agent/content_filter.py` scanning XML for sensitive patterns
     - [x] Implement: Add `provider_warning` WebSocket message type for cloud provider UI warning
     - [x] Implement: Add `llm.localDefault: true` to values.yaml with documentation
-- [ ] Task: Remove NPX fallback from MCP wrapper
-    - [ ] Write Tests: Test mcp-wrapper.js exits with error if local @drawio/mcp not found
-    - [ ] Write Tests: Test Docker image contains @drawio/mcp installed via npm ci
-    - [ ] Implement: Remove npx fallback code from mcp-wrapper.js
-    - [ ] Implement: Add `npm ci --ignore-scripts` to agent Dockerfile for @drawio/mcp
-    - [ ] Implement: Add SBOM generation step to agent Dockerfile
+- [x] Task: Remove NPX fallback from MCP wrapper (76cfb6b)
+    - [x] Write Tests: Test mcp-wrapper.js exits with error if local @drawio/mcp not found
+    - [x] Write Tests: Test Docker image contains @drawio/mcp installed via npm ci
+    - [x] Implement: Remove npx fallback code from mcp-wrapper.js
+    - [x] Implement: Add `npm ci --ignore-scripts` to agent Dockerfile for @drawio/mcp
+    - [x] Implement: Add SBOM generation step to agent Dockerfile
 - [ ] Task: Implement data classification metadata
     - [ ] Write Tests: Test session creation accepts classification level
     - [ ] Write Tests: Test confidential/restricted sessions reject cloud LLM providers
