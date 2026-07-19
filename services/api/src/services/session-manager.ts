@@ -6,6 +6,7 @@ export interface SessionMember {
   name: string;
   joinedAt: string;
   lastSeen: number;
+  disconnected?: boolean;
 }
 
 export interface SessionState {

@@ -1,4 +1,4 @@
-import Redis from 'ioredis';
+import { Redis } from 'ioredis';
 import { WebSocket } from 'ws';
 import { WebSocketMessage } from '@drawio-agent/shared';
 
@@ -137,6 +137,13 @@ export class PubSubManager {
     
     // LRANGE returns messages starting from index 0 (the most recent because of LPUSH)
     // We want to return them in chronological order, so we reverse the array
-    return messages.map(msg => JSON.parse(msg)).reverse();
+    return messages.map((msg: string) => JSON.parse(msg)).reverse();
+  }
+
+  /**
+   * Publishes a generic event message to the session's pub/sub channel.
+   */
+  public async publishEvent(sessionId: string, event: any): Promise<void> {
+    await this.valkey.publish(`session:${sessionId}:events`, JSON.stringify(event));
   }
 }
