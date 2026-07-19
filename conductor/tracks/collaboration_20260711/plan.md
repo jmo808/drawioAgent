@@ -2,15 +2,15 @@
 
 ## Phase 1: Valkey Integration & Session Management
 
-- [ ] Task: Integrate Valkey client into Fastify API server
-    - [ ] Write Tests: Test Valkey connection establishment and health check via `ioredis`
-    - [ ] Write Tests: Test graceful behavior when `collaboration.enabled=false` (no connection attempt)
-    - [ ] Write Tests: Test `/ready` endpoint includes Valkey connectivity when collaboration is enabled
-    - [ ] Write Tests: Test connection failure handling (log error, mark not-ready, retry)
-    - [ ] Implement: Add `ioredis` dependency to API server `package.json`
-    - [ ] Implement: Create Valkey client Fastify plugin (`src/plugins/valkey.ts`) — gated by `COLLABORATION_ENABLED` env var
-    - [ ] Implement: Connection configuration from env vars (`VALKEY_HOST`, `VALKEY_PORT`, `VALKEY_PASSWORD`)
-    - [ ] Implement: Update `/ready` endpoint to check Valkey connectivity when collaboration is enabled
+- [x] Task: Integrate Valkey client into Fastify API server (70257b8)
+    - [x] Write Tests: Test Valkey connection establishment and health check via `ioredis`
+    - [x] Write Tests: Test graceful behavior when `collaboration.enabled=false` (no connection attempt)
+    - [x] Write Tests: Test `/ready` endpoint includes Valkey connectivity when collaboration is enabled
+    - [x] Write Tests: Test connection failure handling (log error, mark not-ready, retry)
+    - [x] Implement: Add `ioredis` dependency to API server `package.json`
+    - [x] Implement: Create Valkey client Fastify plugin (`src/plugins/valkey.ts`) — gated by `COLLABORATION_ENABLED` env var
+    - [x] Implement: Connection configuration from env vars (`VALKEY_HOST`, `VALKEY_PORT`, `VALKEY_PASSWORD`)
+    - [x] Implement: Update `/ready` endpoint to check Valkey connectivity when collaboration is enabled
 - [ ] Task: Implement SessionManager class
     - [ ] Write Tests: Test `createSession()` generates UUID + 6-char alphanumeric short code, stores in Valkey
     - [ ] Write Tests: Test `joinSession()` by UUID adds member to `session:{id}:members` hash
