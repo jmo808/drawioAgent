@@ -2,7 +2,7 @@ import os
 import json
 import logging
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import Dict, Any
@@ -74,15 +74,21 @@ def create_app(app_settings: Settings) -> FastAPI:
     @app.post("/api/chat")
     async def chat(
         req: ChatRequest,
+        request: Request,
         orch: AgentOrchestrator = Depends(get_orchestrator)
     ):
+        request_id = request.headers.get("x-request-id")
+        user_identity = request.headers.get("x-user-identity")
+        
         async def event_generator():
             try:
                 async for event in orch.run(
                     session_id=req.sessionId,
                     prompt=req.message,
                     diagram_xml=req.diagramXml,
-                    classification=req.classification
+                    classification=req.classification,
+                    request_id=request_id,
+                    user_identity=user_identity
                 ):
                     yield f"event: {event['event']}\ndata: {json.dumps(event['data'])}\n\n"
             except Exception as e:

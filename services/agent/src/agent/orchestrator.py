@@ -2,6 +2,7 @@ import json
 import logging
 import asyncio
 from typing import AsyncGenerator, Dict, Any, List
+from datetime import datetime, timezone
 from agent.config import Settings
 from agent.llm_service import LLMService
 from agent.mcp_bridge import MCPBridge
@@ -31,11 +32,42 @@ class AgentOrchestrator:
         session_id: str,
         prompt: str,
         diagram_xml: str | None = None,
-        classification: str | None = None
+        classification: str | None = None,
+        request_id: str | None = None,
+        user_identity: str | None = None
     ) -> AsyncGenerator[Dict[str, Any], None]:
         """
         Runs the orchestration loop and streams back progress, updates, or errors.
         """
+        # Audit log the incoming chat request
+        chat_audit_log = {
+            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            "event_type": "chat_request",
+            "request_id": request_id,
+            "user_identity": user_identity,
+            "details": {
+                "provider": self.settings.llm_provider,
+                "model": self.settings.llm_model
+            },
+            "audit": True
+        }
+        logger.info(json.dumps(chat_audit_log))
+
+        async def call_tool_audited(name: str, arguments: dict):
+            tool_audit_log = {
+                "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+                "event_type": "mcp_tool_call",
+                "request_id": request_id,
+                "user_identity": user_identity,
+                "details": {
+                    "tool_name": name,
+                    "arguments": arguments
+                },
+                "audit": True
+            }
+            logger.info(json.dumps(tool_audit_log))
+            return await self.mcp_bridge.call_tool(name, arguments)
+
         # Gate cloud LLM usage based on classification level
         is_cloud_provider = self.settings.llm_provider in ["gemini", "openai"]
         if is_cloud_provider and classification in ["confidential", "restricted"]:
@@ -75,7 +107,7 @@ class AgentOrchestrator:
                         "message": "Restoring diagram state from snapshot"
                     }
                 }
-                await self.mcp_bridge.call_tool("open_drawio_xml", {"content": diagram_xml})
+                await call_tool_audited("open_drawio_xml", {"content": diagram_xml})
             else:
                 yield {
                     "event": "tool_progress",
@@ -86,7 +118,7 @@ class AgentOrchestrator:
                         "message": "Initializing new diagram"
                     }
                 }
-                await self.mcp_bridge.call_tool("init_diagram", {})
+                await call_tool_audited("init_diagram", {})
         except Exception as e:
             logger.error(f"Failed to initialize MCP state: {e}")
             yield {"event": "error", "data": {"message": f"State initialization failed: {str(e)}"}}
@@ -234,7 +266,7 @@ class AgentOrchestrator:
                         await asyncio.sleep(0.8)
                     
                     try:
-                        tool_res = await self.mcp_bridge.call_tool(tool_name, args)
+                        tool_res = await call_tool_audited(tool_name, args)
                         tool_res_content = json.dumps(tool_res)
                     except Exception as err:
                         logger.error(f"Failed to execute tool {tool_name}: {err}")
@@ -314,7 +346,7 @@ class AgentOrchestrator:
             }
             await asyncio.sleep(0.8)
             
-            finalize_res = await self.mcp_bridge.call_tool("finalize", {})
+            finalize_res = await call_tool_audited("finalize", {})
             final_xml = ""
             validation_errors = []
             

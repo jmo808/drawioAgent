@@ -73,7 +73,7 @@
 
 ## Phase 4: High — Security Audit Logging (F-08)
 
-- [ ] Task: Implement AU-2-compliant security event logging
+- [~] Task: Implement AU-2-compliant security event logging
     - [ ] Write Tests: Test auth success events are logged with user identity
     - [ ] Write Tests: Test auth failure events are logged with source IP
     - [ ] Write Tests: Test AI chat requests are logged with user, provider, model

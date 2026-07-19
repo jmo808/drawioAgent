@@ -29,6 +29,7 @@ const isMain = import.meta.url.startsWith('file:') &&
 
 if (isMain || !process.env.VITEST) {
   const server = Fastify({
+    requestIdHeader: 'x-request-id',
     logger: {
       level: process.env.LOG_LEVEL || 'info',
     }

@@ -47,6 +47,7 @@ describe('AgentProxy service', () => {
         diagramXml: '<mxfile></mxfile>',
         sessionId: 'session-123'
       },
+      {},
       (event) => {
         events.push(event);
       }
@@ -73,6 +74,7 @@ describe('AgentProxy service', () => {
     await expect(
       proxy.sendChatMessage(
         { message: 'hello', sessionId: 'session-123' },
+        {},
         () => {}
       )
     ).rejects.toThrow('fetch failed');

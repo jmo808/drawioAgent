@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 import { validateWebSocketMessage } from '@drawio-agent/shared';
 import { AgentProxy } from '../services/agent-proxy.js';
+import { TokenBucketLimiter } from '../services/rate-limiter.js';
 import crypto from 'crypto';
 
 const agentProxy = new AgentProxy();
@@ -29,8 +30,30 @@ export async function chatRoutes(app: FastifyInstance) {
 
     req.log.info({ sessionId, classification }, 'New WebSocket connection established');
 
+    const limitMax = Number(process.env.RATE_LIMIT_MAX_TOKENS) || 10;
+    const limitRefill = Number(process.env.RATE_LIMIT_REFILL_RATE) || 2;
+    const limiter = new TokenBucketLimiter(limitMax, limitRefill);
+
     socket.on('message', async (message) => {
       try {
+        if (!limiter.consume()) {
+          req.log.warn({
+            audit: true,
+            eventType: 'rate_limit_violation',
+            requestId: req.id,
+            clientIp: req.ip,
+            timestamp: new Date().toISOString(),
+            details: { sessionId }
+          }, 'Rate limit exceeded');
+
+          socket.send(JSON.stringify({
+            type: 'error',
+            payload: { code: 'RATE_LIMIT_EXCEEDED', message: 'Rate limit exceeded' },
+            timestamp: new Date().toISOString()
+          }));
+          return;
+        }
+
         const dataStr = message.toString();
         let parsed: any;
         
@@ -67,6 +90,10 @@ export async function chatRoutes(app: FastifyInstance) {
                 diagramXml: parsed.payload.diagramXml,
                 sessionId,
                 classification
+              },
+              {
+                'X-Request-ID': req.id,
+                'X-User-Identity': req.user?.sub || 'anonymous'
               },
               (agentEvent) => {
                 req.log.info({ event: agentEvent, sessionId }, 'Relaying agent event to client');

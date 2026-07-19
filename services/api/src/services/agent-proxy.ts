@@ -20,13 +20,18 @@ export class AgentProxy {
   /**
    * Sends a chat message to the Python agent and streams the response events.
    */
-  async sendChatMessage(req: ChatRequest, onEvent: (event: AgentEvent) => void): Promise<void> {
+  async sendChatMessage(
+    req: ChatRequest,
+    headers: { 'X-Request-ID'?: string; 'X-User-Identity'?: string },
+    onEvent: (event: AgentEvent) => void
+  ): Promise<void> {
     const url = `${this.agentUrl}/api/chat`;
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'text/event-stream'
+        'Accept': 'text/event-stream',
+        ...headers
       },
       body: JSON.stringify(req)
     });

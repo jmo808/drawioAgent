@@ -46,22 +46,49 @@ const authPluginCallback: FastifyPluginAsync<AuthPluginOptions> = async (
       );
     };
 
+    const logSuccess = (identity: string) => {
+      request.log.info({
+        audit: true,
+        eventType: 'auth_success',
+        userIdentity: identity,
+        requestId: request.id,
+        clientIp: request.ip,
+        timestamp: new Date().toISOString(),
+        details: { method: request.method, url: request.url }
+      }, 'User authenticated successfully');
+    };
+
+    const logFailure = (message: string) => {
+      request.log.warn({
+        audit: true,
+        eventType: 'auth_failure',
+        requestId: request.id,
+        clientIp: request.ip,
+        timestamp: new Date().toISOString(),
+        details: { reason: message, method: request.method, url: request.url }
+      }, `Authentication failed: ${message}`);
+    };
+
     // Strategy: API KEY ONLY
     if (provider === 'apikey') {
       if (!expectedApiKey) {
         request.log.warn('API_KEY environment variable is not set. All secure requests will fail.');
+        logFailure('Server auth misconfigured (missing API_KEY)');
         reply.code(403).send({ error: 'Forbidden', message: 'Server auth misconfigured' });
         return;
       }
       if (!providedApiKey) {
+        logFailure('API key is missing');
         reply.code(401).send({ error: 'Unauthorized', message: 'API key is missing' });
         return;
       }
       if (!validateApiKey(providedApiKey)) {
+        logFailure('Invalid API key');
         reply.code(403).send({ error: 'Forbidden', message: 'Invalid API key' });
         return;
       }
       request.user = { sub: 'apikey-client' };
+      logSuccess('apikey-client');
       return;
     }
 
@@ -73,11 +100,13 @@ const authPluginCallback: FastifyPluginAsync<AuthPluginOptions> = async (
 
       if (!jwksUri || !issuer || !audience) {
         request.log.warn('OIDC environment variables (AUTH_JWKS_URI, AUTH_ISSUER, AUTH_AUDIENCE) are not fully configured.');
+        logFailure('Server auth misconfigured (OIDC configuration missing)');
         reply.code(403).send({ error: 'Forbidden', message: 'Server auth misconfigured' });
         return;
       }
 
       if (!bearerToken) {
+        logFailure('Bearer token is missing');
         reply.code(401).send({ error: 'Unauthorized', message: 'Bearer token is missing' });
         return;
       }
@@ -85,8 +114,10 @@ const authPluginCallback: FastifyPluginAsync<AuthPluginOptions> = async (
       try {
         const decoded = await verifyJwt(bearerToken, jwksUri, { issuer, audience });
         request.user = decoded;
+        logSuccess(decoded.sub || 'unknown-oidc-user');
       } catch (err: any) {
         const msg = err.message || 'Token validation failed';
+        logFailure(msg);
         if (msg.includes('jwt expired')) {
           reply.code(401).send({ error: 'Unauthorized', message: msg });
         } else {
@@ -106,6 +137,7 @@ const authPluginCallback: FastifyPluginAsync<AuthPluginOptions> = async (
 
         if (!jwksUri || !issuer || !audience) {
           request.log.warn('OIDC environment variables are not fully configured for "both" mode.');
+          logFailure('Server auth misconfigured (OIDC configuration missing for both mode)');
           reply.code(403).send({ error: 'Forbidden', message: 'Server auth misconfigured' });
           return;
         }
@@ -113,9 +145,11 @@ const authPluginCallback: FastifyPluginAsync<AuthPluginOptions> = async (
         try {
           const decoded = await verifyJwt(bearerToken, jwksUri, { issuer, audience });
           request.user = decoded;
+          logSuccess(decoded.sub || 'unknown-oidc-user');
           return;
         } catch (err: any) {
           const msg = err.message || 'Token validation failed';
+          logFailure(msg);
           if (msg.includes('jwt expired')) {
             reply.code(401).send({ error: 'Unauthorized', message: msg });
           } else {
@@ -128,23 +162,28 @@ const authPluginCallback: FastifyPluginAsync<AuthPluginOptions> = async (
       // If API key is provided, try to authenticate with it
       if (providedApiKey) {
         if (!expectedApiKey) {
+          logFailure('Server auth misconfigured (missing API_KEY for both mode)');
           reply.code(403).send({ error: 'Forbidden', message: 'Server auth misconfigured' });
           return;
         }
         if (!validateApiKey(providedApiKey)) {
+          logFailure('Invalid API key');
           reply.code(403).send({ error: 'Forbidden', message: 'Invalid API key' });
           return;
         }
         request.user = { sub: 'apikey-client' };
+        logSuccess('apikey-client');
         return;
       }
 
       // Neither provided
+      logFailure('Authentication required (neither Bearer token nor API key provided)');
       reply.code(401).send({ error: 'Unauthorized', message: 'Authentication required' });
       return;
     }
 
     // Unsupported provider
+    logFailure(`Unsupported auth provider: ${provider}`);
     reply.code(500).send({ error: 'Internal Server Error', message: `Unsupported auth provider: ${provider}` });
   });
 };
