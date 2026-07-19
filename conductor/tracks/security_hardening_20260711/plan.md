@@ -111,7 +111,7 @@
     - [x] Implement: Wire consent state to WebSocket provider selection
 - [x] Task: Conductor - User Manual Verification 'Phase 5: Encryption, Rate Limiting, Privacy' (Protocol in workflow.md) (6e185b4)
 
-## Phase 6: Medium & Low — Remaining Items (F-10, F-12, F-14, F-15, F-16, F-17, F-19)
+## Phase 6: Medium & Low — Remaining Items (F-10, F-12, F-14, F-15, F-16, F-17, F-19) [checkpoint: 5e3daf1]
 
 - [x] Task: Address remaining medium and low findings (7e5ffff)
     - [x] Implement: Document multi-runtime image split plan in ADR for v2
@@ -123,4 +123,4 @@
     - [x] Implement: Add optional identity linking field to collaboration join flow
     - [x] Implement: Adopt `/api/v1/` URL prefix for all API routes
     - [x] Implement: Add `X-API-Version` response header
-- [~] Task: Conductor - User Manual Verification 'Phase 6: Remaining Items' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 6: Remaining Items' (Protocol in workflow.md) (5e3daf1)
