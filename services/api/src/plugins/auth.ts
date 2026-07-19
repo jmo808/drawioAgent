@@ -112,16 +112,16 @@ const authPluginCallback: FastifyPluginAsync<AuthPluginOptions> = async (
       }
 
       try {
-        const decoded = await verifyJwt(bearerToken, jwksUri, { issuer, audience });
+        const decoded = await verifyJwt(bearerToken, jwksUri, { issuer, audience }) as Record<string, unknown>;
         request.user = decoded;
-        logSuccess(decoded.sub || 'unknown-oidc-user');
-      } catch (err: any) {
-        const msg = err.message || 'Token validation failed';
+        logSuccess((decoded.sub as string) || 'unknown-oidc-user');
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : 'Token validation failed';
         logFailure(msg);
         if (msg.includes('jwt expired')) {
-          reply.code(401).send({ error: 'Unauthorized', message: msg });
+          reply.code(401).send({ error: 'Unauthorized', message: 'Token has expired' });
         } else {
-          reply.code(403).send({ error: 'Forbidden', message: msg });
+          reply.code(403).send({ error: 'Forbidden', message: 'Token validation failed' });
         }
       }
       return;
@@ -143,17 +143,17 @@ const authPluginCallback: FastifyPluginAsync<AuthPluginOptions> = async (
         }
 
         try {
-          const decoded = await verifyJwt(bearerToken, jwksUri, { issuer, audience });
+          const decoded = await verifyJwt(bearerToken, jwksUri, { issuer, audience }) as Record<string, unknown>;
           request.user = decoded;
-          logSuccess(decoded.sub || 'unknown-oidc-user');
+          logSuccess((decoded.sub as string) || 'unknown-oidc-user');
           return;
-        } catch (err: any) {
-          const msg = err.message || 'Token validation failed';
+        } catch (err: unknown) {
+          const msg = err instanceof Error ? err.message : 'Token validation failed';
           logFailure(msg);
           if (msg.includes('jwt expired')) {
-            reply.code(401).send({ error: 'Unauthorized', message: msg });
+            reply.code(401).send({ error: 'Unauthorized', message: 'Token has expired' });
           } else {
-            reply.code(403).send({ error: 'Forbidden', message: msg });
+            reply.code(403).send({ error: 'Forbidden', message: 'Token validation failed' });
           }
           return;
         }
@@ -184,7 +184,7 @@ const authPluginCallback: FastifyPluginAsync<AuthPluginOptions> = async (
 
     // Unsupported provider
     logFailure(`Unsupported auth provider: ${provider}`);
-    reply.code(500).send({ error: 'Internal Server Error', message: `Unsupported auth provider: ${provider}` });
+    reply.code(500).send({ error: 'Internal Server Error', message: 'Server authentication misconfigured' });
   });
 };
 

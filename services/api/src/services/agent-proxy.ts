@@ -7,7 +7,7 @@ export interface ChatRequest {
 
 export interface AgentEvent {
   type: string;
-  payload: any;
+  payload: unknown;
 }
 
 export class AgentProxy {

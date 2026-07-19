@@ -33,9 +33,9 @@ export function getKey(jwksUri: string) {
   };
 }
 
-export function verifyJwt(token: string, jwksUri: string, options: VerifyOptions): Promise<any> {
+export function verifyJwt(token: string, jwksUri: string, options: VerifyOptions): Promise<unknown> {
   return new Promise((resolve, reject) => {
-    jwt.verify(token, getKey(jwksUri), options, (err, decoded) => {
+    jwt.verify(token, getKey(jwksUri), { ...options, algorithms: ['RS256'] }, (err, decoded) => {
       if (err) {
         reject(err);
       } else {
@@ -45,8 +45,13 @@ export function verifyJwt(token: string, jwksUri: string, options: VerifyOptions
   });
 }
 
+/** @visibleForTesting */
+export function resetJwksClient(): void {
+  client = null;
+}
+
 declare module 'fastify' {
   interface FastifyRequest {
-    user?: any;
+    user?: Record<string, unknown>;
   }
 }

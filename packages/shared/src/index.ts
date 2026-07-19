@@ -31,7 +31,7 @@ export const LLMProviderConfigSchema = z.object({
 
 export const MCPToolCallSchema = z.object({
   name: z.string(),
-  arguments: z.record(z.any())
+  arguments: z.record(z.unknown())
 });
 
 export const MCPToolResultSchema = z.object({
@@ -80,7 +80,7 @@ export const WebSocketMessageSchema = z.object({
     'collaboration_join',
     'collaboration_sync'
   ]),
-  payload: z.record(z.any()),
+  payload: z.record(z.unknown()),
   id: z.string().optional(),
   timestamp: z.string().refine((val) => !isNaN(Date.parse(val)), {
     message: "Invalid ISO 8601 date string"

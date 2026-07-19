@@ -88,10 +88,10 @@ body.dark .drawio-agent-sidebar {
   transform: scale(1.08);
   background: var(--ag-accent-hover);
 }
-.drawio-agent-toggle-fab svg {
-  color: #ffffff !important;
-  stroke: #ffffff !important;
-  opacity: 1 !important;
+.drawio-agent-toggle-fab.drawio-agent-toggle-fab svg {
+  color: #ffffff;
+  stroke: #ffffff;
+  opacity: 1;
 }
 
 /* Header */

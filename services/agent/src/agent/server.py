@@ -1,11 +1,9 @@
-import os
 import json
 import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-from typing import Dict, Any
 
 from agent.config import Settings, settings as global_settings
 from agent.llm_service import LLMService
@@ -31,12 +29,22 @@ def get_orchestrator():
     return orchestrator
 
 class ChatRequest(BaseModel):
+    """Pydantic model for the /api/v1/chat request body."""
+
     message: str
     sessionId: str
     diagramXml: str | None = None
     classification: str | None = None
 
 def create_app(app_settings: Settings) -> FastAPI:
+    """Create and configure the FastAPI application.
+
+    Args:
+        app_settings: Application configuration settings.
+
+    Returns:
+        A configured FastAPI instance.
+    """
     global llm_service, mcp_bridge, conversation_manager, orchestrator
     llm_service = LLMService(app_settings)
     mcp_bridge = MCPBridge(app_settings)
@@ -64,10 +72,12 @@ def create_app(app_settings: Settings) -> FastAPI:
 
     @app.get("/health")
     def health():
+        """Return service health status."""
         return {"status": "ok"}
 
     @app.get("/api/v1/providers")
     def providers():
+        """Return configured LLM providers."""
         return {
             "providers": [
                 {
@@ -81,11 +91,18 @@ def create_app(app_settings: Settings) -> FastAPI:
     async def chat(
         req: ChatRequest,
         request: Request,
-        orch: AgentOrchestrator = Depends(get_orchestrator)
+        orch: AgentOrchestrator = Depends(
+            get_orchestrator
+        )
     ):
-        request_id = request.headers.get("x-request-id")
-        user_identity = request.headers.get("x-user-identity")
-        
+        """Stream chat responses from the agent."""
+        request_id = request.headers.get(
+            "x-request-id"
+        )
+        user_identity = request.headers.get(
+            "x-user-identity"
+        )
+
         async def event_generator():
             try:
                 async for event in orch.run(
@@ -98,8 +115,14 @@ def create_app(app_settings: Settings) -> FastAPI:
                 ):
                     yield f"event: {event['event']}\ndata: {json.dumps(event['data'])}\n\n"
             except Exception as e:
-                logger.error(f"Error in chat stream: {e}")
-                err_data = {"message": f"Stream error: {str(e)}"}
+                logger.error(
+                    "Error in chat stream: %s",
+                    e,
+                    exc_info=True,
+                )
+                err_data = {
+                    "message": "An internal error occurred."
+                }
                 yield f"event: error\ndata: {json.dumps(err_data)}\n\n"
 
         return StreamingResponse(

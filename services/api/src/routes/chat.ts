@@ -55,11 +55,11 @@ export async function chatRoutes(app: FastifyInstance) {
         }
 
         const dataStr = message.toString();
-        let parsed: any;
+        let parsed: unknown;
         
         try {
           parsed = JSON.parse(dataStr);
-        } catch (err: any) {
+        } catch (err: unknown) {
           req.log.warn({ error: err }, 'Malformed WebSocket message received (not JSON)');
           socket.send(JSON.stringify({
             type: 'error',
@@ -105,21 +105,21 @@ export async function chatRoutes(app: FastifyInstance) {
                 }));
               }
             );
-          } catch (agentErr: any) {
+          } catch (agentErr: unknown) {
             req.log.error({ error: agentErr, sessionId }, 'Error during agent proxying');
             socket.send(JSON.stringify({
               type: 'error',
-              payload: { code: 'SERVICE_UNAVAILABLE', message: agentErr.message },
+              payload: { code: 'SERVICE_UNAVAILABLE', message: 'Agent service is temporarily unavailable' },
               id: clientMsgId,
               timestamp: new Date().toISOString()
             }));
           }
         }
-      } catch (handlerErr: any) {
+      } catch (handlerErr: unknown) {
         req.log.error({ error: handlerErr }, 'Error in WebSocket message handler');
         socket.send(JSON.stringify({
           type: 'error',
-          payload: { code: 'INTERNAL_SERVER_ERROR', message: handlerErr.message },
+          payload: { code: 'INTERNAL_SERVER_ERROR', message: 'An unexpected error occurred' },
           timestamp: new Date().toISOString()
         }));
       }

@@ -2,6 +2,8 @@ import re
 from typing import List
 
 class ContentFilter:
+    """Scans text for PII, credentials, and infrastructure details."""
+
     # IP address patterns (IPv4)
     IP_PATTERN = re.compile(
         r'\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b'
@@ -21,6 +23,14 @@ class ContentFilter:
 
     @classmethod
     def scan(cls, content: str) -> List[str]:
+        """Scan content for sensitive patterns.
+
+        Args:
+            content: The text to scan.
+
+        Returns:
+            A list of human-readable finding descriptions.
+        """
         findings = []
         if not content:
             return findings
@@ -38,7 +48,12 @@ class ContentFilter:
         # Scan for credential strings
         creds = cls.CREDENTIAL_PATTERN.findall(content)
         for cred in creds:
-            # Mask the secret value for reporting
-            findings.append(f"Detected potential credential/secret pattern: {cred[:30]}...")
+            # Only report the key portion to avoid leaking
+            # actual secret values in logs or UI.
+            key_match = cred.split("=")[0].split(":")[0]
+            findings.append(
+                "Detected potential credential/secret"
+                f" key: {key_match.strip()}"
+            )
             
         return findings

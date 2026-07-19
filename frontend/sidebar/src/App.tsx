@@ -78,12 +78,28 @@ function App({ ui }: AppProps) {
   // Floating coordinates and dimensions state
   const [position, setPosition] = useState(() => {
     const saved = localStorage.getItem('drawio-agent-pos')
-    return saved ? JSON.parse(saved) : { x: window.innerWidth - 412, y: 70 }
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        if (typeof parsed.x === 'number' && typeof parsed.y === 'number') {
+          return parsed
+        }
+      } catch { /* ignore corrupt data */ }
+    }
+    return { x: window.innerWidth - 412, y: 70 }
   })
   
   const [size, setSize] = useState(() => {
     const saved = localStorage.getItem('drawio-agent-size')
-    return saved ? JSON.parse(saved) : { width: 380, height: window.innerHeight - 90 }
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        if (typeof parsed.width === 'number' && typeof parsed.height === 'number') {
+          return parsed
+        }
+      } catch { /* ignore corrupt data */ }
+    }
+    return { width: 380, height: window.innerHeight - 90 }
   })
 
   // Synchronize CSS values directly to the #drawio-agent-sidebar-root wrapper element
