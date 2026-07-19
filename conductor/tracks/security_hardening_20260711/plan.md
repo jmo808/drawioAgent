@@ -124,3 +124,7 @@
     - [x] Implement: Adopt `/api/v1/` URL prefix for all API routes
     - [x] Implement: Add `X-API-Version` response header
 - [x] Task: Conductor - User Manual Verification 'Phase 6: Remaining Items' (Protocol in workflow.md) (5e3daf1)
+
+## Phase: Review Fixes
+
+- [x] Task: Apply review suggestions (fe91c84)
