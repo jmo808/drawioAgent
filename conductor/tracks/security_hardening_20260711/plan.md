@@ -34,16 +34,16 @@
     - [x] Implement: Add `validatePath(userPath, baseDir)` function to mcp-wrapper.js
     - [x] Implement: Apply path validation to `validate_file` and `compile_json_spec` handlers
     - [x] Implement: Configure workspace root via `MCP_WORKSPACE_ROOT` env var
-- [ ] Task: Sanitize MCP child process environment
-    - [ ] Write Tests: Test spawned child process receives only allowlisted env vars
-    - [ ] Write Tests: Test LLM API keys are NOT present in child process environment
-    - [ ] Implement: Create env var allowlist in mcp-wrapper spawn logic
-    - [ ] Implement: Add `--max-old-space-size=512` flag to MCP child process spawn
-- [ ] Task: Implement MCP message size and timeout limits
-    - [ ] Write Tests: Test JSON-RPC messages exceeding 10MB are rejected
-    - [ ] Write Tests: Test MCP operations exceeding 30s timeout are cancelled
-    - [ ] Implement: Add max message size validation to NDJSON parsing loop
-    - [ ] Implement: Add configurable timeout to MCP tool call execution
+- [x] Task: Sanitize MCP child process environment (f4fe249)
+    - [x] Write Tests: Test spawned child process receives only allowlisted env vars
+    - [x] Write Tests: Test LLM API keys are NOT present in child process environment
+    - [x] Implement: Create env var allowlist in mcp-wrapper spawn logic
+    - [x] Implement: Add `--max-old-space-size=512` flag to MCP child process spawn
+- [x] Task: Implement MCP message size and timeout limits (f4fe249)
+    - [x] Write Tests: Test JSON-RPC messages exceeding 10MB are rejected
+    - [x] Write Tests: Test MCP operations exceeding 30s timeout are cancelled
+    - [x] Implement: Add max message size validation to NDJSON parsing loop
+    - [x] Implement: Add configurable timeout to MCP tool call execution
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: MCP Sandboxing' (Protocol in workflow.md)
 
 ## Phase 3: High — Data Flow Controls (F-03, F-07, F-04)
