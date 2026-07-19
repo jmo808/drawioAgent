@@ -90,7 +90,7 @@
 
 ## Phase 5: Medium — Encryption, Rate Limiting, Privacy (F-09, F-11, F-13)
 
-- [ ] Task: Document and enforce encryption requirements
+- [~] Task: Document and enforce encryption requirements
     - [ ] Implement: Add TLS configuration section to Helm values.yaml
     - [ ] Implement: Document WSS requirement in Gateway API HTTPRoute
     - [ ] Implement: Add Valkey TLS configuration option
