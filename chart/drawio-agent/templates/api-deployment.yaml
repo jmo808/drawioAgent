@@ -57,6 +57,24 @@ spec:
                 configMapKeyRef:
                   name: {{ include "drawio-agent.fullname" . }}-config
                   key: AUTH_AUDIENCE
+            - name: COLLABORATION_ENABLED
+              value: {{ .Values.collaboration.enabled | quote }}
+            {{- if .Values.collaboration.enabled }}
+            - name: VALKEY_HOST
+              value: {{ if .Values.collaboration.valkey.enabled }}{{ printf "%s-valkey" (include "drawio-agent.fullname" .) | quote }}{{ else }}{{ .Values.collaboration.valkey.host | quote }}{{ end }}
+            - name: VALKEY_PORT
+              value: {{ if .Values.collaboration.valkey.enabled }}"6379"{{ else }}{{ .Values.collaboration.valkey.port | quote }}{{ end }}
+            {{- if .Values.collaboration.valkey.password }}
+            - name: VALKEY_PASSWORD
+              value: {{ .Values.collaboration.valkey.password | quote }}
+            {{- else if .Values.collaboration.valkey.existingSecret }}
+            - name: VALKEY_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.collaboration.valkey.existingSecret }}
+                  key: {{ .Values.collaboration.valkey.existingSecretKey | default "password" }}
+            {{- end }}
+            {{- end }}
           livenessProbe:
             httpGet:
               path: /health

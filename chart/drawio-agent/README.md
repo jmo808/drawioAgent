@@ -73,7 +73,18 @@ helm upgrade drawio-agent ./chart/drawio-agent \
 | `gateway.gatewayClassName`| Cluster GatewayClass. | String | `cilium` |
 | `httproute.hostnames` | Matching domain names for client traffic routing. | Array | `[]` (Wildcard route match) |
 | **Collaboration** | | | |
-| `collaboration.enabled` | Deploy stateful Valkey instance for shared sessions (Future feature). | Boolean | `false` |
+| `collaboration.enabled` | Enable real-time multi-user collaboration sessions. | Boolean | `false` |
+| `collaboration.valkey.enabled` | Deploy internal Valkey instance (set false to use external Valkey). | Boolean | `true` |
+| `collaboration.valkey.host` | Hostname of the external Valkey server (if enabled=false). | String | `valkey-external` |
+| `collaboration.valkey.port` | Port of the external Valkey server (if enabled=false). | Integer | `6379` |
+| `collaboration.valkey.password` | Plain text password for the external Valkey server. | String | `""` |
+| `collaboration.valkey.existingSecret` | Name of an existing K8s Secret containing Valkey password. | String | `""` |
+| `collaboration.valkey.existingSecretKey` | Key within the existing secret containing the password. | String | `password` |
+| `collaboration.persistence.enabled` | Enable persistence/snapshots for Valkey data. | Boolean | `true` |
+| `collaboration.persistence.saveIntervals` | Valkey snapshot interval rules (`save <sec> <changes>`). | String | `"900 1 300 10"` |
+| `collaboration.persistence.size` | PVC size for the internal Valkey storage volume. | String | `"1Gi"` |
+| `collaboration.persistence.storageClass` | Custom StorageClass name for Valkey data volume. | String | `""` (default Class) |
+| `collaboration.persistence.accessMode` | Persistent Volume Access Mode. | String | `ReadWriteOnce` |
 
 ---
 

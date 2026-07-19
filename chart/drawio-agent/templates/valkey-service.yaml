@@ -1,4 +1,4 @@
-{{- if .Values.collaboration.enabled -}}
+{{- if and .Values.collaboration.enabled .Values.collaboration.valkey.enabled -}}
 apiVersion: v1
 kind: Service
 metadata:

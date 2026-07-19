@@ -71,9 +71,23 @@ auth:
   issuer: ""
   audience: "drawio-agent"
 
-# Collaboration (Valkey) stub settings (For future Phase 2 work)
+# Collaboration (Valkey) settings
 collaboration:
   enabled: false
+  # Valkey deployment configuration
+  valkey:
+    # When true, an internal Valkey deployment is created
+    enabled: true
+    # External Valkey host (used when enabled=false)
+    host: "valkey-external"
+    # External Valkey port
+    port: 6379
+    # Valkey password (if any)
+    password: ""
+    # Name of an existing Kubernetes Secret containing Valkey password
+    existingSecret: ""
+    # Secret key containing Valkey password
+    existingSecretKey: "password"
   # Valkey TLS/Encryption configuration
   tls:
     enabled: false
@@ -84,6 +98,12 @@ collaboration:
     enabled: true
     # Snapshots save parameters (save <seconds> <changes>)
     saveIntervals: "900 1 300 10"
+    # PVC size
+    size: "1Gi"
+    # Storage class name (leave empty for default)
+    storageClass: ""
+    # PVC Access mode
+    accessMode: "ReadWriteOnce"
 
 # Gateway API routing settings
 gateway:

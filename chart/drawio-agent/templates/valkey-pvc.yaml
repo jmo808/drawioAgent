@@ -1,0 +1,18 @@
+{{- if and .Values.collaboration.enabled .Values.collaboration.valkey.enabled .Values.collaboration.persistence.enabled -}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "drawio-agent.fullname" . }}-valkey-data
+  labels:
+    {{- include "drawio-agent.labels" . | nindent 4 }}
+    app.kubernetes.io/component: valkey
+spec:
+  accessModes:
+    - {{ .Values.collaboration.persistence.accessMode | default "ReadWriteOnce" }}
+  resources:
+    requests:
+      storage: {{ .Values.collaboration.persistence.size | default "1Gi" }}
+  {{- if .Values.collaboration.persistence.storageClass }}
+  storageClassName: {{ .Values.collaboration.persistence.storageClass | quote }}
+  {{- end }}
+{{- end }}
