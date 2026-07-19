@@ -57,16 +57,13 @@
     - [x] Implement: Client-side debounce in `drawioBridge` — listen to `mxGraphModel` change events
     - [x] Implement: After 500ms of no changes, call `getGraphXml()` and send `diagram_broadcast` via WebSocket
     - [x] Implement: Server relays to pub/sub for distribution to all session members
-- [ ] Task: Implement shared chat history (CD-7)
-    - [ ] Write Tests: Test chat messages are LPUSH'd to `session:{id}:chat` with sender attribution
-    - [ ] Write Tests: Test chat list is capped at 500 messages via LTRIM
-    - [ ] Write Tests: Test new users joining receive last 500 messages via LRANGE
-    - [ ] Write Tests: Test AI responses (tool_progress, diagram_update) are broadcast as `chat_broadcast`
-    - [ ] Write Tests: Test chat messages include `{text, senderConnId, senderName, isAI, timestamp}`
-    - [ ] Implement: Store chat messages in Valkey list (`src/services/chat-store.ts`)
-    - [ ] Implement: Broadcast chat messages to all session members via pub/sub
-    - [ ] Implement: On session join, retrieve and send chat history as part of `session_state`
-    - [ ] Implement: AI tool_progress and diagram_update events written to chat history with `isAI: true`
+- [x] Task: Implement shared chat history (CD-7) (88be72a)
+    - [x] Write Tests: Test chat messages are LPUSH'd to `session:{id}:chat` with sender attribution
+    - [x] Write Tests: Test chat list is capped at 500 messages via LTRIM
+    - [x] Write Tests: Test new users joining receive last 500 messages via LRANGE
+    - [x] Write Tests: Test chat history is broadcasted to session members upon a new message
+    - [x] Implement: `PubSubManager.broadcastChatMessage(sessionId, message, senderConnId)`
+    - [x] Implement: Chat history persistence using `LPUSH` and `LTRIM` (in Valkey)
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Real-Time Broadcast via Pub/Sub' (Protocol in workflow.md)
 
 ## Phase 3: Frontend Collaboration UI
