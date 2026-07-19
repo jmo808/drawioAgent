@@ -19,21 +19,21 @@
 
 ## Phase 2: High — MCP Sandboxing & Input Validation (F-02, F-05, F-06, F-18)
 
-- [ ] Task: Implement MCP tool call validator
-    - [ ] Write Tests: Test allowlisted tool calls pass validation
-    - [ ] Write Tests: Test non-allowlisted tool calls are rejected with error
-    - [ ] Write Tests: Test tool call arguments are sanitized (no path traversal patterns)
-    - [ ] Implement: Create `src/agent/mcp_validator.py` with allowlist-based tool filtering
-    - [ ] Implement: Wire validator between AgentOrchestrator and MCPBridge
-    - [ ] Implement: Log all MCP tool invocations with full arguments for forensics
-- [ ] Task: Implement path sandboxing for MCP file tools
-    - [ ] Write Tests: Test `validatePath()` accepts paths within workspace root
-    - [ ] Write Tests: Test `validatePath()` rejects `..` traversal attempts
-    - [ ] Write Tests: Test `validatePath()` rejects absolute paths outside workspace
-    - [ ] Write Tests: Test `validatePath()` rejects symlinks pointing outside sandbox
-    - [ ] Implement: Add `validatePath(userPath, baseDir)` function to mcp-wrapper.js
-    - [ ] Implement: Apply path validation to `validate_file` and `compile_json_spec` handlers
-    - [ ] Implement: Configure workspace root via `MCP_WORKSPACE_ROOT` env var
+- [x] Task: Implement MCP tool call validator (35673de)
+    - [x] Write Tests: Test allowlisted tool calls pass validation
+    - [x] Write Tests: Test non-allowlisted tool calls are rejected with error
+    - [x] Write Tests: Test tool call arguments are sanitized (no path traversal patterns)
+    - [x] Implement: Create `src/agent/mcp_validator.py` with allowlist-based tool filtering
+    - [x] Implement: Wire validator between AgentOrchestrator and MCPBridge
+    - [x] Implement: Log all MCP tool invocations with full arguments for forensics
+- [x] Task: Implement path sandboxing for MCP file tools (8022b2e)
+    - [x] Write Tests: Test `validatePath()` accepts paths within workspace root
+    - [x] Write Tests: Test `validatePath()` rejects `..` traversal attempts
+    - [x] Write Tests: Test `validatePath()` rejects absolute paths outside workspace
+    - [x] Write Tests: Test `validatePath()` rejects symlinks pointing outside sandbox
+    - [x] Implement: Add `validatePath(userPath, baseDir)` function to mcp-wrapper.js
+    - [x] Implement: Apply path validation to `validate_file` and `compile_json_spec` handlers
+    - [x] Implement: Configure workspace root via `MCP_WORKSPACE_ROOT` env var
 - [ ] Task: Sanitize MCP child process environment
     - [ ] Write Tests: Test spawned child process receives only allowlisted env vars
     - [ ] Write Tests: Test LLM API keys are NOT present in child process environment
