@@ -73,19 +73,19 @@
 
 ## Phase 4: High — Security Audit Logging (F-08)
 
-- [~] Task: Implement AU-2-compliant security event logging
-    - [ ] Write Tests: Test auth success events are logged with user identity
-    - [ ] Write Tests: Test auth failure events are logged with source IP
-    - [ ] Write Tests: Test AI chat requests are logged with user, provider, model
-    - [ ] Write Tests: Test MCP tool invocations are logged with tool name and arguments
-    - [ ] Write Tests: Test rate limit violations are logged
-    - [ ] Write Tests: Test all security events include X-Request-ID correlation
-    - [ ] Implement: Define audit event schema extending existing structured logging
-    - [ ] Implement: Add security event logging to auth middleware
-    - [ ] Implement: Add security event logging to agent orchestrator
-    - [ ] Implement: Add security event logging to MCP bridge
-    - [ ] Implement: Add security event logging to rate limiter
-    - [ ] Implement: Ensure audit log entries are marked as non-redactable
+- [x] Task: Implement AU-2-compliant security event logging (509599b)
+    - [x] Write Tests: Test auth success events are logged with user identity
+    - [x] Write Tests: Test auth failure events are logged with source IP
+    - [x] Write Tests: Test AI chat requests are logged with user, provider, model
+    - [x] Write Tests: Test MCP tool invocations are logged with tool name and arguments
+    - [x] Write Tests: Test rate limit violations are logged
+    - [x] Write Tests: Test all security events include X-Request-ID correlation
+    - [x] Implement: Define audit event schema extending existing structured logging
+    - [x] Implement: Add security event logging to auth middleware
+    - [x] Implement: Add security event logging to agent orchestrator
+    - [x] Implement: Add security event logging to MCP bridge
+    - [x] Implement: Add security event logging to rate limiter
+    - [x] Implement: Ensure audit log entries are marked as non-redactable
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Security Audit Logging' (Protocol in workflow.md)
 
 ## Phase 5: Medium — Encryption, Rate Limiting, Privacy (F-09, F-11, F-13)
@@ -95,13 +95,13 @@
     - [ ] Implement: Document WSS requirement in Gateway API HTTPRoute
     - [ ] Implement: Add Valkey TLS configuration option
     - [ ] Implement: Document mTLS option for API-to-Agent with example
-- [ ] Task: Implement WebSocket message rate limiting
-    - [ ] Write Tests: Test messages within rate limit are processed
-    - [ ] Write Tests: Test messages exceeding rate limit are dropped with warning frame
-    - [ ] Write Tests: Test rate limit is per-connection
-    - [ ] Implement: Create WebSocket rate limiter middleware (token bucket: 60 msg/min)
-    - [ ] Implement: Apply to all WebSocket message types
-    - [ ] Implement: Return rate limit warning frame when exceeded
+- [x] Task: Implement WebSocket message rate limiting (509599b)
+    - [x] Write Tests: Test messages within rate limit are processed
+    - [x] Write Tests: Test messages exceeding rate limit are dropped with warning frame
+    - [x] Write Tests: Test rate limit is per-connection
+    - [x] Implement: Create WebSocket rate limiter middleware (token bucket: 60 msg/min)
+    - [x] Implement: Apply to all WebSocket message types
+    - [x] Implement: Return rate limit warning frame when exceeded
 - [ ] Task: Implement privacy notice and consent
     - [ ] Write Tests: Test privacy banner renders on first sidebar load
     - [ ] Write Tests: Test consent toggle state persists in localStorage
