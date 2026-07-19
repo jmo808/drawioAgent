@@ -2,19 +2,19 @@
 
 ## Phase 1: Critical — Authentication & Identity (F-01)
 
-- [ ] Task: Implement OIDC/JWT authentication middleware
-    - [ ] Write Tests: Test JWT token validation with valid RS256 token returns 200
-    - [ ] Write Tests: Test expired JWT returns 401 with descriptive error
-    - [ ] Write Tests: Test invalid JWT signature returns 403
-    - [ ] Write Tests: Test JWKS endpoint discovery and key rotation
-    - [ ] Write Tests: Test API key fallback when `auth.provider` includes `apikey`
-    - [ ] Write Tests: Test auth bypass for /health, /ready, /metrics endpoints
-    - [ ] Implement: Add `jsonwebtoken` and `jwks-rsa` dependencies to API server
-    - [ ] Implement: Create `src/plugins/jwt-auth.ts` with JWKS-based JWT validation
-    - [ ] Implement: Create `src/plugins/auth-strategy.ts` supporting `oidc | apikey | both` modes
-    - [ ] Implement: Add `auth.provider`, `auth.jwksUri`, `auth.issuer`, `auth.audience` to Helm values.yaml
-    - [ ] Implement: Mount auth config from ConfigMap/Secret into API deployment
-    - [ ] Implement: Add per-user identity extraction from JWT claims to request context
+- [x] Task: Implement OIDC/JWT authentication middleware (696863b)
+    - [x] Write Tests: Test JWT token validation with valid RS256 token returns 200
+    - [x] Write Tests: Test expired JWT returns 401 with descriptive error
+    - [x] Write Tests: Test invalid JWT signature returns 403
+    - [x] Write Tests: Test JWKS endpoint discovery and key rotation
+    - [x] Write Tests: Test API key fallback when `auth.provider` includes `apikey`
+    - [x] Write Tests: Test auth bypass for /health, /ready, /metrics endpoints
+    - [x] Implement: Add `jsonwebtoken` and `jwks-rsa` dependencies to API server
+    - [x] Implement: Create `src/plugins/jwt-auth.ts` with JWKS-based JWT validation
+    - [x] Implement: Create `src/plugins/auth-strategy.ts` supporting `oidc | apikey | both` modes
+    - [x] Implement: Add `auth.provider`, `auth.jwksUri`, `auth.issuer`, `auth.audience` to Helm values.yaml
+    - [x] Implement: Mount auth config from ConfigMap/Secret into API deployment
+    - [x] Implement: Add per-user identity extraction from JWT claims to request context
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Authentication & Identity' (Protocol in workflow.md)
 
 ## Phase 2: High — MCP Sandboxing & Input Validation (F-02, F-05, F-06, F-18)
