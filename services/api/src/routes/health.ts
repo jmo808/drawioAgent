@@ -21,6 +21,18 @@ export async function healthRoutes(app: FastifyInstance) {
       });
       
       if (res.statusCode === 200) {
+        if (process.env.COLLABORATION_ENABLED === 'true') {
+          if (!app.valkey) {
+            reply.code(503);
+            return { status: 'not ready', error: 'Valkey check failed: Client not initialized' };
+          }
+          try {
+            await app.valkey.ping();
+          } catch (valkeyErr: any) {
+            reply.code(503);
+            return { status: 'not ready', error: `Valkey check failed: ${valkeyErr.message}` };
+          }
+        }
         return { status: 'ready' };
       }
       

@@ -1,5 +1,5 @@
 import { FastifyInstance } from 'fastify';
-import { validateWebSocketMessage } from '@drawio-agent/shared';
+import { validateWebSocketMessage, isChatMessage } from '@drawio-agent/shared';
 import type { ChatMessage } from '@drawio-agent/shared';
 import { AgentProxy } from '../services/agent-proxy.js';
 import { TokenBucketLimiter } from '../services/rate-limiter.js';
@@ -84,8 +84,7 @@ export async function chatRoutes(app: FastifyInstance) {
         if (parsed.type === 'chat_message') {
           const clientMsgId = parsed.id;
           req.log.info({ type: parsed.type, id: parsed.id, sessionId, classification }, 'Proxying chat message to agent');
-          
-          if (!parsed.payload || typeof parsed.payload.text !== 'string') {
+          if (!isChatMessage(parsed.payload)) {
             req.log.warn({ sessionId }, 'Invalid chat message payload structure');
             socket.send(JSON.stringify({
               type: 'error',
@@ -96,7 +95,7 @@ export async function chatRoutes(app: FastifyInstance) {
           }
 
           try {
-            const chatPayload = parsed.payload;
+            const chatPayload: ChatMessage = parsed.payload;
             await agentProxy.sendChatMessage(
               {
                 message: chatPayload.text,
