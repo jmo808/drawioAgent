@@ -50,13 +50,13 @@
     - [x] Implement: Unsubscribe when WebSocket disconnects or leaves session
     - [x] Implement: `broadcastDiagramUpdate(sessionId, xml, senderConnId, senderName)` — publish + persist
     - [x] Implement: Broadcast receiver that forwards events as WebSocket frames to local connections
-- [ ] Task: Implement debounced diagram sync from manual edits (CD-4)
-    - [ ] Write Tests: Test manual edit triggers broadcast only after 500ms debounce
-    - [ ] Write Tests: Test rapid successive edits produce only one broadcast
-    - [ ] Write Tests: Test broadcast includes complete XML snapshot (not diff)
-    - [ ] Implement: Client-side debounce in `drawioBridge` — listen to `mxGraphModel` change events
-    - [ ] Implement: After 500ms of no changes, call `getGraphXml()` and send `diagram_broadcast` via WebSocket
-    - [ ] Implement: Server relays to pub/sub for distribution to all session members
+- [x] Task: Implement debounced diagram sync from manual edits (CD-4) (99f8ebd)
+    - [x] Write Tests: Test manual edit triggers broadcast only after 500ms debounce
+    - [x] Write Tests: Test rapid successive edits produce only one broadcast
+    - [x] Write Tests: Test broadcast includes complete XML snapshot (not diff)
+    - [x] Implement: Client-side debounce in `drawioBridge` — listen to `mxGraphModel` change events
+    - [x] Implement: After 500ms of no changes, call `getGraphXml()` and send `diagram_broadcast` via WebSocket
+    - [x] Implement: Server relays to pub/sub for distribution to all session members
 - [ ] Task: Implement shared chat history (CD-7)
     - [ ] Write Tests: Test chat messages are LPUSH'd to `session:{id}:chat` with sender attribution
     - [ ] Write Tests: Test chat list is capped at 500 messages via LTRIM
