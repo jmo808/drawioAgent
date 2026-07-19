@@ -58,7 +58,7 @@
     - [x] Implement: Create `src/agent/content_filter.py` scanning XML for sensitive patterns
     - [x] Implement: Add `provider_warning` WebSocket message type for cloud provider UI warning
     - [x] Implement: Add `llm.localDefault: true` to values.yaml with documentation
-- [x] Task: Remove NPX fallback from MCP wrapper (76cfb6b)
+- [x] Task: Remove NPX fallback from MCP wrapper (2e43ec9)
     - [x] Write Tests: Test mcp-wrapper.js exits with error if local @drawio/mcp not found
     - [x] Write Tests: Test Docker image contains @drawio/mcp installed via npm ci
     - [x] Implement: Remove npx fallback code from mcp-wrapper.js
