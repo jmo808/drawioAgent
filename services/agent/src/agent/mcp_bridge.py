@@ -3,6 +3,7 @@ import json
 import logging
 from typing import Any, Dict, List
 from agent.config import Settings
+from agent.mcp_validator import MCPValidator
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +20,7 @@ class MCPBridge:
         self.next_id = 1
         self.pending_requests: Dict[int, asyncio.Future[Any]] = {}
         self.tools: List[Dict[str, Any]] = []
+        self.validator = MCPValidator()
 
     async def start(self) -> None:
         """
@@ -116,6 +118,12 @@ class MCPBridge:
                 default because the downstream draw.io MCP server must finish
                 an I/O round-trip before returning.
         """
+        # Log all MCP tool invocations with arguments for forensics
+        logger.info(f"AUDIT: Executing MCP tool '{name}' with arguments: {json.dumps(arguments)}")
+        
+        # Security validation check
+        self.validator.validate(name, arguments)
+
         if not self.is_healthy():
             raise RuntimeError("MCP server process is not running. The diagram server may have crashed.")
         if name == "finalize" and timeout == 30.0:
