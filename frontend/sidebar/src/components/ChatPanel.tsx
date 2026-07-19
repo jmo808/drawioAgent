@@ -7,6 +7,8 @@ import { ProviderSelector } from './ProviderSelector'
 import type { ProviderInfo } from './ProviderSelector'
 import { ConsentToggle } from './ConsentToggle'
 import { PrivacyNotice } from './PrivacyNotice'
+import { PresenceBar } from './PresenceBar'
+import { SessionControls } from './SessionControls'
 import { MESSAGES } from '../i18n'
 
 interface ChatPanelProps {
@@ -26,6 +28,14 @@ interface ChatPanelProps {
   onConsentChange?: (consented: boolean) => void;
   showBanner?: boolean;
   onBannerDismiss?: () => void;
+  collabEnabled?: boolean;
+  collabSessionId?: string | null;
+  collabShortCode?: string;
+  members?: { connId: string; displayName: string; disconnected?: boolean }[];
+  aiWorkingFor?: string | null;
+  onCreateCollabSession?: () => void;
+  onJoinCollabSession?: (codeOrId: string) => void;
+  onLeaveCollabSession?: () => void;
 }
 
 export const ChatPanel: React.FC<ChatPanelProps> = ({
@@ -44,7 +54,15 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   consent = false,
   onConsentChange = () => {},
   showBanner = false,
-  onBannerDismiss = () => {}
+  onBannerDismiss = () => {},
+  collabEnabled = false,
+  collabSessionId = null,
+  collabShortCode = '',
+  members = [],
+  aiWorkingFor = null,
+  onCreateCollabSession = () => {},
+  onJoinCollabSession = () => {},
+  onLeaveCollabSession = () => {}
 }) => {
 
   if (!isOpen) {
@@ -131,6 +149,9 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
           <span className="drawio-agent-title">{MESSAGES.titleArchimedesDraftingAgent}</span>
         </div>
         <div className="drawio-agent-header-controls" onMouseDown={(e) => e.stopPropagation()}>
+          {collabEnabled && members.length > 0 && (
+            <PresenceBar members={members} aiWorkingFor={aiWorkingFor} />
+          )}
           {connectionStatus === 'connected' ? (
             <span title="Connected" style={{ display: 'flex', alignItems: 'center' }}>
               <Wifi className="drawio-agent-status-icon connected" size={14} />
@@ -160,6 +181,15 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
 
       {/* Message List */}
       <div className="drawio-agent-body">
+        {collabEnabled && (
+          <SessionControls
+            sessionId={collabSessionId}
+            shortCode={collabShortCode}
+            onCreateSession={onCreateCollabSession}
+            onJoinSession={onJoinCollabSession}
+            onLeaveSession={onLeaveCollabSession}
+          />
+        )}
         {showBanner && ['gemini', 'openai'].includes(activeProvider) && (
           <PrivacyNotice
             onAccept={() => onConsentChange(true)}
@@ -185,7 +215,12 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
 
       {/* Footer / Input */}
       <div className="drawio-agent-footer">
-        <MessageInput onSend={onSendMessage} isLoading={isLoading} />
+        {aiWorkingFor && (
+          <div className="ai-working-status" style={{ padding: '4px 8px', fontSize: '12px', color: '#ef4444', animation: 'pulse-badge 2s infinite' }}>
+            {`AI is working for ${aiWorkingFor}...`}
+          </div>
+        )}
+        <MessageInput onSend={onSendMessage} isLoading={isLoading || !!aiWorkingFor} />
       </div>
     </div>
   )

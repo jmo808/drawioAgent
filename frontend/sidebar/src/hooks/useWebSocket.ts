@@ -3,6 +3,8 @@ import type { WebSocketMessage } from '@drawio-agent/shared'
 
 interface UseWebSocketProps {
   sessionId: string;
+  collabSessionId?: string | null;
+  displayName?: string;
   apiKey: string | null;
   onMessageReceived: (message: WebSocketMessage) => void;
   onStatusChange: (status: 'connecting' | 'connected' | 'disconnected') => void;
@@ -10,6 +12,8 @@ interface UseWebSocketProps {
 
 export const useWebSocket = ({
   sessionId,
+  collabSessionId = null,
+  displayName = '',
   apiKey,
   onMessageReceived,
   onStatusChange
@@ -22,10 +26,17 @@ export const useWebSocket = ({
   // Store callbacks in refs to prevent stale closure risk inside useEffect
   const onMessageReceivedRef = useRef(onMessageReceived)
   const onStatusChangeRef = useRef(onStatusChange)
+  const displayNameRef = useRef(displayName)
 
   // Keep refs up-to-date on every render
   onMessageReceivedRef.current = onMessageReceived
   onStatusChangeRef.current = onStatusChange
+  displayNameRef.current = displayName
+
+  const collabSessionIdRef = useRef(collabSessionId)
+  useEffect(() => {
+    collabSessionIdRef.current = collabSessionId
+  }, [collabSessionId])
 
   useEffect(() => {
     let active = true
@@ -59,6 +70,19 @@ export const useWebSocket = ({
         queue.forEach((msg) => {
           ws.send(msg)
         })
+
+        // Auto-rejoin session on reconnect
+        if (collabSessionIdRef.current && displayNameRef.current) {
+          console.log('[DrawioAgentWS] Auto-rejoining session:', collabSessionIdRef.current)
+          ws.send(JSON.stringify({
+            type: 'session_join',
+            payload: {
+              sessionId: collabSessionIdRef.current,
+              displayName: displayNameRef.current
+            },
+            timestamp: new Date().toISOString()
+          }))
+        }
       }
 
       ws.onmessage = (event) => {
@@ -105,12 +129,13 @@ export const useWebSocket = ({
 
   const sendMessage = (text: string, diagramXml?: string | null) => {
     console.log('[DrawioAgentWS] sendMessage called', { hasXml: !!diagramXml })
+    const activeSessionId = collabSessionIdRef.current || sessionId
     const envelope = {
       type: 'chat_message',
       payload: {
         text,
         diagramXml: diagramXml || null,
-        sessionId
+        sessionId: activeSessionId
       },
       id: 'msg-' + Math.random().toString(36).substring(2, 11),
       timestamp: new Date().toISOString()
@@ -129,11 +154,12 @@ export const useWebSocket = ({
 
   const broadcastDiagram = useCallback((diagramXml: string) => {
     console.log('[DrawioAgentWS] broadcastDiagram called')
+    const activeSessionId = collabSessionIdRef.current || sessionId
     const envelope = {
       type: 'diagram_broadcast',
       payload: {
         diagramXml,
-        sessionId
+        sessionId: activeSessionId
       },
       id: 'msg-' + Math.random().toString(36).substring(2, 11),
       timestamp: new Date().toISOString()
@@ -147,5 +173,54 @@ export const useWebSocket = ({
     }
   }, [sessionId])
 
-  return { sendMessage, broadcastDiagram }
+  const createSession = useCallback((displayName: string) => {
+    const envelope = {
+      type: 'session_create',
+      payload: {
+        displayName
+      },
+      timestamp: new Date().toISOString()
+    }
+    const ws = wsRef.current
+    if (ws && ws.readyState === 1) {
+      ws.send(JSON.stringify(envelope))
+    }
+  }, [])
+
+  const joinSession = useCallback((sessionIdToJoin: string, displayName: string) => {
+    const envelope = {
+      type: 'session_join',
+      payload: {
+        sessionId: sessionIdToJoin,
+        displayName
+      },
+      timestamp: new Date().toISOString()
+    }
+    const ws = wsRef.current
+    if (ws && ws.readyState === 1) {
+      ws.send(JSON.stringify(envelope))
+    }
+  }, [])
+
+  const leaveSession = useCallback((sessionIdToLeave: string) => {
+    const envelope = {
+      type: 'session_leave',
+      payload: {
+        sessionId: sessionIdToLeave
+      },
+      timestamp: new Date().toISOString()
+    }
+    const ws = wsRef.current
+    if (ws && ws.readyState === 1) {
+      ws.send(JSON.stringify(envelope))
+    }
+  }, [])
+
+  return {
+    sendMessage,
+    broadcastDiagram,
+    createSession,
+    joinSession,
+    leaveSession
+  }
 }

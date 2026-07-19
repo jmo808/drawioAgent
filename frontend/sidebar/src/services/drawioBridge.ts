@@ -41,6 +41,35 @@ export const setGraphXml = (ui: EditorUi, xml: string): void => {
   }
 }
 
+export const setGraphXmlPreservingViewport = (ui: EditorUi, xml: string): void => {
+  if (!ui || !ui.editor || !ui.editor.graph) {
+    setGraphXml(ui, xml)
+    return
+  }
+
+  const graph = ui.editor.graph as any
+  const view = graph.view
+  if (!view || typeof view.getScale !== 'function' || typeof view.getTranslate !== 'function') {
+    setGraphXml(ui, xml)
+    return
+  }
+
+  const scale = view.getScale()
+  const translate = view.getTranslate() || { x: 0, y: 0 }
+
+  setGraphXml(ui, xml)
+
+  if (typeof view.setScale === 'function') {
+    view.setScale(scale)
+  }
+  if (typeof view.setTranslate === 'function') {
+    view.setTranslate(translate.x, translate.y)
+  }
+  if (typeof graph.refresh === 'function') {
+    graph.refresh()
+  }
+}
+
 export const getTheme = (): 'dark' | 'light' => {
   const isDark = document.body.classList.contains('geDarkPage') ||
                  document.body.classList.contains('geDark') ||

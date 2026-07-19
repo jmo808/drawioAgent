@@ -98,4 +98,73 @@ describe('useWebSocket', () => {
     })
     expect(mockWebSocketClass).toHaveBeenCalled()
   })
+
+  test('should send session_create message when createSession is called', () => {
+    const { result } = renderHook(() => useWebSocket({
+      sessionId: 'session-ws',
+      collabSessionId: null,
+      apiKey: 'secret-key',
+      onMessageReceived: vi.fn(),
+      onStatusChange: vi.fn()
+    }))
+
+    mockWsInstance.readyState = 1 // OPEN
+    act(() => {
+      result.current.createSession('Alice')
+    })
+
+    expect(mockWsInstance.send).toHaveBeenCalledWith(
+      expect.stringContaining('"type":"session_create"')
+    )
+    expect(mockWsInstance.send).toHaveBeenCalledWith(
+      expect.stringContaining('"displayName":"Alice"')
+    )
+  })
+
+  test('should send session_join message when joinSession is called', () => {
+    const { result } = renderHook(() => useWebSocket({
+      sessionId: 'session-ws',
+      collabSessionId: null,
+      apiKey: 'secret-key',
+      onMessageReceived: vi.fn(),
+      onStatusChange: vi.fn()
+    }))
+
+    mockWsInstance.readyState = 1 // OPEN
+    act(() => {
+      result.current.joinSession('session-123', 'Alice')
+    })
+
+    expect(mockWsInstance.send).toHaveBeenCalledWith(
+      expect.stringContaining('"type":"session_join"')
+    )
+    expect(mockWsInstance.send).toHaveBeenCalledWith(
+      expect.stringContaining('"sessionId":"session-123"')
+    )
+    expect(mockWsInstance.send).toHaveBeenCalledWith(
+      expect.stringContaining('"displayName":"Alice"')
+    )
+  })
+
+  test('should send session_leave message when leaveSession is called', () => {
+    const { result } = renderHook(() => useWebSocket({
+      sessionId: 'session-ws',
+      collabSessionId: 'session-123',
+      apiKey: 'secret-key',
+      onMessageReceived: vi.fn(),
+      onStatusChange: vi.fn()
+    }))
+
+    mockWsInstance.readyState = 1 // OPEN
+    act(() => {
+      result.current.leaveSession('session-123')
+    })
+
+    expect(mockWsInstance.send).toHaveBeenCalledWith(
+      expect.stringContaining('"type":"session_leave"')
+    )
+    expect(mockWsInstance.send).toHaveBeenCalledWith(
+      expect.stringContaining('"sessionId":"session-123"')
+    )
+  })
 })

@@ -3,6 +3,7 @@ import { websocketPlugin } from './plugins/websocket.js';
 import { authPlugin } from './plugins/auth.js';
 import { valkeyPlugin } from './plugins/valkey.js';
 import { healthRoutes } from './routes/health.js';
+import { featuresRoutes } from './routes/features.js';
 import { chatRoutes } from './routes/chat.js';
 
 /**
@@ -23,10 +24,13 @@ export async function buildApp(app: FastifyInstance) {
   await app.register(valkeyPlugin);
 
   // Register authentication middleware
-  await app.register(authPlugin, { bypassRoutes: ['/health', '/ready', '/metrics'] });
+  await app.register(authPlugin, { bypassRoutes: ['/health', '/ready', '/metrics', '/api/features'] });
 
   // Register health check routes
   await app.register(healthRoutes);
+
+  // Register features discovery routes
+  await app.register(featuresRoutes);
 
   // Register WebSocket chat routes
   await app.register(chatRoutes);

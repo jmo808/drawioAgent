@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { ChatPanel } from './components/ChatPanel'
 import { TemplateLibrary } from './components/TemplateLibrary'
+import { DisplayNamePrompt } from './components/DisplayNamePrompt'
 import type { ToolProgress, ChatMessage, DiagramUpdate, ErrorPayload } from '@drawio-agent/shared'
 import { MESSAGES } from './i18n'
 import { useChatStore } from './hooks/useChatStore'
@@ -25,6 +26,21 @@ function App({ ui }: AppProps) {
   const { state, dispatch } = useChatStore(sessionId)
   const [isOpen, setIsOpen] = useState(true)
 
+  const [collabEnabled, setCollabEnabled] = useState(false)
+  const [displayName, setDisplayName] = useState(() => {
+    return localStorage.getItem('drawio_agent_display_name') || ''
+  })
+  const [showNamePrompt, setShowNamePrompt] = useState(false)
+  const [pendingAction, setPendingAction] = useState<{ type: 'create' } | { type: 'join'; codeOrId: string } | null>(null)
+  const [toastMessage, setToastMessage] = useState<string | null>(null)
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg)
+    setTimeout(() => {
+      setToastMessage(prev => prev === msg ? null : prev)
+    }, 3000)
+  }
+
   const [providers, setProviders] = useState<{ provider: string; model: string }[]>([])
   const [activeProvider, setActiveProvider] = useState<string>('')
   const [consent, setConsent] = useState(() => {
@@ -33,6 +49,25 @@ function App({ ui }: AppProps) {
   const [showBanner, setShowBanner] = useState(() => {
     return localStorage.getItem('drawio_agent_privacy_consent') !== 'true'
   })
+
+  // Fetch features and providers list
+  useEffect(() => {
+    const checkFeatures = async () => {
+      try {
+        const host = window.location.host || 'localhost:3000'
+        const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:'
+        const res = await fetch(`${protocol}//${host}/api/features`)
+        if (res.ok) {
+          const data = await res.json()
+          setCollabEnabled(!!data.collaboration)
+          dispatch({ type: 'SET_COLLABORATION_ENABLED', payload: !!data.collaboration })
+        }
+      } catch (e) {
+        console.error('Failed to fetch features:', e)
+      }
+    }
+    checkFeatures()
+  }, [dispatch])
 
   // Fetch providers list
   useEffect(() => {
@@ -211,8 +246,10 @@ function App({ ui }: AppProps) {
     document.addEventListener('mouseup', handleMouseUp)
   }
 
-  const { sendMessage, broadcastDiagram } = useWebSocket({
+  const { sendMessage, broadcastDiagram, createSession, joinSession, leaveSession } = useWebSocket({
     sessionId,
+    collabSessionId: state.sessionId,
+    displayName: displayName,
     apiKey,
     onStatusChange: (status) => {
       dispatch({ type: 'UPDATE_CONNECTION_STATUS', payload: status });
@@ -249,9 +286,102 @@ function App({ ui }: AppProps) {
       } else if (message.type === 'error') {
         const payload = message.payload as unknown as ErrorPayload;
         dispatch({ type: 'SET_ERROR', payload: payload.message });
+      } else if (message.type === 'session_state') {
+        const payload = message.payload as any;
+        dispatch({ type: 'SET_SESSION', payload: { sessionId: payload.sessionId, shortCode: payload.shortCode } });
+        dispatch({ type: 'SET_MEMBERS', payload: payload.members });
+        if (ui && payload.diagramXml) {
+          try {
+            drawioBridge.setGraphXmlPreservingViewport(ui, payload.diagramXml);
+          } catch (e) {
+            console.error('[DrawioAgent] Failed to apply sync state XML:', e);
+          }
+        }
+      } else if (message.type === 'member_joined') {
+        const payload = message.payload as any;
+        dispatch({ type: 'ADD_MEMBER', payload: { connId: payload.connId, displayName: payload.displayName } });
+        showToast(`${payload.displayName} joined the session`);
+      } else if (message.type === 'member_left') {
+        const payload = message.payload as any;
+        dispatch({ type: 'REMOVE_MEMBER', payload: payload.connId });
+        const member = state.members.find(m => m.connId === payload.connId);
+        showToast(`${member?.displayName || 'A member'} left the session`);
+      } else if (message.type === 'diagram_broadcast') {
+        const payload = message.payload as any;
+        if (ui && payload.diagramXml) {
+          try {
+            drawioBridge.setGraphXmlPreservingViewport(ui, payload.diagramXml);
+            showToast(`Diagram updated by ${payload.senderName || 'another user'}`);
+          } catch (e) {
+            console.error('[DrawioAgent] Failed to apply broadcast XML:', e);
+          }
+        }
+      } else if (message.type === 'ai_locked') {
+        const payload = message.payload as any;
+        dispatch({ type: 'SET_AI_WORKING_FOR', payload: payload.displayName });
+      } else if (message.type === 'ai_unlocked') {
+        dispatch({ type: 'SET_AI_WORKING_FOR', payload: null });
       }
     }
   });
+
+  const handleCreateSession = () => {
+    if (!displayName) {
+      setPendingAction({ type: 'create' });
+      setShowNamePrompt(true);
+    } else {
+      createSession(displayName);
+    }
+  };
+
+  const handleJoinSession = (codeOrId: string) => {
+    if (!displayName) {
+      setPendingAction({ type: 'join', codeOrId });
+      setShowNamePrompt(true);
+    } else {
+      joinSession(codeOrId, displayName);
+    }
+  };
+
+  const handleLeaveSession = () => {
+    if (state.sessionId) {
+      leaveSession(state.sessionId);
+      dispatch({ type: 'CLEAR_SESSION' });
+      showToast('Left collaboration session');
+    }
+  };
+
+  const handleNameConfirm = (name: string) => {
+    setDisplayName(name);
+    localStorage.setItem('drawio_agent_display_name', name);
+    dispatch({ type: 'SET_DISPLAY_NAME', payload: name });
+    setShowNamePrompt(false);
+
+    if (pendingAction) {
+      if (pendingAction.type === 'create') {
+        createSession(name);
+      } else if (pendingAction.type === 'join') {
+        joinSession(pendingAction.codeOrId, name);
+      }
+      setPendingAction(null);
+    }
+  };
+
+  const handleNameCancel = () => {
+    setShowNamePrompt(false);
+    setPendingAction(null);
+  };
+
+  useEffect(() => {
+    if (!collabEnabled || state.connectionStatus !== 'connected') return;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionParam = urlParams.get('session');
+    if (sessionParam && sessionParam !== state.sessionId) {
+      console.log('[DrawioAgent] Auto-joining session from URL parameter:', sessionParam);
+      handleJoinSession(sessionParam);
+    }
+  }, [collabEnabled, state.connectionStatus]);
 
   useEffect(() => {
     if (!ui) return
@@ -340,6 +470,14 @@ function App({ ui }: AppProps) {
         onConsentChange={handleConsentChange}
         showBanner={showBanner}
         onBannerDismiss={handleBannerDismiss}
+        collabEnabled={collabEnabled}
+        collabSessionId={state.sessionId}
+        collabShortCode={state.shortCode}
+        members={state.members}
+        aiWorkingFor={state.aiWorkingFor}
+        onCreateCollabSession={handleCreateSession}
+        onJoinCollabSession={handleJoinSession}
+        onLeaveCollabSession={handleLeaveSession}
       >
         {state.connectionStatus === 'connected' && (
           <div className="drawio-agent-sidebar-overlay-content">
@@ -347,6 +485,29 @@ function App({ ui }: AppProps) {
           </div>
         )}
       </ChatPanel>
+
+      <DisplayNamePrompt
+        isOpen={showNamePrompt}
+        onConfirm={handleNameConfirm}
+        onCancel={handleNameCancel}
+      />
+
+      {toastMessage && (
+        <div className="toast-notification animate-fade-in" style={{
+          position: 'fixed',
+          bottom: '80px',
+          right: '20px',
+          background: 'rgba(0, 0, 0, 0.8)',
+          color: 'white',
+          padding: '8px 16px',
+          borderRadius: '20px',
+          fontSize: '12px',
+          zIndex: 10003,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+        }}>
+          {toastMessage}
+        </div>
+      )}
     </div>
   )
 }

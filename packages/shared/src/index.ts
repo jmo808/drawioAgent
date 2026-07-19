@@ -66,7 +66,15 @@ export type WebSocketMessageType =
   | 'provider_warning'
   | 'collaboration_join'
   | 'collaboration_sync'
-  | 'diagram_broadcast';
+  | 'diagram_broadcast'
+  | 'session_create'
+  | 'session_join'
+  | 'session_leave'
+  | 'session_state'
+  | 'member_joined'
+  | 'member_left'
+  | 'ai_locked'
+  | 'ai_unlocked';
 
 export const WebSocketMessageSchema = z.object({
   type: z.enum([
@@ -80,7 +88,15 @@ export const WebSocketMessageSchema = z.object({
     'provider_warning',
     'collaboration_join',
     'collaboration_sync',
-    'diagram_broadcast'
+    'diagram_broadcast',
+    'session_create',
+    'session_join',
+    'session_leave',
+    'session_state',
+    'member_joined',
+    'member_left',
+    'ai_locked',
+    'ai_unlocked'
   ]),
   payload: z.record(z.unknown()),
   id: z.string().optional(),

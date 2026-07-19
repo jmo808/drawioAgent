@@ -1,5 +1,5 @@
 import { describe, test, expect, vi } from 'vitest'
-import { getGraphXml, setGraphXml, getTheme, getDiagramStats, subscribeToGraphChanges } from './drawioBridge'
+import { getGraphXml, setGraphXml, setGraphXmlPreservingViewport, getTheme, getDiagramStats, subscribeToGraphChanges } from './drawioBridge'
 
 describe('drawioBridge', () => {
   test('getGraphXml calls ui.editor.getGraphXml', () => {
@@ -38,6 +38,44 @@ describe('drawioBridge', () => {
     const calledArg = mockSetGraphXml.mock.calls[0][0]
     expect(calledArg.tagName).toBe('mxfile')
     expect(mockEnd).toHaveBeenCalled()
+  })
+
+  test('setGraphXmlPreservingViewport saves and restores scale/translate', () => {
+    const mockSetGraphXml = vi.fn()
+    const mockBegin = vi.fn()
+    const mockEnd = vi.fn()
+    const mockGetScale = vi.fn().mockReturnValue(1.5)
+    const mockGetTranslate = vi.fn().mockReturnValue({ x: 10, y: 20 })
+    const mockSetScale = vi.fn()
+    const mockSetTranslate = vi.fn()
+    const mockRefresh = vi.fn()
+
+    const mockUi = {
+      editor: {
+        setGraphXml: mockSetGraphXml,
+        graph: {
+          refresh: mockRefresh,
+          model: {
+            beginUpdate: mockBegin,
+            endUpdate: mockEnd
+          },
+          view: {
+            getScale: mockGetScale,
+            getTranslate: mockGetTranslate,
+            setScale: mockSetScale,
+            setTranslate: mockSetTranslate
+          }
+        }
+      }
+    } as any
+
+    setGraphXmlPreservingViewport(mockUi, '<mxfile>new-xml</mxfile>')
+
+    expect(mockGetScale).toHaveBeenCalled()
+    expect(mockGetTranslate).toHaveBeenCalled()
+    expect(mockSetScale).toHaveBeenCalledWith(1.5)
+    expect(mockSetTranslate).toHaveBeenCalledWith(10, 20)
+    expect(mockRefresh).toHaveBeenCalled()
   })
 
   test('getTheme detects dark theme from class name', () => {
