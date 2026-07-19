@@ -64,11 +64,11 @@
     - [x] Implement: Remove npx fallback code from mcp-wrapper.js
     - [x] Implement: Add `npm ci --ignore-scripts` to agent Dockerfile for @drawio/mcp
     - [x] Implement: Add SBOM generation step to agent Dockerfile
-- [~] Task: Implement data classification metadata
-    - [ ] Write Tests: Test session creation accepts classification level
-    - [ ] Write Tests: Test confidential/restricted sessions reject cloud LLM providers
-    - [ ] Implement: Add classification field to session metadata
-    - [ ] Implement: Gate cloud LLM usage based on classification level
+- [x] Task: Implement data classification metadata (04875e0)
+    - [x] Write Tests: Test session creation accepts classification level
+    - [x] Write Tests: Test confidential/restricted sessions reject cloud LLM providers
+    - [x] Implement: Add classification field to session metadata
+    - [x] Implement: Gate cloud LLM usage based on classification level
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Data Flow Controls' (Protocol in workflow.md)
 
 ## Phase 4: High — Security Audit Logging (F-08)
