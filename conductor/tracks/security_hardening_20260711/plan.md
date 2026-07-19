@@ -102,14 +102,14 @@
     - [x] Implement: Create WebSocket rate limiter middleware (token bucket: 60 msg/min)
     - [x] Implement: Apply to all WebSocket message types
     - [x] Implement: Return rate limit warning frame when exceeded
-- [~] Task: Implement privacy notice and consent
-    - [ ] Write Tests: Test privacy banner renders on first sidebar load
-    - [ ] Write Tests: Test consent toggle state persists in localStorage
-    - [ ] Write Tests: Test cloud LLM requests are blocked when consent not given
-    - [ ] Implement: Create `PrivacyNotice` React component with dismissable banner
-    - [ ] Implement: Create `ConsentToggle` component for cloud LLM opt-in
-    - [ ] Implement: Wire consent state to WebSocket provider selection
-- [ ] Task: Conductor - User Manual Verification 'Phase 5: Encryption, Rate Limiting, Privacy' (Protocol in workflow.md)
+- [x] Task: Implement privacy notice and consent (c02ba93)
+    - [x] Write Tests: Test privacy banner renders on first sidebar load
+    - [x] Write Tests: Test consent toggle state persists in localStorage
+    - [x] Write Tests: Test cloud LLM requests are blocked when consent not given
+    - [x] Implement: Create `PrivacyNotice` React component with dismissable banner
+    - [x] Implement: Create `ConsentToggle` component for cloud LLM opt-in
+    - [x] Implement: Wire consent state to WebSocket provider selection
+- [~] Task: Conductor - User Manual Verification 'Phase 5: Encryption, Rate Limiting, Privacy' (Protocol in workflow.md)
 
 ## Phase 6: Medium & Low — Remaining Items (F-10, F-12, F-14, F-15, F-16, F-17, F-19)
 
