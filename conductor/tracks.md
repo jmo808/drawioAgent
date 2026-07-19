@@ -8,8 +8,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 - [x] **Track 2: Multi-User Collaboration & Shared Sessions**
   *Link: [./tracks/collaboration_20260711/](./tracks/collaboration_20260711/)*
 
-- [x] **Track 3: CI/CD Pipeline & Release Automation**
-  *Link: [./tracks/cicd_pipeline_20260711/](./tracks/cicd_pipeline_20260711/)*
 
 - [ ] **Track 4: Observability & Production Hardening**
   *Link: [./tracks/observability_20260711/](./tracks/observability_20260711/)*
