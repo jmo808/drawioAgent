@@ -88,7 +88,7 @@
     - [x] Implement: Ensure audit log entries are marked as non-redactable
 - [x] Task: Conductor - User Manual Verification 'Phase 4: Security Audit Logging' (Protocol in workflow.md) (b493571)
 
-## Phase 5: Medium — Encryption, Rate Limiting, Privacy (F-09, F-11, F-13)
+## Phase 5: Medium — Encryption, Rate Limiting, Privacy (F-09, F-11, F-13) [checkpoint: 6e185b4]
 
 - [x] Task: Document and enforce encryption requirements (c9bd5ea)
     - [x] Implement: Add TLS configuration section to Helm values.yaml
@@ -109,7 +109,7 @@
     - [x] Implement: Create `PrivacyNotice` React component with dismissable banner
     - [x] Implement: Create `ConsentToggle` component for cloud LLM opt-in
     - [x] Implement: Wire consent state to WebSocket provider selection
-- [~] Task: Conductor - User Manual Verification 'Phase 5: Encryption, Rate Limiting, Privacy' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 5: Encryption, Rate Limiting, Privacy' (Protocol in workflow.md) (6e185b4)
 
 ## Phase 6: Medium & Low — Remaining Items (F-10, F-12, F-14, F-15, F-16, F-17, F-19)
 
