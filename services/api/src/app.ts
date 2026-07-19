@@ -14,6 +14,9 @@ export async function buildApp(app: FastifyInstance) {
   // Add X-API-Version global header hook
   app.addHook('onSend', async (request, reply, payload) => {
     reply.header('X-API-Version', '1.0.0');
+    if (request.id) {
+      reply.header('x-request-id', request.id);
+    }
     return payload;
   });
 

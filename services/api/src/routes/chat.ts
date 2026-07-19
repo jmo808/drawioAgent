@@ -28,7 +28,7 @@ export async function chatRoutes(app: FastifyInstance) {
       socket.send(JSON.stringify({
         type: 'error',
         payload: { code: 'BAD_REQUEST', message: `Invalid classification level: ${classification}. Allowed values: public, internal, confidential, restricted.` },
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(), requestId: req.id
       }));
       socket.close();
       return;
@@ -113,7 +113,7 @@ export async function chatRoutes(app: FastifyInstance) {
       await pubsubManager.publishEvent(collabSessionId, {
         type: 'ai_locked',
         payload: { displayName: request.displayName },
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(), requestId: req.id
       });
 
       try {
@@ -142,7 +142,7 @@ export async function chatRoutes(app: FastifyInstance) {
                 message: payload.text,
                 senderConnId: 'agent',
                 senderName: 'Agent',
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(), requestId: req.id
               };
               await valkey.lpush(`session:${collabSessionId}:chat`, JSON.stringify(chatEntry));
               await valkey.ltrim(`session:${collabSessionId}:chat`, 0, 499);
@@ -152,7 +152,7 @@ export async function chatRoutes(app: FastifyInstance) {
               type: agentEvent.type,
               payload: agentEvent.payload,
               id: request.clientMsgId,
-              timestamp: new Date().toISOString()
+              timestamp: new Date().toISOString(), requestId: req.id
             });
           },
           abortController.signal
@@ -163,7 +163,7 @@ export async function chatRoutes(app: FastifyInstance) {
           type: 'error',
           payload: { code: 'SERVICE_UNAVAILABLE', message: 'Agent service is temporarily unavailable' },
           id: request.clientMsgId,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(), requestId: req.id
         });
       } finally {
         // Release lock
@@ -172,7 +172,7 @@ export async function chatRoutes(app: FastifyInstance) {
         // Broadcast ai_unlocked to the session
         await pubsubManager.publishEvent(collabSessionId, {
           type: 'ai_unlocked',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(), requestId: req.id
         });
 
         // Process next in queue
@@ -195,7 +195,7 @@ export async function chatRoutes(app: FastifyInstance) {
           socket.send(JSON.stringify({
             type: 'error',
             payload: { code: 'RATE_LIMIT_EXCEEDED', message: 'Rate limit exceeded' },
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(), requestId: req.id
           }));
           return;
         }
@@ -210,7 +210,7 @@ export async function chatRoutes(app: FastifyInstance) {
           socket.send(JSON.stringify({
             type: 'error',
             payload: { code: 'BAD_REQUEST', message: 'Message is not valid JSON' },
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(), requestId: req.id
           }));
           return;
         }
@@ -220,7 +220,7 @@ export async function chatRoutes(app: FastifyInstance) {
           socket.send(JSON.stringify({
             type: 'error',
             payload: { code: 'BAD_REQUEST', message: 'Message does not match WebSocketMessage schema' },
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(), requestId: req.id
           }));
           return;
         }
@@ -230,7 +230,7 @@ export async function chatRoutes(app: FastifyInstance) {
             socket.send(JSON.stringify({
               type: 'error',
               payload: { code: 'SERVICE_UNAVAILABLE', message: 'Collaboration service is disabled' },
-              timestamp: new Date().toISOString()
+              timestamp: new Date().toISOString(), requestId: req.id
             }));
             return;
           }
@@ -254,7 +254,7 @@ export async function chatRoutes(app: FastifyInstance) {
               members: [{ connId, displayName }],
               chatHistory: []
             },
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(), requestId: req.id
           }));
 
         } else if (parsed.type === 'session_join') {
@@ -262,7 +262,7 @@ export async function chatRoutes(app: FastifyInstance) {
             socket.send(JSON.stringify({
               type: 'error',
               payload: { code: 'SERVICE_UNAVAILABLE', message: 'Collaboration service is disabled' },
-              timestamp: new Date().toISOString()
+              timestamp: new Date().toISOString(), requestId: req.id
             }));
             return;
           }
@@ -303,21 +303,21 @@ export async function chatRoutes(app: FastifyInstance) {
                 members: membersMapped,
                 chatHistory: state.chatHistory
               },
-              timestamp: new Date().toISOString()
+              timestamp: new Date().toISOString(), requestId: req.id
             }));
 
             await pubsubManager.publishEvent(state.sessionId, {
               type: 'member_joined',
               payload: { connId, displayName },
               senderConnId: connId,
-              timestamp: new Date().toISOString()
+              timestamp: new Date().toISOString(), requestId: req.id
             });
 
           } catch (joinErr: any) {
             socket.send(JSON.stringify({
               type: 'error',
               payload: { code: 'NOT_FOUND', message: joinErr.message },
-              timestamp: new Date().toISOString()
+              timestamp: new Date().toISOString(), requestId: req.id
             }));
           }
 
@@ -332,7 +332,7 @@ export async function chatRoutes(app: FastifyInstance) {
               type: 'member_left',
               payload: { connId },
               senderConnId: connId,
-              timestamp: new Date().toISOString()
+              timestamp: new Date().toISOString(), requestId: req.id
             });
           }
           await pubsubManager.unsubscribeFromSession(collabSessionId, connId);
@@ -347,7 +347,7 @@ export async function chatRoutes(app: FastifyInstance) {
             socket.send(JSON.stringify({
               type: 'error',
               payload: { code: 'BAD_REQUEST', message: 'Invalid chat message payload' },
-              timestamp: new Date().toISOString()
+              timestamp: new Date().toISOString(), requestId: req.id
             }));
             return;
           }
@@ -385,7 +385,7 @@ export async function chatRoutes(app: FastifyInstance) {
                 payload: {
                   text: 'Your request has been queued. AI is currently working on another request.'
                 },
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(), requestId: req.id
               }));
             }
 
@@ -424,7 +424,7 @@ export async function chatRoutes(app: FastifyInstance) {
                     type: agentEvent.type,
                     payload: agentEvent.payload,
                     id: clientMsgId,
-                    timestamp: new Date().toISOString()
+                    timestamp: new Date().toISOString(), requestId: req.id
                   }));
                 },
                 abortController.signal
@@ -436,7 +436,7 @@ export async function chatRoutes(app: FastifyInstance) {
                 type: 'error',
                 payload: { code: 'SERVICE_UNAVAILABLE', message: 'Agent service is temporarily unavailable' },
                 id: clientMsgId,
-                timestamp: new Date().toISOString()
+                timestamp: new Date().toISOString(), requestId: req.id
               }));
             }
           }
@@ -460,7 +460,7 @@ export async function chatRoutes(app: FastifyInstance) {
         socket.send(JSON.stringify({
           type: 'error',
           payload: { code: 'INTERNAL_SERVER_ERROR', message: 'An unexpected error occurred' },
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(), requestId: req.id
         }));
       }
     });
@@ -488,7 +488,7 @@ export async function chatRoutes(app: FastifyInstance) {
               type: 'member_joined',
               payload: member,
               senderConnId: connId,
-              timestamp: new Date().toISOString()
+              timestamp: new Date().toISOString(), requestId: req.id
             });
 
             // Start 5-minute cleanup timer
@@ -503,7 +503,7 @@ export async function chatRoutes(app: FastifyInstance) {
                       type: 'member_left',
                       payload: { connId },
                       senderConnId: connId,
-                      timestamp: new Date().toISOString()
+                      timestamp: new Date().toISOString(), requestId: req.id
                     });
                   }
                 }

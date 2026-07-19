@@ -1,10 +1,19 @@
 import Fastify from 'fastify';
 import { buildApp } from './app.js';
 
+import crypto from 'crypto';
+
 const server = Fastify({
   requestIdHeader: 'x-request-id',
+  genReqId: () => crypto.randomUUID(),
+  requestIdLogLabel: 'requestId',
   logger: {
     level: process.env.LOG_LEVEL || 'info',
+    timestamp: () => `,"timestamp":"${new Date().toISOString()}"`,
+    messageKey: 'message',
+    formatters: {
+      level: (label: string) => ({ level: label })
+    }
   }
 });
 
