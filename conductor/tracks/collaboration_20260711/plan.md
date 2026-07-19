@@ -64,7 +64,7 @@
     - [x] Write Tests: Test chat history is broadcasted to session members upon a new message
     - [x] Implement: `PubSubManager.broadcastChatMessage(sessionId, message, senderConnId)`
     - [x] Implement: Chat history persistence using `LPUSH` and `LTRIM` (in Valkey)
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Real-Time Broadcast via Pub/Sub' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Real-Time Broadcast via Pub/Sub' (Protocol in workflow.md) (95d91b2)
 
 ## Phase 3: Frontend Collaboration UI
 
