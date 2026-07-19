@@ -8,6 +8,7 @@ class InMemoryRedisMock {
   public subscriptions = new Set<string>();
   public publishedMessages: { channel: string, message: string }[] = [];
   public listeners: Record<string, Function[]> = {};
+  public lists: Record<string, string[]> = {};
 
   async set(key: string, val: string): Promise<'OK'> {
     this.store[key] = val;
@@ -18,6 +19,30 @@ class InMemoryRedisMock {
     const val = this.store[key];
     if (typeof val === 'string') return val;
     return null;
+  }
+
+  async lpush(key: string, ...vals: string[]): Promise<number> {
+    if (!this.lists[key]) this.lists[key] = [];
+    // LPUSH prepends values. In redis, `LPUSH k v1 v2` results in `v2 v1`.
+    for (const val of vals) {
+      this.lists[key].unshift(val);
+    }
+    return this.lists[key].length;
+  }
+
+  async ltrim(key: string, start: number, stop: number): Promise<'OK'> {
+    if (!this.lists[key]) return 'OK';
+    const s = start < 0 ? this.lists[key].length + start : start;
+    const e = stop < 0 ? this.lists[key].length + stop : stop;
+    this.lists[key] = this.lists[key].slice(s, e + 1);
+    return 'OK';
+  }
+
+  async lrange(key: string, start: number, stop: number): Promise<string[]> {
+    if (!this.lists[key]) return [];
+    const s = start < 0 ? this.lists[key].length + start : start;
+    const e = stop < 0 ? this.lists[key].length + stop : stop;
+    return this.lists[key].slice(s, e + 1);
   }
 
   // We will link the publisher to the subscriber in the test setup
@@ -132,5 +157,50 @@ describe('PubSubManager Service', () => {
 
     // conn-3 shouldn't receive it (different session)
     expect(mockSocket3.send).not.toHaveBeenCalled();
+  });
+
+  it('should push chat message and cap at 500', async () => {
+    // Fill with 500 items
+    for (let i = 0; i < 500; i++) {
+      await pubsubManager.broadcastChatMessage('sess-2', `msg${i}`, 'conn-1', 'Alice');
+    }
+
+    expect(mockRedis.lists['session:sess-2:chat'].length).toBe(500);
+
+    // Add 10 more
+    for (let i = 0; i < 10; i++) {
+      await pubsubManager.broadcastChatMessage('sess-2', `newmsg${i}`, 'conn-1', 'Alice');
+    }
+
+    // Should still be 500 due to LTRIM
+    expect(mockRedis.lists['session:sess-2:chat'].length).toBe(500);
+
+    // The most recent one (last added) should be at index 0 because of LPUSH
+    const mostRecent = JSON.parse(mockRedis.lists['session:sess-2:chat'][0]);
+    expect(mostRecent.message).toBe('newmsg9');
+  });
+
+  it('should broadcast chat message to event channel', async () => {
+    await pubsubManager.broadcastChatMessage('sess-3', 'hello', 'conn-1', 'Alice');
+    expect(mockRedis.publishedMessages.length).toBe(1);
+    expect(mockRedis.publishedMessages[0].channel).toBe('session:sess-3:events');
+    
+    const msg = JSON.parse(mockRedis.publishedMessages[0].message);
+    expect(msg.type).toBe('chat_message');
+    expect(msg.payload.text).toBe('hello');
+    expect(msg.senderConnId).toBe('conn-1');
+    expect(msg.senderName).toBe('Alice');
+  });
+
+  it('should return chat history in chronological order', async () => {
+    await pubsubManager.broadcastChatMessage('sess-4', 'msg1', 'conn-1', 'Alice');
+    await pubsubManager.broadcastChatMessage('sess-4', 'msg2', 'conn-1', 'Alice');
+    await pubsubManager.broadcastChatMessage('sess-4', 'msg3', 'conn-1', 'Alice');
+
+    const history = await pubsubManager.getChatHistory('sess-4');
+    expect(history.length).toBe(3);
+    expect(history[0].message).toBe('msg1');
+    expect(history[1].message).toBe('msg2');
+    expect(history[2].message).toBe('msg3');
   });
 });

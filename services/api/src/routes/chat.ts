@@ -37,6 +37,21 @@ export async function chatRoutes(app: FastifyInstance) {
       app.pubsubManager.subscribeToSession(sessionId, socket as any, connId).catch(err => {
         req.log.error({ err, sessionId, connId }, 'Failed to subscribe to pubsub manager');
       });
+
+      // Send chat history to the newly connected client
+      app.pubsubManager.getChatHistory(sessionId).then(history => {
+        for (const entry of history) {
+          socket.send(JSON.stringify({
+            type: 'chat_message',
+            payload: {
+              text: entry.message
+            },
+            timestamp: entry.timestamp
+          }));
+        }
+      }).catch(err => {
+        req.log.error({ err, sessionId }, 'Failed to get chat history');
+      });
     }
 
     const limitMax = Number(process.env.RATE_LIMIT_MAX_TOKENS) || 10;
@@ -103,6 +118,19 @@ export async function chatRoutes(app: FastifyInstance) {
 
           try {
             const chatPayload: ChatMessage = parsed.payload;
+
+            // Broadcast to other session members and save to history
+            if (app.pubsubManager) {
+              app.pubsubManager.broadcastChatMessage(
+                sessionId,
+                chatPayload.text,
+                connId,
+                (req.user?.sub as string) || 'anonymous'
+              ).catch(err => {
+                req.log.error({ err, sessionId }, 'Failed to broadcast chat message');
+              });
+            }
+
             await agentProxy.sendChatMessage(
               {
                 message: chatPayload.text,

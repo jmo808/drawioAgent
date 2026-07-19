@@ -93,4 +93,50 @@ export class PubSubManager {
 
     await this.valkey.publish(`session:${sessionId}:events`, JSON.stringify(message));
   }
+
+  /**
+   * Broadcasts a chat message to all session members and persists it in history.
+   */
+  public async broadcastChatMessage(sessionId: string, message: string, senderConnId: string, senderName: string): Promise<void> {
+    const timestamp = new Date().toISOString();
+    
+    // 1. Persist the chat message
+    const chatEntry = {
+      message,
+      senderConnId,
+      senderName,
+      timestamp
+    };
+    
+    const key = `session:${sessionId}:chat`;
+    await this.valkey.lpush(key, JSON.stringify(chatEntry));
+    // Keep only the last 500 messages (0 to 499)
+    await this.valkey.ltrim(key, 0, 499);
+
+    // 2. Publish to the event channel
+    const eventMessage = {
+      type: 'chat_message',
+      payload: {
+        text: message,
+      },
+      senderConnId,
+      senderName,
+      timestamp,
+    };
+
+    await this.valkey.publish(`session:${sessionId}:events`, JSON.stringify(eventMessage));
+  }
+
+  /**
+   * Retrieves the chat history for a session (up to 500 messages).
+   * Messages are returned in chronological order (oldest first).
+   */
+  public async getChatHistory(sessionId: string): Promise<any[]> {
+    const key = `session:${sessionId}:chat`;
+    const messages = await this.valkey.lrange(key, 0, -1);
+    
+    // LRANGE returns messages starting from index 0 (the most recent because of LPUSH)
+    // We want to return them in chronological order, so we reverse the array
+    return messages.map(msg => JSON.parse(msg)).reverse();
+  }
 }
