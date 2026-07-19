@@ -39,17 +39,17 @@
 
 ## Phase 2: Real-Time Broadcast via Pub/Sub
 
-- [ ] Task: Implement Valkey pub/sub for diagram broadcasts (CD-4, CD-5)
-    - [ ] Write Tests: Test diagram update published to `session:{id}:events` channel
-    - [ ] Write Tests: Test all session members' WebSocket connections receive the broadcast
-    - [ ] Write Tests: Test sender does NOT receive their own broadcast (dedup by connId)
-    - [ ] Write Tests: Test broadcast works across multiple API server replicas (via Valkey pub/sub)
-    - [ ] Write Tests: Test diagram XML is also persisted to `session:{id}:diagram` key on each broadcast
-    - [ ] Implement: Create pub/sub manager (`src/services/pubsub-manager.ts`)
-    - [ ] Implement: Subscribe to `session:{id}:events` when a WebSocket joins a session
-    - [ ] Implement: Unsubscribe when WebSocket disconnects or leaves session
-    - [ ] Implement: `broadcastDiagramUpdate(sessionId, xml, senderConnId, senderName)` — publish + persist
-    - [ ] Implement: Broadcast receiver that forwards events as WebSocket frames to local connections
+- [x] Task: Implement Valkey pub/sub for diagram broadcasts (CD-4, CD-5) (026afea)
+    - [x] Write Tests: Test diagram update published to `session:{id}:events` channel
+    - [x] Write Tests: Test all session members' WebSocket connections receive the broadcast
+    - [x] Write Tests: Test sender does NOT receive their own broadcast (dedup by connId)
+    - [x] Write Tests: Test broadcast works across multiple API server replicas (via Valkey pub/sub)
+    - [x] Write Tests: Test diagram XML is also persisted to `session:{id}:diagram` key on each broadcast
+    - [x] Implement: Create pub/sub manager (`src/services/pubsub-manager.ts`)
+    - [x] Implement: Subscribe to `session:{id}:events` when a WebSocket joins a session
+    - [x] Implement: Unsubscribe when WebSocket disconnects or leaves session
+    - [x] Implement: `broadcastDiagramUpdate(sessionId, xml, senderConnId, senderName)` — publish + persist
+    - [x] Implement: Broadcast receiver that forwards events as WebSocket frames to local connections
 - [ ] Task: Implement debounced diagram sync from manual edits (CD-4)
     - [ ] Write Tests: Test manual edit triggers broadcast only after 500ms debounce
     - [ ] Write Tests: Test rapid successive edits produce only one broadcast
