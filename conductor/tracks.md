@@ -14,7 +14,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 - [ ] **Track 4: Observability & Production Hardening**
   *Link: [./tracks/observability_20260711/](./tracks/observability_20260711/)*
 
-- [~] **Track 5: Security Hardening & TRA Remediation**
+- [x] **Track 5: Security Hardening & TRA Remediation**
   *Link: [./tracks/security_hardening_20260711/](./tracks/security_hardening_20260711/)*
   *TRA Report: [../TRA-Report.html](../TRA-Report.html) | 19 findings (1C/7H/10M/1L) | FIPS-199: MODERATE*
 
