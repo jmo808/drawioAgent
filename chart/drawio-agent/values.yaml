@@ -58,6 +58,8 @@ agent:
       memory: 512Mi
   # LLM Provider Configuration
   llm:
+    # Set to true to prioritize local/self-hosted LLM (Ollama) to prevent accidental data leakage
+    localDefault: true
     provider: "ollama"
     model: "llama3"
     apiKey: ""

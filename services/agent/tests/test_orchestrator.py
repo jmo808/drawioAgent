@@ -282,7 +282,91 @@ def test_strip_drawio_links():
     text = "Click here to open: https://app.diagrams.net/?grid=0. Also you can open: [Open](https://draw.io/xyz)."
     assert orchestrator._strip_drawio_links(text) == "Also you can open: ."
 
+
     # Test 6: Relative local URL path
     text = "Please view the diagram: [Local Editor](/draw/?grid=0). Have fun!"
     assert orchestrator._strip_drawio_links(text) == "Please view the diagram: . Have fun!"
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_provider_warning_triggers():
+    settings = Settings(skills_dir="skills/drawio")
+    # Set to a cloud provider
+    settings.llm_provider = "gemini"
+    
+    # Mock LLMService
+    llm_service = AsyncMock(spec=LLMService)
+    mock_msg = MagicMock()
+    mock_msg.content = "Diagram completed!"
+    mock_msg.tool_calls = None
+    llm_service.generate_chat.return_value = mock_msg
+
+    # Mock MCPBridge
+    mcp_bridge = AsyncMock(spec=MCPBridge)
+    mcp_bridge.get_tools.return_value = []
+    
+    with patch("os.path.exists", return_value=False):
+        conversation_manager = ConversationManager(settings)
+        
+        orchestrator = AgentOrchestrator(
+            settings=settings,
+            llm_service=llm_service,
+            mcp_bridge=mcp_bridge,
+            conversation_manager=conversation_manager
+        )
+        
+        events = []
+        # Provide diagram XML containing a sensitive pattern (internal IP address)
+        sensitive_xml = "<mxGraphModel><root><mxCell id='1' value='Server IP: 192.168.1.1'/></root></mxGraphModel>"
+        async for event in orchestrator.run(
+            session_id="session-warning",
+            prompt="do something",
+            diagram_xml=sensitive_xml
+        ):
+            events.append(event)
+            
+        # Assert that a provider_warning event was emitted
+        warning_events = [e for e in events if e["event"] == "provider_warning"]
+        assert len(warning_events) == 1
+        assert "sensitive information" in warning_events[0]["data"]["message"]
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_no_warning_for_local_provider():
+    settings = Settings(skills_dir="skills/drawio")
+    # Set to local provider
+    settings.llm_provider = "ollama"
+    
+    llm_service = AsyncMock(spec=LLMService)
+    mock_msg = MagicMock()
+    mock_msg.content = "Diagram completed!"
+    mock_msg.tool_calls = None
+    llm_service.generate_chat.return_value = mock_msg
+
+    mcp_bridge = AsyncMock(spec=MCPBridge)
+    mcp_bridge.get_tools.return_value = []
+    
+    with patch("os.path.exists", return_value=False):
+        conversation_manager = ConversationManager(settings)
+        
+        orchestrator = MagicMock(spec=AgentOrchestrator)
+        orchestrator = AgentOrchestrator(
+            settings=settings,
+            llm_service=llm_service,
+            mcp_bridge=mcp_bridge,
+            conversation_manager=conversation_manager
+        )
+        
+        events = []
+        sensitive_xml = "<mxGraphModel><root><mxCell id='1' value='Server IP: 192.168.1.1'/></root></mxGraphModel>"
+        async for event in orchestrator.run(
+            session_id="session-no-warning",
+            prompt="do something",
+            diagram_xml=sensitive_xml
+        ):
+            events.append(event)
+            
+        warning_events = [e for e in events if e["event"] == "provider_warning"]
+        assert len(warning_events) == 0
+
 

@@ -38,6 +38,23 @@ class AgentOrchestrator:
         # 1. Initialize MCP state
         try:
             if diagram_xml:
+                # Security content scan if using a cloud LLM provider
+                is_cloud_provider = self.settings.llm_provider in ["gemini", "openai"]
+                if is_cloud_provider:
+                    from agent.content_filter import ContentFilter
+                    findings = ContentFilter.scan(diagram_xml)
+                    if findings:
+                        yield {
+                            "event": "provider_warning",
+                            "data": {
+                                "message": (
+                                    "Warning: The current diagram contains potentially sensitive "
+                                    f"information ({findings[0]}) and is being sent "
+                                    f"to a cloud LLM provider ({self.settings.llm_provider})."
+                                )
+                            }
+                        }
+
                 yield {
                     "event": "tool_progress",
                     "data": {

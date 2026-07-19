@@ -50,7 +50,8 @@ export type WebSocketMessageType =
   | 'error'
   | 'provider_change'
   | 'template_select'
-  | 'diagram_state_sync';
+  | 'diagram_state_sync'
+  | 'provider_warning';
 
 export const WebSocketMessageSchema = z.object({
   type: z.enum([
@@ -60,7 +61,8 @@ export const WebSocketMessageSchema = z.object({
     'error',
     'provider_change',
     'template_select',
-    'diagram_state_sync'
+    'diagram_state_sync',
+    'provider_warning'
   ]),
   payload: z.record(z.any()),
   id: z.string().optional(),
