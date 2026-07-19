@@ -23,6 +23,58 @@ function App({ ui }: AppProps) {
   const { state, dispatch } = useChatStore(sessionId)
   const [isOpen, setIsOpen] = useState(true)
 
+  const [providers, setProviders] = useState<{ provider: string; model: string }[]>([])
+  const [activeProvider, setActiveProvider] = useState<string>('')
+  const [consent, setConsent] = useState(() => {
+    return localStorage.getItem('drawio_agent_privacy_consent') === 'true'
+  })
+  const [showBanner, setShowBanner] = useState(() => {
+    return localStorage.getItem('drawio_agent_privacy_consent') !== 'true'
+  })
+
+  // Fetch providers list
+  useEffect(() => {
+    const fetchProviders = async () => {
+      try {
+        const host = window.location.host || 'localhost:3000'
+        const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:'
+        const res = await fetch(`${protocol}//${host}/api/providers`)
+        if (res.ok) {
+          const data = await res.json()
+          if (data.providers) {
+            setProviders(data.providers)
+            if (data.providers.length > 0) {
+              setActiveProvider(data.providers[0].provider)
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Failed to fetch providers:', e)
+      }
+    }
+    fetchProviders()
+  }, [])
+
+  const handleProviderChange = (providerName: string) => {
+    setActiveProvider(providerName)
+    // If selecting a cloud provider and consent is not given, show banner
+    if (['gemini', 'openai'].includes(providerName) && !consent) {
+      setShowBanner(true)
+    }
+  }
+
+  const handleConsentChange = (consented: boolean) => {
+    setConsent(consented)
+    localStorage.setItem('drawio_agent_privacy_consent', consented ? 'true' : 'false')
+    if (consented) {
+      setShowBanner(false)
+    }
+  }
+
+  const handleBannerDismiss = () => {
+    setShowBanner(false)
+  }
+
   // Floating coordinates and dimensions state
   const [position, setPosition] = useState(() => {
     const saved = localStorage.getItem('drawio-agent-pos')
@@ -181,6 +233,14 @@ function App({ ui }: AppProps) {
 
   const handleSendMessage = (text: string) => {
     console.log('[DrawioAgent] handleSendMessage called with text:', text)
+    
+    // Block cloud provider requests if consent is not granted
+    const isCloud = ['gemini', 'openai'].includes(activeProvider)
+    if (isCloud && !consent) {
+      dispatch({ type: 'SET_ERROR', payload: 'Cloud LLM requests are blocked because privacy consent has not been granted.' })
+      return
+    }
+
     let snapshotXml: string | null = null
     if (ui) {
       try {
@@ -243,6 +303,13 @@ function App({ ui }: AppProps) {
         setIsOpen={setIsOpen}
         onHeaderMouseDown={handleDragStart}
         onResizeStart={handleResizeStart}
+        providers={providers}
+        activeProvider={activeProvider}
+        onProviderChange={handleProviderChange}
+        consent={consent}
+        onConsentChange={handleConsentChange}
+        showBanner={showBanner}
+        onBannerDismiss={handleBannerDismiss}
       >
         {state.connectionStatus === 'connected' && (
           <div className="drawio-agent-sidebar-overlay-content">

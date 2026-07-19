@@ -223,6 +223,89 @@ body.dark .drawio-agent-select {
   color: var(--ag-text-dark);
 }
 
+/* Privacy notice and consent styling */
+.drawio-agent-settings-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 12px;
+  background: var(--ag-bg-light);
+  border-bottom: 1px solid var(--ag-border-light);
+}
+body.geDarkPage .drawio-agent-settings-bar,
+body.geDark .drawio-agent-settings-bar,
+body.dark .drawio-agent-settings-bar {
+  background: #1e1f29;
+  border-bottom: 1px solid var(--ag-border-dark);
+}
+
+.drawio-agent-consent-toggle {
+  display: flex;
+  align-items: center;
+  font-size: 11px;
+}
+.drawio-agent-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+  color: var(--ag-text-light);
+}
+body.geDarkPage .drawio-agent-checkbox-label,
+body.geDark .drawio-agent-checkbox-label,
+body.dark .drawio-agent-checkbox-label {
+  color: var(--ag-text-dark);
+}
+
+.drawio-agent-privacy-notice {
+  padding: 10px 12px;
+  background: #fff3cd;
+  border: 1px solid #ffeeba;
+  border-radius: 8px;
+  margin: 8px;
+  font-size: 12px;
+  color: #856404;
+}
+body.geDarkPage .drawio-agent-privacy-notice,
+body.geDark .drawio-agent-privacy-notice,
+body.dark .drawio-agent-privacy-notice {
+  background: #2c2512;
+  border: 1px solid #4a3e1b;
+  color: #e2c670;
+}
+.drawio-agent-privacy-content p {
+  margin: 0 0 8px 0;
+  line-height: 1.4;
+}
+.drawio-agent-privacy-actions {
+  display: flex;
+  gap: 8px;
+}
+.drawio-agent-btn {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+.drawio-agent-btn.primary {
+  background: #856404;
+  color: #fff;
+}
+.drawio-agent-btn.secondary {
+  background: transparent;
+  color: inherit;
+  border: 1px solid currentColor;
+}
+body.geDarkPage .drawio-agent-btn.primary,
+body.geDark .drawio-agent-btn.primary,
+body.dark .drawio-agent-btn.primary {
+  background: #e2c670;
+  color: #2c2512;
+}
+
 /* Template Library Grid styling */
 .drawio-agent-template-library {
   margin-top: 4px;

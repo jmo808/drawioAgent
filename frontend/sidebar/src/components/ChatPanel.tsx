@@ -3,6 +3,10 @@ import { MessageList } from './MessageList'
 import type { MessageType } from './MessageList'
 import { MessageInput } from './MessageInput'
 import { Sparkles, MessageSquare, X, Wifi, WifiOff } from 'lucide-react'
+import { ProviderSelector } from './ProviderSelector'
+import type { ProviderInfo } from './ProviderSelector'
+import { ConsentToggle } from './ConsentToggle'
+import { PrivacyNotice } from './PrivacyNotice'
 
 interface ChatPanelProps {
   messages: MessageType[];
@@ -14,6 +18,13 @@ interface ChatPanelProps {
   onHeaderMouseDown: (e: React.MouseEvent) => void;
   onResizeStart: (e: React.MouseEvent, direction: string) => void;
   children?: React.ReactNode;
+  providers?: ProviderInfo[];
+  activeProvider?: string;
+  onProviderChange?: (providerName: string) => void;
+  consent?: boolean;
+  onConsentChange?: (consented: boolean) => void;
+  showBanner?: boolean;
+  onBannerDismiss?: () => void;
 }
 
 export const ChatPanel: React.FC<ChatPanelProps> = ({
@@ -25,7 +36,14 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   setIsOpen,
   onHeaderMouseDown,
   onResizeStart,
-  children
+  children,
+  providers = [],
+  activeProvider = '',
+  onProviderChange = () => {},
+  consent = false,
+  onConsentChange = () => {},
+  showBanner = false,
+  onBannerDismiss = () => {}
 }) => {
 
   if (!isOpen) {
@@ -124,6 +142,25 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
 
       {/* Message List */}
       <div className="drawio-agent-body">
+        {showBanner && ['gemini', 'openai'].includes(activeProvider) && (
+          <PrivacyNotice
+            onAccept={() => onConsentChange(true)}
+            onDismiss={onBannerDismiss}
+          />
+        )}
+        {providers.length > 0 && (
+          <div className="drawio-agent-settings-bar">
+            <ProviderSelector
+              providers={providers}
+              activeProvider={activeProvider}
+              onChange={(p) => onProviderChange(p.provider)}
+            />
+            <ConsentToggle
+              consented={consent}
+              onChange={onConsentChange}
+            />
+          </div>
+        )}
         {children}
         <MessageList messages={messages} />
       </div>
