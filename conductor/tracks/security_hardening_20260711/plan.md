@@ -48,16 +48,16 @@
 
 ## Phase 3: High — Data Flow Controls (F-03, F-07, F-04)
 
-- [ ] Task: Implement LLM provider safety controls
-    - [ ] Write Tests: Test default provider is Ollama when no explicit provider configured
-    - [ ] Write Tests: Test cloud provider selection triggers warning event via WebSocket
-    - [ ] Write Tests: Test content filter detects IP addresses in diagram XML
-    - [ ] Write Tests: Test content filter detects hostname patterns
-    - [ ] Write Tests: Test content filter detects potential credential strings
-    - [ ] Implement: Change default `LLM_PROVIDER` to `ollama` in Helm values
-    - [ ] Implement: Create `src/agent/content_filter.py` scanning XML for sensitive patterns
-    - [ ] Implement: Add `provider_warning` WebSocket message type for cloud provider UI warning
-    - [ ] Implement: Add `llm.localDefault: true` to values.yaml with documentation
+- [x] Task: Implement LLM provider safety controls (d21eca3)
+    - [x] Write Tests: Test default provider is Ollama when no explicit provider configured
+    - [x] Write Tests: Test cloud provider selection triggers warning event via WebSocket
+    - [x] Write Tests: Test content filter detects IP addresses in diagram XML
+    - [x] Write Tests: Test content filter detects hostname patterns
+    - [x] Write Tests: Test content filter detects potential credential strings
+    - [x] Implement: Change default `LLM_PROVIDER` to `ollama` in Helm values
+    - [x] Implement: Create `src/agent/content_filter.py` scanning XML for sensitive patterns
+    - [x] Implement: Add `provider_warning` WebSocket message type for cloud provider UI warning
+    - [x] Implement: Add `llm.localDefault: true` to values.yaml with documentation
 - [ ] Task: Remove NPX fallback from MCP wrapper
     - [ ] Write Tests: Test mcp-wrapper.js exits with error if local @drawio/mcp not found
     - [ ] Write Tests: Test Docker image contains @drawio/mcp installed via npm ci
