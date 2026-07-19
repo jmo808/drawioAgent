@@ -34,7 +34,7 @@ def test_post_chat_validation(client):
 def test_post_chat_stream(client):
     mock_orchestrator = MagicMock(spec=AgentOrchestrator)
     
-    async def mock_run(session_id, prompt, diagram_xml=None):
+    async def mock_run(session_id, prompt, diagram_xml=None, classification=None):
         yield {"event": "tool_progress", "data": {"toolName": "init_diagram", "step": 1, "totalSteps": 1}}
         yield {"event": "chat_message", "data": {"text": "Done!"}}
         
@@ -58,3 +58,34 @@ def test_post_chat_stream(client):
         assert 'data: {"text": "Done!"}' in content
     finally:
         client.app.dependency_overrides.clear()
+
+
+def test_post_chat_stream_with_classification(client):
+    mock_orchestrator = MagicMock(spec=AgentOrchestrator)
+    received_classification = []
+    
+    async def mock_run(session_id, prompt, diagram_xml=None, classification=None):
+        received_classification.append(classification)
+        yield {"event": "chat_message", "data": {"text": f"Classification is {classification}"}}
+        
+    mock_orchestrator.run = mock_run
+    
+    from agent.server import get_orchestrator
+    client.app.dependency_overrides[get_orchestrator] = lambda: mock_orchestrator
+    
+    try:
+        response = client.post(
+            "/api/chat",
+            json={
+                "message": "draw line",
+                "sessionId": "session-123",
+                "classification": "confidential"
+            }
+        )
+        assert response.status_code == 200
+        assert received_classification == ["confidential"]
+        content = response.content.decode("utf-8")
+        assert "Classification is confidential" in content
+    finally:
+        client.app.dependency_overrides.clear()
+

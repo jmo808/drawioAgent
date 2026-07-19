@@ -64,7 +64,7 @@
     - [x] Implement: Remove npx fallback code from mcp-wrapper.js
     - [x] Implement: Add `npm ci --ignore-scripts` to agent Dockerfile for @drawio/mcp
     - [x] Implement: Add SBOM generation step to agent Dockerfile
-- [ ] Task: Implement data classification metadata
+- [~] Task: Implement data classification metadata
     - [ ] Write Tests: Test session creation accepts classification level
     - [ ] Write Tests: Test confidential/restricted sessions reject cloud LLM providers
     - [ ] Implement: Add classification field to session metadata

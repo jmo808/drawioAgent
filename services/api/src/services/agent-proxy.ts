@@ -2,6 +2,7 @@ export interface ChatRequest {
   message: string;
   diagramXml?: string;
   sessionId: string;
+  classification?: string;
 }
 
 export interface AgentEvent {

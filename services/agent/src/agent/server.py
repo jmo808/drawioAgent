@@ -34,6 +34,7 @@ class ChatRequest(BaseModel):
     message: str
     sessionId: str
     diagramXml: str | None = None
+    classification: str | None = None
 
 def create_app(app_settings: Settings) -> FastAPI:
     global llm_service, mcp_bridge, conversation_manager, orchestrator
@@ -80,7 +81,8 @@ def create_app(app_settings: Settings) -> FastAPI:
                 async for event in orch.run(
                     session_id=req.sessionId,
                     prompt=req.message,
-                    diagram_xml=req.diagramXml
+                    diagram_xml=req.diagramXml,
+                    classification=req.classification
                 ):
                     yield f"event: {event['event']}\ndata: {json.dumps(event['data'])}\n\n"
             except Exception as e:

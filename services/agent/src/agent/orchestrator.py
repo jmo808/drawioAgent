@@ -30,11 +30,22 @@ class AgentOrchestrator:
         self,
         session_id: str,
         prompt: str,
-        diagram_xml: str | None = None
+        diagram_xml: str | None = None,
+        classification: str | None = None
     ) -> AsyncGenerator[Dict[str, Any], None]:
         """
         Runs the orchestration loop and streams back progress, updates, or errors.
         """
+        # Gate cloud LLM usage based on classification level
+        is_cloud_provider = self.settings.llm_provider in ["gemini", "openai"]
+        if is_cloud_provider and classification in ["confidential", "restricted"]:
+            yield {
+                "event": "error",
+                "data": {
+                    "message": f"Cloud LLM usage is forbidden for {classification} sessions."
+                }
+            }
+            return
         # 1. Initialize MCP state
         try:
             if diagram_xml:

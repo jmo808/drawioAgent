@@ -370,3 +370,75 @@ async def test_orchestrator_no_warning_for_local_provider():
         assert len(warning_events) == 0
 
 
+@pytest.mark.asyncio
+async def test_orchestrator_gates_cloud_llm_for_restricted_sessions():
+    settings = Settings(skills_dir="skills/drawio")
+    # Set to cloud provider
+    settings.llm_provider = "gemini"
+    
+    llm_service = AsyncMock(spec=LLMService)
+    mcp_bridge = AsyncMock(spec=MCPBridge)
+    conversation_manager = ConversationManager(settings)
+    
+    orchestrator = AgentOrchestrator(
+        settings=settings,
+        llm_service=llm_service,
+        mcp_bridge=mcp_bridge,
+        conversation_manager=conversation_manager
+    )
+    
+    for lvl in ["confidential", "restricted"]:
+        events = []
+        async for event in orchestrator.run(
+            session_id=f"session-{lvl}",
+            prompt="do something",
+            classification=lvl
+        ):
+            events.append(event)
+            
+        assert len(events) == 1
+        assert events[0]["event"] == "error"
+        assert f"Cloud LLM usage is forbidden for {lvl} sessions." in events[0]["data"]["message"]
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_allows_local_llm_for_restricted_sessions():
+    settings = Settings(skills_dir="skills/drawio")
+    # Set to local provider
+    settings.llm_provider = "ollama"
+    
+    llm_service = AsyncMock(spec=LLMService)
+    mock_msg = MagicMock()
+    mock_msg.content = "Done"
+    mock_msg.tool_calls = None
+    llm_service.generate_chat.return_value = mock_msg
+    
+    mcp_bridge = AsyncMock(spec=MCPBridge)
+    mcp_bridge.get_tools.return_value = []
+    mcp_bridge.call_tool.side_effect = [
+        None, # init_diagram
+        {"xml": "<mxfile>mock-xml</mxfile>"} # finalize
+    ]
+    
+    conversation_manager = ConversationManager(settings)
+    orchestrator = AgentOrchestrator(
+        settings=settings,
+        llm_service=llm_service,
+        mcp_bridge=mcp_bridge,
+        conversation_manager=conversation_manager
+    )
+    
+    events = []
+    async for event in orchestrator.run(
+        session_id="session-local-ok",
+        prompt="do something",
+        classification="restricted"
+    ):
+        events.append(event)
+        
+    error_events = [e for e in events if e["event"] == "error"]
+    assert len(error_events) == 0
+    assert any(e["event"] == "chat_message" for e in events)
+
+
+

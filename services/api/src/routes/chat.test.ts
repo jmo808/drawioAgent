@@ -183,4 +183,63 @@ describe('WebSocket /ws/chat Endpoint', () => {
       });
     });
   });
+
+  it('should reject connection with invalid data classification level', async () => {
+    const ws = new WebSocket(`${url}?apiKey=super-secret-key&classification=ultra-secret`);
+    await new Promise<void>((resolve, reject) => {
+      ws.on('open', () => {
+        // Wait for connection close/error frame
+      });
+      ws.on('message', (data) => {
+        const msg = JSON.parse(data.toString());
+        expect(msg.type).toBe('error');
+        expect(msg.payload.code).toBe('BAD_REQUEST');
+        expect(msg.payload.message).toContain('classification');
+      });
+      ws.on('close', () => {
+        resolve();
+      });
+      ws.on('error', () => {
+        resolve();
+      });
+    });
+  });
+
+  it('should accept data classification level and forward it to agent', async () => {
+    const client = mockAgent.get('http://localhost:8000');
+
+    client.intercept({
+      path: '/api/chat',
+      method: 'POST',
+      body: (value) => {
+        const parsed = JSON.parse(value);
+        return parsed.classification === 'confidential' && parsed.sessionId !== undefined;
+      },
+    }).reply(200, 'event: tool_progress\ndata: {"toolName":"test-tool"}\n\n', {
+      headers: { 'content-type': 'text/event-stream' }
+    });
+
+    const ws = new WebSocket(`${url}?apiKey=super-secret-key&classification=confidential`);
+    await new Promise<void>((resolve, reject) => {
+      ws.on('open', () => {
+        ws.send(JSON.stringify({
+          type: 'chat_message',
+          payload: { text: 'hello' },
+          id: 'client-msg-456',
+          timestamp: new Date().toISOString()
+        }));
+      });
+
+      ws.on('message', (data) => {
+        const msg = JSON.parse(data.toString());
+        expect(msg.type).toBe('tool_progress');
+        ws.close();
+        resolve();
+      });
+
+      ws.on('error', (err) => {
+        reject(err);
+      });
+    });
+  });
 });

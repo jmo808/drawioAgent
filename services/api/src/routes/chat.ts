@@ -11,7 +11,23 @@ const agentProxy = new AgentProxy();
 export async function chatRoutes(app: FastifyInstance) {
   app.get('/ws/chat', { websocket: true }, (socket, req) => {
     const sessionId = crypto.randomUUID();
-    req.log.info({ sessionId }, 'New WebSocket connection established');
+    
+    const query = req.query as { apiKey?: string; classification?: string };
+    const classification = query.classification || 'public';
+    const allowedClassifications = ['public', 'internal', 'confidential', 'restricted'];
+    
+    if (!allowedClassifications.includes(classification)) {
+      req.log.warn({ classification, sessionId }, 'Invalid classification level');
+      socket.send(JSON.stringify({
+        type: 'error',
+        payload: { code: 'BAD_REQUEST', message: `Invalid classification level: ${classification}. Allowed values: public, internal, confidential, restricted.` },
+        timestamp: new Date().toISOString()
+      }));
+      socket.close();
+      return;
+    }
+
+    req.log.info({ sessionId, classification }, 'New WebSocket connection established');
 
     socket.on('message', async (message) => {
       try {
@@ -42,14 +58,15 @@ export async function chatRoutes(app: FastifyInstance) {
 
         if (parsed.type === 'chat_message') {
           const clientMsgId = parsed.id;
-          req.log.info({ parsed, sessionId }, 'Proxying chat message to agent');
+          req.log.info({ parsed, sessionId, classification }, 'Proxying chat message to agent');
           
           try {
             await agentProxy.sendChatMessage(
               {
                 message: parsed.payload.text,
                 diagramXml: parsed.payload.diagramXml,
-                sessionId
+                sessionId,
+                classification
               },
               (agentEvent) => {
                 req.log.info({ event: agentEvent, sessionId }, 'Relaying agent event to client');
