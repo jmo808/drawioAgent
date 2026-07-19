@@ -12,9 +12,28 @@ class InMemoryRedisMock {
     return null;
   }
 
-  async set(key: string, val: string): Promise<'OK'> {
+  async set(key: string, val: string, ...options: any[]): Promise<'OK' | null> {
+    const nx = options.includes('NX');
+    if (nx && key in this.store) {
+      return null;
+    }
     this.store[key] = val;
     return 'OK';
+  }
+
+  async eval(script: string, numkeys: number, ...args: string[]): Promise<any> {
+    // Specifically mock the lock release script:
+    // if redis.call("get", KEYS[1]) == ARGV[1] then return redis.call("del", KEYS[1]) else return 0 end
+    if (script.includes('redis.call') && numkeys === 1) {
+      const key = args[0];
+      const owner = args[1];
+      if (this.store[key] === owner) {
+        delete this.store[key];
+        return 1;
+      }
+      return 0;
+    }
+    return 0;
   }
 
   async del(key: string): Promise<number> {
@@ -230,5 +249,36 @@ describe('SessionManager Service', () => {
     expect(await mockRedis.get(`shortcode:${shortCode}`)).toBeNull();
     expect(await mockRedis.hgetall(`session:${sessionId}:meta`)).toEqual({});
     expect(await mockRedis.hgetall(`session:${sessionId}:members`)).toEqual({});
+  });
+
+  it('should acquire AI serialization lock successfully when free', async () => {
+    const sessionId = 'session-123';
+    const acquired = await sessionManager.acquireLock(sessionId, 'conn-alice');
+    expect(acquired).toBe(true);
+    expect(await mockRedis.get(`session:${sessionId}:lock`)).toBe('conn-alice');
+  });
+
+  it('should fail to acquire AI lock when held by another connection', async () => {
+    const sessionId = 'session-123';
+    await sessionManager.acquireLock(sessionId, 'conn-alice');
+
+    const acquired = await sessionManager.acquireLock(sessionId, 'conn-bob');
+    expect(acquired).toBe(false);
+    expect(await mockRedis.get(`session:${sessionId}:lock`)).toBe('conn-alice');
+  });
+
+  it('should release AI lock only if held by the same connection', async () => {
+    const sessionId = 'session-123';
+    await sessionManager.acquireLock(sessionId, 'conn-alice');
+
+    // Bob tries to release Alice's lock -> should fail
+    const releasedByBob = await sessionManager.releaseLock(sessionId, 'conn-bob');
+    expect(releasedByBob).toBe(false);
+    expect(await mockRedis.get(`session:${sessionId}:lock`)).toBe('conn-alice');
+
+    // Alice releases her own lock -> should succeed
+    const releasedByAlice = await sessionManager.releaseLock(sessionId, 'conn-alice');
+    expect(releasedByAlice).toBe(true);
+    expect(await mockRedis.get(`session:${sessionId}:lock`)).toBeNull();
   });
 });

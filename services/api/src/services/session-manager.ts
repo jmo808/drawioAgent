@@ -223,4 +223,29 @@ export class SessionManager {
       diagramXml: diagramXml || null,
     };
   }
+
+  /**
+   * Acquires the AI serialization lock for a session.
+   * Returns true if lock acquired, false if already held.
+   */
+  async acquireLock(sessionId: string, connId: string): Promise<boolean> {
+    const result = await this.valkey.set(`session:${sessionId}:lock`, connId, 'EX', 60, 'NX');
+    return result === 'OK';
+  }
+
+  /**
+   * Releases the AI serialization lock if and only if it is held by the caller connection.
+   * Returns true if successfully released, false otherwise.
+   */
+  async releaseLock(sessionId: string, connId: string): Promise<boolean> {
+    const script = `
+      if redis.call("get", KEYS[1]) == ARGV[1] then
+        return redis.call("del", KEYS[1])
+      else
+        return 0
+      end
+    `;
+    const result = await this.valkey.eval(script, 1, `session:${sessionId}:lock`, connId);
+    return result === 1 || result === '1';
+  }
 }
