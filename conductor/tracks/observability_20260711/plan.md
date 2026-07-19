@@ -2,7 +2,7 @@
 
 ## Phase 1: Structured Logging & Correlation IDs (OB-4, OB-5)
 
-- [ ] Task: Implement structured JSON logging for Fastify API server
+- [x] Task: Implement structured JSON logging for Fastify API server [696b156]
     - [ ] Write Tests: Test log output is valid JSON with fields: `timestamp`, `level`, `message`, `requestId`
     - [ ] Write Tests: Test `X-Request-ID` header is generated (UUID v4) when not present in request
     - [ ] Write Tests: Test `X-Request-ID` header is preserved when already present (from Gateway)
