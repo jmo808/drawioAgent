@@ -62,7 +62,7 @@ class MCPValidator:
             # Check for path traversal patterns (e.g., '..', absolute paths starting with '/' or '\\')
             # Normalized checks to prevent sneaky traversal bypasses
             truncated = args[:30] + "..." if len(args) > 30 else args
-            if ".." in args or args.startswith("/") or args.startswith("\\"):
+            if ".." in args or args.startswith("/") or args.startswith("\\") or args.startswith("~") or "file://" in args:
                 raise ValidationError(f"Path traversal detected in argument value: '{truncated}'")
             # Enforce that it doesn't contain windows-style drive letters (e.g. C:\)
             # Use regex to allow normal text with colons like "Time: 3pm"

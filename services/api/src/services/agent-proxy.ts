@@ -11,7 +11,7 @@ export interface AgentEvent {
 }
 
 export class AgentProxy {
-  private agentUrl: string;
+  private readonly agentUrl: string;
 
   constructor() {
     this.agentUrl = process.env.AGENT_SERVICE_URL || 'http://localhost:8000';
@@ -23,7 +23,8 @@ export class AgentProxy {
   async sendChatMessage(
     req: ChatRequest,
     headers: { 'X-Request-ID'?: string; 'X-User-Identity'?: string },
-    onEvent: (event: AgentEvent) => void
+    onEvent: (event: AgentEvent) => void,
+    signal?: AbortSignal
   ): Promise<void> {
     const url = `${this.agentUrl}/api/v1/chat`;
     const response = await fetch(url, {
@@ -33,7 +34,8 @@ export class AgentProxy {
         'Accept': 'text/event-stream',
         ...headers
       },
-      body: JSON.stringify(req)
+      body: JSON.stringify(req),
+      signal
     });
 
     if (!response.ok) {

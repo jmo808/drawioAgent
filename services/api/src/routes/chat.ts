@@ -13,6 +13,7 @@ const agentProxy = new AgentProxy();
 export async function chatRoutes(app: FastifyInstance) {
   app.get('/api/v1/ws/chat', { websocket: true }, (socket, req) => {
     const sessionId = crypto.randomUUID();
+    const abortController = new AbortController();
     
     const query = req.query as { apiKey?: string; classification?: string };
     const classification = query.classification || 'public';
@@ -82,10 +83,20 @@ export async function chatRoutes(app: FastifyInstance) {
 
         if (parsed.type === 'chat_message') {
           const clientMsgId = parsed.id;
-          req.log.info({ parsed, sessionId, classification }, 'Proxying chat message to agent');
+          req.log.info({ type: parsed.type, id: parsed.id, sessionId, classification }, 'Proxying chat message to agent');
           
+          if (!parsed.payload || typeof parsed.payload.text !== 'string') {
+            req.log.warn({ sessionId }, 'Invalid chat message payload structure');
+            socket.send(JSON.stringify({
+              type: 'error',
+              payload: { code: 'BAD_REQUEST', message: 'Invalid chat message payload' },
+              timestamp: new Date().toISOString()
+            }));
+            return;
+          }
+
           try {
-            const chatPayload = parsed.payload as unknown as ChatMessage;
+            const chatPayload = parsed.payload;
             await agentProxy.sendChatMessage(
               {
                 message: chatPayload.text,
@@ -105,9 +116,11 @@ export async function chatRoutes(app: FastifyInstance) {
                   id: clientMsgId,
                   timestamp: new Date().toISOString()
                 }));
-              }
+              },
+              abortController.signal
             );
           } catch (agentErr: unknown) {
+            if (abortController.signal.aborted) return;
             req.log.error({ error: agentErr, sessionId }, 'Error during agent proxying');
             socket.send(JSON.stringify({
               type: 'error',
@@ -128,6 +141,7 @@ export async function chatRoutes(app: FastifyInstance) {
     });
 
     socket.on('close', () => {
+      abortController.abort();
       req.log.info({ sessionId }, 'WebSocket connection closed');
     });
   });

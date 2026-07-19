@@ -70,7 +70,7 @@ class AgentOrchestrator:
 
         # Gate cloud LLM usage based on classification level
         is_cloud_provider = self.settings.llm_provider in ["gemini", "openai"]
-        if is_cloud_provider and classification in ["confidential", "restricted"]:
+        if is_cloud_provider and classification and classification.lower() in ["confidential", "restricted"]:
             yield {
                 "event": "error",
                 "data": {
