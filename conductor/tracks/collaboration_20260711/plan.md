@@ -27,14 +27,14 @@
     - [x] Implement: `leaveSession(sessionId, connId)` — HDEL member, check if empty, broadcast
     - [x] Implement: `refreshTTL(sessionId)` — EXPIRE on all `session:{id}:*` keys
     - [x] Implement: `getSessionState(sessionId)` — MGET diagram + HGETALL members + LRANGE chat
-- [ ] Task: Implement AI request serialization lock (CD-3)
-    - [ ] Write Tests: Test `acquireLock()` succeeds when no lock exists
-    - [ ] Write Tests: Test `acquireLock()` fails when lock is held by another user
-    - [ ] Write Tests: Test lock auto-expires after 60 seconds (timeout safety)
-    - [ ] Write Tests: Test `releaseLock()` clears the lock and broadcasts `ai_unlocked`
-    - [ ] Implement: `acquireLock(sessionId, connId)` — SET NX EX 60 on `session:{id}:lock`
-    - [ ] Implement: `releaseLock(sessionId, connId)` — DEL with owner verification (Lua script)
-    - [ ] Implement: Integrate lock check into chat message handler (queue or reject if locked)
+- [x] Task: Implement AI request serialization lock (CD-3) (ad04092)
+    - [x] Write Tests: Test `acquireLock()` succeeds when no lock exists
+    - [x] Write Tests: Test `acquireLock()` fails when lock is held by another user
+    - [x] Write Tests: Test lock auto-expires after 60 seconds (timeout safety)
+    - [x] Write Tests: Test `releaseLock()` clears the lock and broadcasts `ai_unlocked`
+    - [x] Implement: `acquireLock(sessionId, connId)` — SET NX EX 60 on `session:{id}:lock`
+    - [x] Implement: `releaseLock(sessionId, connId)` — DEL with owner verification (Lua script)
+    - [x] Implement: Integrate lock check into chat message handler (queue or reject if locked)
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Valkey Integration & Session Management' (Protocol in workflow.md)
 
 ## Phase 2: Real-Time Broadcast via Pub/Sub
