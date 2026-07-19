@@ -8,3 +8,7 @@ data:
   AGENT_SERVICE_URL: "http://{{ include "drawio-agent.fullname" . }}-agent:8000"
   API_PORT: "3000"
   FRONTEND_PORT: "8080"
+  AUTH_PROVIDER: {{ .Values.auth.provider | quote }}
+  AUTH_JWKS_URI: {{ .Values.auth.jwksUri | quote }}
+  AUTH_ISSUER: {{ .Values.auth.issuer | quote }}
+  AUTH_AUDIENCE: {{ .Values.auth.audience | quote }}

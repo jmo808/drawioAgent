@@ -62,6 +62,13 @@ agent:
     model: "llama3"
     apiKey: ""
 
+# Authentication settings
+auth:
+  provider: "apikey" # apikey | oidc | both
+  jwksUri: ""
+  issuer: ""
+  audience: "drawio-agent"
+
 # Collaboration (Valkey) stub settings (For future Phase 2 work)
 collaboration:
   enabled: false

@@ -37,6 +37,26 @@ spec:
                   key: api-key
             - name: AGENT_SERVICE_URL
               value: "http://{{ include "drawio-agent.fullname" . }}-agent:8000"
+            - name: AUTH_PROVIDER
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "drawio-agent.fullname" . }}-config
+                  key: AUTH_PROVIDER
+            - name: AUTH_JWKS_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "drawio-agent.fullname" . }}-config
+                  key: AUTH_JWKS_URI
+            - name: AUTH_ISSUER
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "drawio-agent.fullname" . }}-config
+                  key: AUTH_ISSUER
+            - name: AUTH_AUDIENCE
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "drawio-agent.fullname" . }}-config
+                  key: AUTH_AUDIENCE
           livenessProbe:
             httpGet:
               path: /health

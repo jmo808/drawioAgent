@@ -14,7 +14,7 @@ export async function buildApp(app: FastifyInstance) {
   await app.register(websocketPlugin);
 
   // Register authentication middleware
-  await app.register(authPlugin, { bypassRoutes: ['/health', '/ready'] });
+  await app.register(authPlugin, { bypassRoutes: ['/health', '/ready', '/metrics'] });
 
   // Register health check routes
   await app.register(healthRoutes);
