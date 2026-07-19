@@ -44,7 +44,7 @@
     - [x] Write Tests: Test MCP operations exceeding 30s timeout are cancelled
     - [x] Implement: Add max message size validation to NDJSON parsing loop
     - [x] Implement: Add configurable timeout to MCP tool call execution
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: MCP Sandboxing' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: MCP Sandboxing' (Protocol in walkthrough.md)
 
 ## Phase 3: High — Data Flow Controls (F-03, F-07, F-04)
 
