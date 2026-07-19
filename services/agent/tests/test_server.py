@@ -17,19 +17,22 @@ def test_get_health(client):
     assert response.json() == {"status": "ok"}
 
 def test_get_providers(client):
-    response = client.get("/api/providers")
+    response = client.get("/api/v1/providers")
     assert response.status_code == 200
+    assert response.headers["X-API-Version"] == "1.0.0"
     assert "providers" in response.json()
     assert response.json()["providers"] == [{"provider": "openai", "model": "gpt-4"}]
 
 def test_post_chat_validation(client):
     # Missing message
-    response = client.post("/api/chat", json={"sessionId": "session-1"})
+    response = client.post("/api/v1/chat", json={"sessionId": "session-1"})
     assert response.status_code == 422
+    assert response.headers["X-API-Version"] == "1.0.0"
     
     # Missing sessionId
-    response = client.post("/api/chat", json={"message": "hello"})
+    response = client.post("/api/v1/chat", json={"message": "hello"})
     assert response.status_code == 422
+    assert response.headers["X-API-Version"] == "1.0.0"
 
 def test_post_chat_stream(client):
     mock_orchestrator = MagicMock(spec=AgentOrchestrator)
@@ -45,10 +48,11 @@ def test_post_chat_stream(client):
     
     try:
         response = client.post(
-            "/api/chat",
+            "/api/v1/chat",
             json={"message": "draw line", "sessionId": "session-123"}
         )
         assert response.status_code == 200
+        assert response.headers["X-API-Version"] == "1.0.0"
         assert "text/event-stream" in response.headers["content-type"]
         
         content = response.content.decode("utf-8")
@@ -75,7 +79,7 @@ def test_post_chat_stream_with_classification(client):
     
     try:
         response = client.post(
-            "/api/chat",
+            "/api/v1/chat",
             json={
                 "message": "draw line",
                 "sessionId": "session-123",
@@ -83,6 +87,7 @@ def test_post_chat_stream_with_classification(client):
             }
         )
         assert response.status_code == 200
+        assert response.headers["X-API-Version"] == "1.0.0"
         assert received_classification == ["confidential"]
         content = response.content.decode("utf-8")
         assert "Classification is confidential" in content

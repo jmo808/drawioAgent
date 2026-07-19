@@ -18,17 +18,17 @@ spec:
     - matches:
         - path:
             type: PathPrefix
-            value: /api
+            value: /api/v1
       backendRefs:
         - name: {{ include "drawio-agent.fullname" . }}-api
           port: 3000
     # 2. WebSocket chat route
-    # Note: When Gateway TLS is enabled, client connections to /ws must use WSS (wss://).
+    # Note: When Gateway TLS is enabled, client connections to /api/v1/ws must use WSS (wss://).
     # The Gateway terminates TLS on port 443 and forwards plain WebSocket frames to the API service.
     - matches:
         - path:
             type: PathPrefix
-            value: /ws
+            value: /api/v1/ws
       backendRefs:
         - name: {{ include "drawio-agent.fullname" . }}-api
           port: 3000

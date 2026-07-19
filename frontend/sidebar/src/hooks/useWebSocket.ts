@@ -28,7 +28,7 @@ export const useWebSocket = ({
 
       const host = window.location.host || 'localhost:3000'
       const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-      const url = `${protocol}//${host}/ws/chat?apiKey=${apiKey || ''}`
+      const url = `${protocol}//${host}/api/v1/ws/chat?apiKey=${apiKey || ''}`
 
       console.log(`[DrawioAgentWS] Connecting to ${url}`)
       

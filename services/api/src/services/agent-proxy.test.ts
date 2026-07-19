@@ -29,7 +29,7 @@ describe('AgentProxy service', () => {
     ];
     
     client.intercept({
-      path: '/api/chat',
+      path: '/api/v1/chat',
       method: 'POST',
       body: JSON.stringify({
         message: 'draw a circle',
@@ -67,7 +67,7 @@ describe('AgentProxy service', () => {
   it('should handle service unavailability by throwing/returning error', async () => {
     const client = mockAgent.get('http://localhost:8000');
     client.intercept({
-      path: '/api/chat',
+      path: '/api/v1/chat',
       method: 'POST'
     }).replyWithError(new Error('Connection refused'));
 

@@ -22,6 +22,14 @@ spec:
         - name: valkey
           image: docker.io/valkey/valkey:8
           imagePullPolicy: IfNotPresent
+          args:
+            {{- if .Values.collaboration.persistence.enabled }}
+            - --save
+            - {{ .Values.collaboration.persistence.saveIntervals | quote }}
+            {{- else }}
+            - --save
+            - ""
+            {{- end }}
           ports:
             - name: valkey
               containerPort: 6379

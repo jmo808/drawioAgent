@@ -10,6 +10,12 @@ import { chatRoutes } from './routes/chat.js';
  * @param app Fastify instance to configure.
  */
 export async function buildApp(app: FastifyInstance) {
+  // Add X-API-Version global header hook
+  app.addHook('onSend', async (request, reply, payload) => {
+    reply.header('X-API-Version', '1.0.0');
+    return payload;
+  });
+
   // Register WebSocket plugin
   await app.register(websocketPlugin);
 

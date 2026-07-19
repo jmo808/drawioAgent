@@ -5,7 +5,7 @@ import { WebSocket } from 'ws';
 import { AddressInfo } from 'net';
 import { MockAgent, setGlobalDispatcher } from 'undici';
 
-describe('WebSocket /ws/chat Endpoint', () => {
+describe('WebSocket /api/v1/ws/chat Endpoint', () => {
   let app: any;
   let url: string;
   let mockAgent: MockAgent;
@@ -25,7 +25,7 @@ describe('WebSocket /ws/chat Endpoint', () => {
     await buildApp(app);
     await app.listen({ port: 0 });
     const address = app.server.address() as AddressInfo;
-    url = `ws://localhost:${address.port}/ws/chat`;
+    url = `ws://localhost:${address.port}/api/v1/ws/chat`;
   });
 
   afterEach(async () => {
@@ -114,7 +114,7 @@ describe('WebSocket /ws/chat Endpoint', () => {
     const client = mockAgent.get('http://localhost:8000');
 
     client.intercept({
-      path: '/api/chat',
+      path: '/api/v1/chat',
       method: 'POST',
       body: (value) => {
         const parsed = JSON.parse(value);
@@ -154,7 +154,7 @@ describe('WebSocket /ws/chat Endpoint', () => {
     const client = mockAgent.get('http://localhost:8000');
 
     client.intercept({
-      path: '/api/chat',
+      path: '/api/v1/chat',
       method: 'POST'
     }).replyWithError(new Error('Connection refused'));
 
@@ -209,7 +209,7 @@ describe('WebSocket /ws/chat Endpoint', () => {
     const client = mockAgent.get('http://localhost:8000');
 
     client.intercept({
-      path: '/api/chat',
+      path: '/api/v1/chat',
       method: 'POST',
       body: (value) => {
         const parsed = JSON.parse(value);

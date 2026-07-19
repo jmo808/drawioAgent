@@ -81,7 +81,7 @@ describe('Security Audit Logging', () => {
     // Start listening to allow websocket connection
     await app.listen({ port: 0 });
     const address = app.server.address() as any;
-    const wsUrl = `ws://localhost:${address.port}/ws/chat?apiKey=super-secret-key`;
+    const wsUrl = `ws://localhost:${address.port}/api/v1/ws/chat?apiKey=super-secret-key`;
 
     const ws = new WebSocket(wsUrl);
     

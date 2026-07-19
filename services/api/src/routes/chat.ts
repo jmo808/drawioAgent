@@ -10,7 +10,7 @@ const agentProxy = new AgentProxy();
  * Registers the WebSocket chat route.
  */
 export async function chatRoutes(app: FastifyInstance) {
-  app.get('/ws/chat', { websocket: true }, (socket, req) => {
+  app.get('/api/v1/ws/chat', { websocket: true }, (socket, req) => {
     const sessionId = crypto.randomUUID();
     
     const query = req.query as { apiKey?: string; classification?: string };

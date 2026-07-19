@@ -56,11 +56,17 @@ def create_app(app_settings: Settings) -> FastAPI:
 
     app = FastAPI(lifespan=lifespan)
 
+    @app.middleware("http")
+    async def add_api_version_header(request: Request, call_next):
+        response = await call_next(request)
+        response.headers["X-API-Version"] = "1.0.0"
+        return response
+
     @app.get("/health")
     def health():
         return {"status": "ok"}
 
-    @app.get("/api/providers")
+    @app.get("/api/v1/providers")
     def providers():
         return {
             "providers": [
@@ -71,7 +77,7 @@ def create_app(app_settings: Settings) -> FastAPI:
             ]
         }
 
-    @app.post("/api/chat")
+    @app.post("/api/v1/chat")
     async def chat(
         req: ChatRequest,
         request: Request,

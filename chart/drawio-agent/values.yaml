@@ -79,6 +79,11 @@ collaboration:
     enabled: false
     # Secret name containing 'ca.crt', 'valkey.crt', and 'valkey.key'
     secretName: "valkey-tls-certs"
+  # Valkey RDB persistence/snapshots configuration
+  persistence:
+    enabled: true
+    # Snapshots save parameters (save <seconds> <changes>)
+    saveIntervals: "900 1 300 10"
 
 # Gateway API routing settings
 gateway:

@@ -42,6 +42,18 @@ export const MCPToolResultSchema = z.object({
   isError: z.boolean().optional()
 });
 
+export const CollaborationJoinPayloadSchema = z.object({
+  sessionId: z.string(),
+  displayName: z.string(),
+  identityLink: z.string().optional() // Optional identity linking field
+});
+
+export const CollaborationSyncPayloadSchema = z.object({
+  sessionId: z.string(),
+  diagramXml: z.string(),
+  version: z.number() // Version field to prevent race conditions
+});
+
 // WebSocket Message Types List
 export type WebSocketMessageType = 
   | 'chat_message'
@@ -51,7 +63,9 @@ export type WebSocketMessageType =
   | 'provider_change'
   | 'template_select'
   | 'diagram_state_sync'
-  | 'provider_warning';
+  | 'provider_warning'
+  | 'collaboration_join'
+  | 'collaboration_sync';
 
 export const WebSocketMessageSchema = z.object({
   type: z.enum([
@@ -62,7 +76,9 @@ export const WebSocketMessageSchema = z.object({
     'provider_change',
     'template_select',
     'diagram_state_sync',
-    'provider_warning'
+    'provider_warning',
+    'collaboration_join',
+    'collaboration_sync'
   ]),
   payload: z.record(z.any()),
   id: z.string().optional(),
@@ -130,4 +146,15 @@ export function isDiagramUpdate(payload: any): payload is DiagramUpdate {
  */
 export function isErrorPayload(payload: any): payload is ErrorPayload {
   return ErrorPayloadSchema.safeParse(payload).success;
+}
+
+export type CollaborationJoinPayload = z.infer<typeof CollaborationJoinPayloadSchema>;
+export type CollaborationSyncPayload = z.infer<typeof CollaborationSyncPayloadSchema>;
+
+export function isCollaborationJoinPayload(payload: any): payload is CollaborationJoinPayload {
+  return CollaborationJoinPayloadSchema.safeParse(payload).success;
+}
+
+export function isCollaborationSyncPayload(payload: any): payload is CollaborationSyncPayload {
+  return CollaborationSyncPayloadSchema.safeParse(payload).success;
 }

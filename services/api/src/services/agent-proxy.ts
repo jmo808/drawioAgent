@@ -25,7 +25,7 @@ export class AgentProxy {
     headers: { 'X-Request-ID'?: string; 'X-User-Identity'?: string },
     onEvent: (event: AgentEvent) => void
   ): Promise<void> {
-    const url = `${this.agentUrl}/api/chat`;
+    const url = `${this.agentUrl}/api/v1/chat`;
     const response = await fetch(url, {
       method: 'POST',
       headers: {
