@@ -113,7 +113,7 @@
 
 ## Phase 6: Medium & Low — Remaining Items (F-10, F-12, F-14, F-15, F-16, F-17, F-19)
 
-- [ ] Task: Address remaining medium and low findings
+- [~] Task: Address remaining medium and low findings
     - [ ] Implement: Document multi-runtime image split plan in ADR for v2
     - [ ] Implement: Define RTO (1h) / RPO (24h) targets in operational runbook
     - [ ] Implement: Enable Valkey RDB snapshots configuration in values.yaml
