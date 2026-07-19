@@ -1,6 +1,6 @@
 # Implementation Plan: Multi-User Collaboration & Shared Sessions
 
-## Phase 1: Valkey Integration & Session Management
+## Phase 1: Valkey Integration & Session Management [checkpoint: 8917900]
 
 - [x] Task: Integrate Valkey client into Fastify API server (70257b8)
     - [x] Write Tests: Test Valkey connection establishment and health check via `ioredis`
@@ -35,7 +35,7 @@
     - [x] Implement: `acquireLock(sessionId, connId)` — SET NX EX 60 on `session:{id}:lock`
     - [x] Implement: `releaseLock(sessionId, connId)` — DEL with owner verification (Lua script)
     - [x] Implement: Integrate lock check into chat message handler (queue or reject if locked)
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Valkey Integration & Session Management' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Valkey Integration & Session Management' (Protocol in workflow.md) (8917900)
 
 ## Phase 2: Real-Time Broadcast via Pub/Sub
 
