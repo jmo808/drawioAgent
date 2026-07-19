@@ -100,6 +100,48 @@ helm install drawio-agent ./chart/drawio-agent \
 
 ---
 
+## 🔐 Security & Encryption (TLS/mTLS)
+
+### 1. Ingress TLS (HTTPS/WSS)
+To secure client traffic into the cluster (enforcing HTTPS and WSS connections), configure the Gateway with TLS termination:
+```yaml
+gateway:
+  enabled: true
+  tls:
+    enabled: true
+    secretName: "drawio-gateway-tls" # Secret containing tls.crt and tls.key
+```
+Once TLS is enabled, client-side WebSocket connections must use the secure protocol (`wss://`).
+
+### 2. Valkey (State Store) TLS
+To encrypt session state and collaboration cache traffic to Valkey, enable Valkey TLS:
+```yaml
+collaboration:
+  enabled: true
+  tls:
+    enabled: true
+    secretName: "valkey-tls-certs" # Contains ca.crt, valkey.crt, valkey.key
+```
+
+### 3. API-to-Agent mTLS
+For zero-trust environments requiring mutual authentication between the API Gateway and the Agent, deploy with mTLS configurations:
+```yaml
+# 1. API gateway client cert credentials
+api:
+  tls:
+    enabled: true
+    clientCertSecret: "api-client-tls" # Contains client cert & private key
+
+# 2. Agent server credentials and client authentication config
+agent:
+  tls:
+    enabled: true
+    serverCertSecret: "agent-server-tls" # Contains agent server cert & private key
+    clientCASecret: "agent-client-ca"    # Contains CA certificate used to verify the API Gateway client cert
+```
+
+---
+
 ## 🧼 Uninstalling
 To cleanly remove all chart components and release resources:
 ```bash

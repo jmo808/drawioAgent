@@ -74,6 +74,11 @@ auth:
 # Collaboration (Valkey) stub settings (For future Phase 2 work)
 collaboration:
   enabled: false
+  # Valkey TLS/Encryption configuration
+  tls:
+    enabled: false
+    # Secret name containing 'ca.crt', 'valkey.crt', and 'valkey.key'
+    secretName: "valkey-tls-certs"
 
 # Gateway API routing settings
 gateway:
@@ -81,7 +86,25 @@ gateway:
   enabled: true
   name: "drawio-gateway"
   gatewayClassName: "cilium"
+  # TLS/HTTPS configuration for external ingress
+  tls:
+    enabled: false
+    # Secret name containing 'tls.crt' and 'tls.key'
+    secretName: "drawio-gateway-tls"
 
 httproute:
   # Hostnames to match (e.g. ["drawio.example.com"])
   hostnames: []
+
+# mTLS Configuration Example (API-to-Agent)
+# To secure internal pod-to-pod communication between API and Agent:
+# api:
+#   tls:
+#     enabled: true
+#     clientCertSecret: "api-client-tls" # Contains client cert/key
+# agent:
+#   tls:
+#     enabled: true
+#     serverCertSecret: "agent-server-tls" # Contains server cert/key
+#     clientCASecret: "agent-client-ca"    # CA to verify API clients
+
