@@ -71,7 +71,7 @@
     - [x] Implement: Gate cloud LLM usage based on classification level
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Data Flow Controls' (Protocol in workflow.md) (b2c4397)
 
-## Phase 4: High — Security Audit Logging (F-08)
+## Phase 4: High — Security Audit Logging (F-08) [checkpoint: b493571]
 
 - [x] Task: Implement AU-2-compliant security event logging (509599b)
     - [x] Write Tests: Test auth success events are logged with user identity
@@ -86,7 +86,7 @@
     - [x] Implement: Add security event logging to MCP bridge
     - [x] Implement: Add security event logging to rate limiter
     - [x] Implement: Ensure audit log entries are marked as non-redactable
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Security Audit Logging' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Security Audit Logging' (Protocol in workflow.md) (b493571)
 
 ## Phase 5: Medium — Encryption, Rate Limiting, Privacy (F-09, F-11, F-13)
 
