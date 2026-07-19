@@ -11,22 +11,22 @@
     - [x] Implement: Create Valkey client Fastify plugin (`src/plugins/valkey.ts`) — gated by `COLLABORATION_ENABLED` env var
     - [x] Implement: Connection configuration from env vars (`VALKEY_HOST`, `VALKEY_PORT`, `VALKEY_PASSWORD`)
     - [x] Implement: Update `/ready` endpoint to check Valkey connectivity when collaboration is enabled
-- [ ] Task: Implement SessionManager class
-    - [ ] Write Tests: Test `createSession()` generates UUID + 6-char alphanumeric short code, stores in Valkey
-    - [ ] Write Tests: Test `joinSession()` by UUID adds member to `session:{id}:members` hash
-    - [ ] Write Tests: Test `joinSession()` by short code resolves via `shortcode:{code}` → UUID → join
-    - [ ] Write Tests: Test `joinSession()` rejects when session is at max capacity (10 members)
-    - [ ] Write Tests: Test `joinSession()` returns current state (diagram XML + chat history + member list)
-    - [ ] Write Tests: Test `leaveSession()` removes member, broadcasts `member_left`
-    - [ ] Write Tests: Test `leaveSession()` by last member auto-deletes all session keys
-    - [ ] Write Tests: Test session TTL is refreshed on any activity (join, message, diagram update)
-    - [ ] Write Tests: Test `getSessionByShortCode()` returns null for non-existent codes
-    - [ ] Implement: Create `SessionManager` class (`src/services/session-manager.ts`)
-    - [ ] Implement: `createSession(displayName)` — UUID v4 + nanoid(6) short code, MULTI/EXEC to set all keys atomically
-    - [ ] Implement: `joinSession(sessionIdOrCode, connId, displayName)` — resolve short code if needed, HSET member, return state
-    - [ ] Implement: `leaveSession(sessionId, connId)` — HDEL member, check if empty, broadcast
-    - [ ] Implement: `refreshTTL(sessionId)` — EXPIRE on all `session:{id}:*` keys
-    - [ ] Implement: `getSessionState(sessionId)` — MGET diagram + HGETALL members + LRANGE chat
+- [x] Task: Implement SessionManager class (8d55349)
+    - [x] Write Tests: Test `createSession()` generates UUID + 6-char alphanumeric short code, stores in Valkey
+    - [x] Write Tests: Test `joinSession()` by UUID adds member to `session:{id}:members` hash
+    - [x] Write Tests: Test `joinSession()` by short code resolves via `shortcode:{code}` → UUID → join
+    - [x] Write Tests: Test `joinSession()` rejects when session is at max capacity (10 members)
+    - [x] Write Tests: Test `joinSession()` returns current state (diagram XML + chat history + member list)
+    - [x] Write Tests: Test `leaveSession()` removes member, broadcasts `member_left`
+    - [x] Write Tests: Test `leaveSession()` by last member auto-deletes all session keys
+    - [x] Write Tests: Test session TTL is refreshed on any activity (join, message, diagram update)
+    - [x] Write Tests: Test `getSessionByShortCode()` returns null for non-existent codes (resolving short code throws/returns null/handled)
+    - [x] Implement: Create `SessionManager` class (`src/services/session-manager.ts`)
+    - [x] Implement: `createSession(displayName)` — UUID v4 + nanoid(6) short code, MULTI/EXEC to set all keys atomically
+    - [x] Implement: `joinSession(sessionIdOrCode, connId, displayName)` — resolve short code if needed, HSET member, return state
+    - [x] Implement: `leaveSession(sessionId, connId)` — HDEL member, check if empty, broadcast
+    - [x] Implement: `refreshTTL(sessionId)` — EXPIRE on all `session:{id}:*` keys
+    - [x] Implement: `getSessionState(sessionId)` — MGET diagram + HGETALL members + LRANGE chat
 - [ ] Task: Implement AI request serialization lock (CD-3)
     - [ ] Write Tests: Test `acquireLock()` succeeds when no lock exists
     - [ ] Write Tests: Test `acquireLock()` fails when lock is held by another user
