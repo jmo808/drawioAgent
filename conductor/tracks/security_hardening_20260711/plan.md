@@ -15,7 +15,7 @@
     - [x] Implement: Add `auth.provider`, `auth.jwksUri`, `auth.issuer`, `auth.audience` to Helm values.yaml
     - [x] Implement: Mount auth config from ConfigMap/Secret into API deployment
     - [x] Implement: Add per-user identity extraction from JWT claims to request context
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Authentication & Identity' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Authentication & Identity' (Protocol in workflow.md) (9cc1536)
 
 ## Phase 2: High — MCP Sandboxing & Input Validation (F-02, F-05, F-06, F-18)
 
