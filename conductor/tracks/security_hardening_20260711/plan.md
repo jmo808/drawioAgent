@@ -90,11 +90,11 @@
 
 ## Phase 5: Medium — Encryption, Rate Limiting, Privacy (F-09, F-11, F-13)
 
-- [~] Task: Document and enforce encryption requirements
-    - [ ] Implement: Add TLS configuration section to Helm values.yaml
-    - [ ] Implement: Document WSS requirement in Gateway API HTTPRoute
-    - [ ] Implement: Add Valkey TLS configuration option
-    - [ ] Implement: Document mTLS option for API-to-Agent with example
+- [x] Task: Document and enforce encryption requirements (c9bd5ea)
+    - [x] Implement: Add TLS configuration section to Helm values.yaml
+    - [x] Implement: Document WSS requirement in Gateway API HTTPRoute
+    - [x] Implement: Add Valkey TLS configuration option
+    - [x] Implement: Document mTLS option for API-to-Agent with example
 - [x] Task: Implement WebSocket message rate limiting (509599b)
     - [x] Write Tests: Test messages within rate limit are processed
     - [x] Write Tests: Test messages exceeding rate limit are dropped with warning frame
@@ -102,7 +102,7 @@
     - [x] Implement: Create WebSocket rate limiter middleware (token bucket: 60 msg/min)
     - [x] Implement: Apply to all WebSocket message types
     - [x] Implement: Return rate limit warning frame when exceeded
-- [ ] Task: Implement privacy notice and consent
+- [~] Task: Implement privacy notice and consent
     - [ ] Write Tests: Test privacy banner renders on first sidebar load
     - [ ] Write Tests: Test consent toggle state persists in localStorage
     - [ ] Write Tests: Test cloud LLM requests are blocked when consent not given
