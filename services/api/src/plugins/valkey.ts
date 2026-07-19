@@ -2,10 +2,13 @@ import { FastifyInstance } from 'fastify';
 import fp from 'fastify-plugin';
 import { Redis } from 'ioredis';
 
+import { PubSubManager } from '../services/pubsub-manager.js';
+
 declare module 'fastify' {
   interface FastifyInstance {
     valkey: Redis | null;
     valkeySubscriber: Redis | null;
+    pubsubManager: PubSubManager | null;
   }
 }
 
@@ -18,6 +21,7 @@ export const valkeyPlugin = fp(async (fastify: FastifyInstance) => {
   if (!isCollaborationEnabled) {
     fastify.decorate('valkey', null);
     fastify.decorate('valkeySubscriber', null);
+    fastify.decorate('pubsubManager', null);
     fastify.log.info('Collaboration mode is disabled; Valkey client is not initialized.');
     return;
   }
@@ -58,8 +62,11 @@ export const valkeyPlugin = fp(async (fastify: FastifyInstance) => {
     fastify.log.error({ err }, 'Valkey subscriber client error');
   });
 
+  const pubsubManager = new PubSubManager(valkeyClient, valkeySubscriberClient);
+
   fastify.decorate('valkey', valkeyClient);
   fastify.decorate('valkeySubscriber', valkeySubscriberClient);
+  fastify.decorate('pubsubManager', pubsubManager);
 
   fastify.addHook('onClose', async (instance) => {
     fastify.log.info('Closing Valkey client connections...');

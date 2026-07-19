@@ -13,6 +13,7 @@ const agentProxy = new AgentProxy();
 export async function chatRoutes(app: FastifyInstance) {
   app.get('/api/v1/ws/chat', { websocket: true }, (socket, req) => {
     const sessionId = crypto.randomUUID();
+    const connId = crypto.randomUUID();
     const abortController = new AbortController();
     
     const query = req.query as { apiKey?: string; classification?: string };
@@ -31,6 +32,12 @@ export async function chatRoutes(app: FastifyInstance) {
     }
 
     req.log.info({ sessionId, classification }, 'New WebSocket connection established');
+
+    if (app.pubsubManager) {
+      app.pubsubManager.subscribeToSession(sessionId, socket as any, connId).catch(err => {
+        req.log.error({ err, sessionId, connId }, 'Failed to subscribe to pubsub manager');
+      });
+    }
 
     const limitMax = Number(process.env.RATE_LIMIT_MAX_TOKENS) || 10;
     const limitRefill = Number(process.env.RATE_LIMIT_REFILL_RATE) || 2;
@@ -128,6 +135,18 @@ export async function chatRoutes(app: FastifyInstance) {
               timestamp: new Date().toISOString()
             }));
           }
+        } else if (parsed.type === 'diagram_broadcast') {
+          req.log.info({ sessionId, classification }, 'Broadcasting diagram update from client');
+          if (app.pubsubManager && parsed.payload && typeof parsed.payload.diagramXml === 'string') {
+            app.pubsubManager.broadcastDiagramUpdate(
+              sessionId,
+              parsed.payload.diagramXml,
+              connId,
+              (req.user?.sub as string) || 'anonymous'
+            ).catch(err => {
+              req.log.error({ err, sessionId }, 'Failed to broadcast diagram update');
+            });
+          }
         }
       } catch (handlerErr: unknown) {
         req.log.error({ error: handlerErr }, 'Error in WebSocket message handler');
@@ -142,6 +161,11 @@ export async function chatRoutes(app: FastifyInstance) {
     socket.on('close', () => {
       abortController.abort();
       req.log.info({ sessionId }, 'WebSocket connection closed');
+      if (app.pubsubManager) {
+        app.pubsubManager.unsubscribeFromSession(sessionId, connId).catch(err => {
+          req.log.error({ err, sessionId, connId }, 'Failed to unsubscribe from pubsub manager');
+        });
+      }
     });
   });
 }

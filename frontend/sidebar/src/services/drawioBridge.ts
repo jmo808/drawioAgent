@@ -68,3 +68,36 @@ export const getDiagramStats = (ui: EditorUi): { nodeCount: number; edgeCount: n
 
   return { nodeCount, edgeCount }
 }
+
+export const subscribeToGraphChanges = (
+  ui: EditorUi, 
+  onChange: (xml: string) => void, 
+  debounceMs: number = 500
+): () => void => {
+  if (!ui || !ui.editor || !ui.editor.graph || !ui.editor.graph.model) {
+    return () => {}
+  }
+
+  let timeoutId: ReturnType<typeof setTimeout>
+  
+  const listener = () => {
+    clearTimeout(timeoutId)
+    timeoutId = setTimeout(() => {
+      onChange(getGraphXml(ui))
+    }, debounceMs)
+  }
+  
+  const model = ui.editor.graph.model as any
+  const mxEvent = (window as any).mxEvent
+  
+  if (model.addListener && mxEvent && mxEvent.CHANGE) {
+    model.addListener(mxEvent.CHANGE, listener)
+    
+    return () => {
+      clearTimeout(timeoutId)
+      model.removeListener(listener)
+    }
+  }
+  
+  return () => {}
+}

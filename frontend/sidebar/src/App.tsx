@@ -211,7 +211,7 @@ function App({ ui }: AppProps) {
     document.addEventListener('mouseup', handleMouseUp)
   }
 
-  const { sendMessage } = useWebSocket({
+  const { sendMessage, broadcastDiagram } = useWebSocket({
     sessionId,
     apiKey,
     onStatusChange: (status) => {
@@ -252,6 +252,14 @@ function App({ ui }: AppProps) {
       }
     }
   });
+
+  useEffect(() => {
+    if (!ui) return
+    const unsubscribe = drawioBridge.subscribeToGraphChanges(ui, (xml) => {
+      broadcastDiagram(xml)
+    }, 500)
+    return () => unsubscribe()
+  }, [ui, broadcastDiagram])
 
   const handleSendMessage = (text: string) => {
     console.log('[DrawioAgent] handleSendMessage called');

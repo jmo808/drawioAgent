@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useCallback } from 'react'
 import type { WebSocketMessage } from '@drawio-agent/shared'
 
 interface UseWebSocketProps {
@@ -127,5 +127,25 @@ export const useWebSocket = ({
     }
   }
 
-  return { sendMessage }
+  const broadcastDiagram = useCallback((diagramXml: string) => {
+    console.log('[DrawioAgentWS] broadcastDiagram called')
+    const envelope = {
+      type: 'diagram_broadcast',
+      payload: {
+        diagramXml,
+        sessionId
+      },
+      id: 'msg-' + Math.random().toString(36).substring(2, 11),
+      timestamp: new Date().toISOString()
+    }
+
+    const payloadStr = JSON.stringify(envelope)
+    const ws = wsRef.current
+
+    if (ws && ws.readyState === 1) {
+      ws.send(payloadStr)
+    }
+  }, [sessionId])
+
+  return { sendMessage, broadcastDiagram }
 }
