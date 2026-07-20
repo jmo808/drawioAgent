@@ -140,4 +140,4 @@
     - [ ] Verify < 50ms threshold
     - [ ] Measure end-to-end diagram generation latency and verify < 15% regression vs. baseline
 
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Integration Testing & Validation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Integration Testing & Validation' (Protocol in workflow.md)
