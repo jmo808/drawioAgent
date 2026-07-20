@@ -46,7 +46,7 @@
 
 ## Phase 2: Dynamic Few-Shot RAG
 
-- [ ] Task: Curate template library (15-20 validated JSON specs)
+- [x] Task: Curate template library (15-20 validated JSON specs) [e8a56f2]
     - [ ] Write failing tests that verify:
       - Template library loads from `references/templates/`
       - Each template is valid against the compile_json_spec schema
