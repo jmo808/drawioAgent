@@ -15,7 +15,7 @@
       - Default node size map matching existing `NODE_SIZES`
     - [ ] Verify tests pass
 
-- [ ] Task: Implement ELK graph builder (`toElkGraph()`)
+- [x] Task: Implement ELK graph builder (toElkGraph()) [602feec]
     - [ ] Write failing tests for converting DiagramBuilder internal state to ELK graph input:
       - Containers become compound nodes with children nested
       - Nodes become leaf nodes with declared sizes
