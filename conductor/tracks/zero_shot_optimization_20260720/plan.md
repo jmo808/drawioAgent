@@ -85,7 +85,7 @@
 
 ## Phase 3: Structured Outputs (JSON Schema Enforcement)
 
-- [ ] Task: Define Pydantic models for the diagram spec schema
+- [x] Task: Define Pydantic models for the diagram spec schema [9d819ac]
     - [ ] Write failing tests for schema validation:
       - Valid specs pass validation
       - Invalid node type is rejected with error listing valid types
