@@ -32,7 +32,7 @@
     - [ ] Implement `applyElkLayout(elkResult)` method on DiagramBuilder
     - [ ] Verify tests pass
 
-- [ ] Task: Integrate ELK into compile_json_spec and finalize pipeline
+- [x] Task: Integrate ELK into compile_json_spec and finalize pipeline [1d8941a]
     - [ ] Write failing tests for hybrid activation:
       - `compile_json_spec` path: ELK runs automatically after compilation
       - Incremental builder path (`add_node`): existing `addNode()` position logic is preserved
