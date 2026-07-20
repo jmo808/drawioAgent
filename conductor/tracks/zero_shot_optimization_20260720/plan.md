@@ -105,7 +105,7 @@
       - `DiagramSpec` model (title, type, theme, containers[], nodes[], edges[])
     - [ ] Verify tests pass
 
-- [ ] Task: Integrate schema enforcement into the orchestrator
+- [x] Task: Integrate schema enforcement into the orchestrator [c0d8a20]
     - [ ] Write failing tests for the orchestrator's validation step:
       - LLM output with valid spec passes through to MCP wrapper
       - LLM output with invalid spec triggers Pydantic validation error
