@@ -1,6 +1,7 @@
 import pytest
 import os
 import tempfile
+import json
 from agent.conversation import ConversationManager
 from agent.config import Settings
 
@@ -121,3 +122,53 @@ def test_context_window_truncation(temp_skills_dir):
     assert messages[0]["role"] == "system"
     assert messages[1]["content"] == "Message 6"
     assert messages[4]["content"] == "Message 9"
+
+def test_rag_prompt_augmentation(temp_skills_dir):
+    templates_dir = os.path.join(temp_skills_dir, "references", "templates")
+    os.makedirs(templates_dir, exist_ok=True)
+    
+    index_data = [{
+        "id": "aws_serverless_api",
+        "description": "AWS Serverless API Gateway Lambda DynamoDB",
+        "file": "aws_serverless.json",
+        "category": "architecture"
+    }]
+    with open(os.path.join(templates_dir, "index.json"), "w") as f:
+        json.dump(index_data, f)
+        
+    template_spec = {
+        "title": "AWS Serverless API",
+        "type": "architecture",
+        "theme": "light",
+        "containers": [],
+        "nodes": [{"id": "lambda", "type": "lambda"}],
+        "edges": []
+    }
+    with open(os.path.join(templates_dir, "aws_serverless.json"), "w") as f:
+        json.dump(template_spec, f)
+        
+    settings = Settings(skills_dir=temp_skills_dir)
+    mgr = ConversationManager(settings)
+    
+    session_id = "test-session-rag"
+    mgr.get_or_create_conversation(session_id)
+    
+    # Pre-checks: no matched template initially
+    messages = mgr.get_conversation(session_id)
+    assert "## Few-Shot Example" not in messages[0]["content"]
+    
+    # 1. Add matching user prompt
+    mgr.add_message(session_id, "user", "create a serverless api using lambda and dynamodb table")
+    messages = mgr.get_conversation(session_id)
+    
+    # Post-checks: matched template should be injected into system prompt
+    assert "## Few-Shot Example" in messages[0]["content"]
+    assert "aws_serverless_api" in messages[0]["content"]
+    assert "lambda" in messages[0]["content"]
+    
+    # 2. Add unrelated message - matched template should persist or be updated
+    mgr.add_message(session_id, "user", "draw a flowchart")
+    messages = mgr.get_conversation(session_id)
+    # Persists the matched template (or does not crash/break)
+    assert "## Few-Shot Example" in messages[0]["content"]
+

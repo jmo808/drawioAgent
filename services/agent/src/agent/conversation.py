@@ -4,6 +4,7 @@ import logging
 import re
 from typing import Any, Dict, List
 from agent.config import Settings
+from agent.template_matcher import TemplateMatcher
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +17,9 @@ class ConversationManager:
         self.settings = settings
         # Maps session_id -> { "history": [...], "tools": [...], "loaded_references": set() }
         self.conversations: Dict[str, Dict[str, Any]] = {}
+        self.template_matcher = TemplateMatcher(
+            templates_dir=os.path.join(self.settings.skills_dir, "references", "templates")
+        )
 
     def get_or_create_conversation(self, session_id: str, tools: List[Dict[str, Any]] | None = None) -> List[Dict[str, Any]]:
         """
@@ -25,7 +29,13 @@ class ConversationManager:
             self.conversations[session_id] = {
                 "history": [],
                 "tools": tools or [],
-                "loaded_references": set()
+                "loaded_references": {
+                    "xml-style-reference.md",
+                    "layout-patterns.md",
+                    "edge-routing-guide.md"
+                },
+                "matched_template_id": None,
+                "matched_template_spec": None
             }
             # Initialize with system prompt
             system_prompt = self._rebuild_system_prompt(session_id)
@@ -67,6 +77,16 @@ class ConversationManager:
                     loaded.add(doc)
                     changed = True
                     logger.info(f"Dynamically loading reference doc: {doc} for session {session_id}")
+
+            # Dynamic Few-Shot RAG: match template
+            match = self.template_matcher.match(content)
+            if match:
+                current_match_id = self.conversations[session_id].get("matched_template_id")
+                if current_match_id != match.template_id:
+                    self.conversations[session_id]["matched_template_id"] = match.template_id
+                    self.conversations[session_id]["matched_template_spec"] = match.spec_json
+                    changed = True
+                    logger.info(f"Dynamically matched template: {match.template_id} (score {match.score}) for session {session_id}")
 
             if changed:
                 # Rebuild system prompt and update history[0]
@@ -121,19 +141,19 @@ class ConversationManager:
         detected = []
         content_lower = content.lower()
 
-        if self._AWS_PATTERN.search(content_lower):
+        if self._AWS_PATTERN.search(content_lower) or "aws" in content_lower or "topology_error" in content_lower:
             detected.append("aws-well-architected-reviewer.md")
-        if self._GCP_PATTERN.search(content_lower):
+        if self._GCP_PATTERN.search(content_lower) or "gcp" in content_lower:
             detected.append("gcp-well-architected-reviewer.md")
-        if self._K8S_PATTERN.search(content_lower):
+        if self._K8S_PATTERN.search(content_lower) or "kubernetes" in content_lower:
             detected.append("kubernetes-topology-expert.md")
-        if self._PFD_PATTERN.search(content_lower):
+        if self._PFD_PATTERN.search(content_lower) or "pfd" in content_lower:
             detected.append("pfd-engineering-expert.md")
-        if self._ERD_PATTERN.search(content_lower):
+        if self._ERD_PATTERN.search(content_lower) or "erd" in content_lower:
             detected.append("erd-database-expert.md")
-        if self._PID_PATTERN.search(content_lower):
+        if self._PID_PATTERN.search(content_lower) or "pid" in content_lower:
             detected.append("pid-reference.md")
-        if self._NET_PATTERN.search(content_lower):
+        if self._NET_PATTERN.search(content_lower) or "network" in content_lower:
             detected.append("network-topology-expert.md")
 
         return detected
@@ -184,5 +204,20 @@ class ConversationManager:
                         prompt_parts.append(f"\n### {doc}\n{ref_content}\n")
                     except Exception as e:
                         logger.error(f"Error reading reference doc {doc}: {e}")
+
+        # Add matched few-shot template
+        matched_spec = session.get("matched_template_spec")
+        if matched_spec:
+            prompt_parts.append(
+                f"\n## Few-Shot Example\n"
+                f"You have matched a high-similarity reference template architecture: '{session.get('matched_template_id')}'.\n"
+                f"Use this template JSON spec as a guiding pattern for the schema structures, nesting layouts, and relationship connections. "
+                f"You can adapt, expand, or customize it to fulfill the user's specific request. Do NOT blindly copy coordinates from it, but let ELK "
+                f"or our builder position elements dynamically.\n"
+                f"Matched Spec JSON:\n"
+                f"```json\n"
+                f"{json.dumps(matched_spec, indent=2)}\n"
+                f"```\n"
+            )
 
         return "\n".join(prompt_parts)
