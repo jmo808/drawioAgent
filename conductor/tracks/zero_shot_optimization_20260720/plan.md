@@ -135,7 +135,7 @@
     - [ ] Measure and record first-attempt compilation success rate
     - [ ] Verify target > 90% is achieved
 
-- [ ] Task: Verify latency NFR
+- [x] Task: Verify latency NFR [8aa153f]
     - [ ] Measure ELK layout computation time for diagrams with 50 and 100 nodes
     - [ ] Verify < 50ms threshold
     - [ ] Measure end-to-end diagram generation latency and verify < 15% regression vs. baseline
