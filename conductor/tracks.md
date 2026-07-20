@@ -6,13 +6,13 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 
 - [x] **Track 2: Multi-User Collaboration & Shared Sessions**
-  *Link: [./tracks/collaboration_20260711/](./tracks/collaboration_20260711/)*
+  *Link: [./archive/collaboration_20260711/](./archive/collaboration_20260711/)*
 
 
-- [ ] **Track 4: Observability & Production Hardening**
-  *Link: [./tracks/observability_20260711/](./tracks/observability_20260711/)*
+- [x] **Track 4: Observability & Production Hardening**
+  *Link: [./archive/observability_20260711/](./archive/observability_20260711/)*
 
-- [ ] **Track 6: Decoupled Domain Expert Architecture**
+- [x] **Track 6: Decoupled Domain Expert Architecture**
   *Link: [./tracks/domain_separation_20260712/](./tracks/domain_separation_20260712/)*
 
 ---
