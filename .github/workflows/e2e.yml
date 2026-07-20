@@ -82,6 +82,9 @@ jobs:
         run: |
           # Port forward the gateway API service to localhost:8080
           kubectl port-forward svc/drawio-agent-gateway 8080:80 &
+          # Port forward the API service and Agent service for integration tests
+          kubectl port-forward svc/drawio-agent-api 3000:3000 &
+          kubectl port-forward svc/drawio-agent-agent 8000:8000 &
           # Give it a moment to establish connection
           sleep 5
 

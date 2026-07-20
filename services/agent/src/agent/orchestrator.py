@@ -1,27 +1,34 @@
-import json
-import logging
+"""Agent Orchestrator managing conversation turn loop and MCP tool calls."""
+
 import asyncio
-from typing import AsyncGenerator, Dict, Any, List
+import json
+import re
+import time
 from datetime import datetime, timezone
+from typing import AsyncGenerator, Dict, Any, List, Optional, Union
+import structlog
+from opentelemetry import trace
+
 from agent.config import Settings
+from agent.conversation import ConversationManager
 from agent.llm_service import LLMService
 from agent.mcp_bridge import MCPBridge
-from agent.conversation import ConversationManager
+from agent.metrics import diagram_generation_duration_seconds
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
+
 
 class AgentOrchestrator:
-    """
-    Orchestrates the agent loop, managing state initialization,
-    tool execution callbacks, multi-turn LLM completions, and SSE event streaming.
-    """
+    """Orchestrates the agent loop, managing state and tool execution."""
+
     def __init__(
         self,
         settings: Settings,
         llm_service: LLMService,
         mcp_bridge: MCPBridge,
         conversation_manager: ConversationManager
-    ):
+    ) -> None:
+        """Initialize AgentOrchestrator."""
         self.settings = settings
         self.llm_service = llm_service
         self.mcp_bridge = mcp_bridge
@@ -31,17 +38,19 @@ class AgentOrchestrator:
         self,
         session_id: str,
         prompt: str,
-        diagram_xml: str | None = None,
-        classification: str | None = None,
-        request_id: str | None = None,
-        user_identity: str | None = None
+        diagram_xml: Optional[str] = None,
+        classification: Optional[str] = None,
+        request_id: Optional[str] = None,
+        user_identity: Optional[str] = None
     ) -> AsyncGenerator[Dict[str, Any], None]:
-        """
-        Runs the orchestration loop and streams back progress, updates, or errors.
-        """
+        """Runs the orchestration loop and streams back progress and updates."""
+        start_time = time.time()
+        
         # Audit log the incoming chat request
         chat_audit_log = {
-            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+            "timestamp": datetime.now(timezone.utc).isoformat().replace(
+                "+00:00", "Z"
+            ),
             "event_type": "chat_request",
             "request_id": request_id,
             "user_identity": user_identity,
@@ -51,11 +60,13 @@ class AgentOrchestrator:
             },
             "audit": True
         }
-        logger.info(json.dumps(chat_audit_log))
+        logger.info("chat_request_audit", **chat_audit_log)
 
-        async def call_tool_audited(name: str, arguments: dict):
+        async def call_tool_audited(name: str, arguments: dict) -> Any:
             tool_audit_log = {
-                "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+                "timestamp": datetime.now(timezone.utc).isoformat().replace(
+                    "+00:00", "Z"
+                ),
                 "event_type": "mcp_tool_call",
                 "request_id": request_id,
                 "user_identity": user_identity,
@@ -65,68 +76,93 @@ class AgentOrchestrator:
                 },
                 "audit": True
             }
-            logger.info(json.dumps(tool_audit_log))
+            logger.info("mcp_tool_call_audit", **tool_audit_log)
             return await self.mcp_bridge.call_tool(name, arguments)
 
         # Gate cloud LLM usage based on classification level
         is_cloud_provider = self.settings.llm_provider in ["gemini", "openai"]
-        if is_cloud_provider and classification and classification.lower() in ["confidential", "restricted"]:
+        if (
+            is_cloud_provider
+            and classification
+            and classification.lower() in ["confidential", "restricted"]
+        ):
             yield {
                 "event": "error",
                 "data": {
-                    "message": f"Cloud LLM usage is forbidden for {classification} sessions."
+                    "message": (
+                        "Cloud LLM usage is forbidden for "
+                        f"{classification} sessions."
+                    )
                 }
             }
             return
-        # 1. Initialize MCP state
-        try:
-            if diagram_xml:
-                # Security content scan if using a cloud LLM provider
-                is_cloud_provider = self.settings.llm_provider in ["gemini", "openai"]
-                if is_cloud_provider:
-                    from agent.content_filter import ContentFilter
-                    findings = ContentFilter.scan(diagram_xml)
-                    if findings:
-                        yield {
-                            "event": "provider_warning",
-                            "data": {
-                                "message": (
-                                    "Warning: The current diagram contains potentially sensitive "
-                                    f"information ({findings[0]}) and is being sent "
-                                    f"to a cloud LLM provider ({self.settings.llm_provider})."
-                                )
-                            }
-                        }
 
+        # 1. Initialize MCP state
+        tracer = trace.get_tracer("drawio-agent")
+        with tracer.start_as_current_span("mcp.init") as otel_span:
+            try:
+                if diagram_xml:
+                    # Security content scan if using a cloud LLM provider
+                    is_cloud = self.settings.llm_provider in [
+                        "gemini", "openai"
+                    ]
+                    if is_cloud:
+                        from agent.content_filter import ContentFilter
+                        findings = ContentFilter.scan(diagram_xml)
+                        if findings:
+                            yield {
+                                "event": "provider_warning",
+                                "data": {
+                                    "message": (
+                                        "Warning: The current diagram contains "
+                                        "potentially sensitive information "
+                                        f"({findings[0]}) and is being sent "
+                                        "to a cloud LLM provider "
+                                        f"({self.settings.llm_provider})."
+                                    )
+                                }
+                            }
+
+                    yield {
+                        "event": "tool_progress",
+                        "data": {
+                            "toolName": "open_drawio_xml",
+                            "step": 0,
+                            "totalSteps": 2,
+                            "message": "Restoring diagram state from snapshot"
+                        }
+                    }
+                    await call_tool_audited(
+                        "open_drawio_xml", {"content": diagram_xml}
+                    )
+                else:
+                    yield {
+                        "event": "tool_progress",
+                        "data": {
+                            "toolName": "init_diagram",
+                            "step": 0,
+                            "totalSteps": 2,
+                            "message": "Initializing new diagram"
+                        }
+                    }
+                    await call_tool_audited("init_diagram", {})
+            except Exception as e:
+                otel_span.record_exception(e)
+                otel_span.set_status(trace.StatusCode.ERROR, str(e))
+                logger.error(f"Failed to initialize MCP state: {e}")
                 yield {
-                    "event": "tool_progress",
+                    "event": "error",
                     "data": {
-                        "toolName": "open_drawio_xml",
-                        "step": 0,
-                        "totalSteps": 2,
-                        "message": "Restoring diagram state from snapshot"
+                        "message": f"State initialization failed: {str(e)}"
                     }
                 }
-                await call_tool_audited("open_drawio_xml", {"content": diagram_xml})
-            else:
-                yield {
-                    "event": "tool_progress",
-                    "data": {
-                        "toolName": "init_diagram",
-                        "step": 0,
-                        "totalSteps": 2,
-                        "message": "Initializing new diagram"
-                    }
-                }
-                await call_tool_audited("init_diagram", {})
-        except Exception as e:
-            logger.error(f"Failed to initialize MCP state: {e}")
-            yield {"event": "error", "data": {"message": f"State initialization failed: {str(e)}"}}
-            return
+                return
 
         # 2. Get/Create conversation history
         tools = self.mcp_bridge.get_tools()
-        self.conversation_manager.get_or_create_conversation(session_id, tools=tools)
+        self.conversation_manager.get_or_create_conversation(
+            session_id, tools=tools
+        )
         
         # Add user prompt (triggers keyword loading if needed)
         self.conversation_manager.add_message(session_id, "user", prompt)
@@ -141,8 +177,10 @@ class AgentOrchestrator:
             turn += 1
             # Truncate conversation to keep context window manageable
             if turn > 1:
-                self.conversation_manager.truncate_conversation(session_id, max_history_messages=40)
-            # Emit a thinking progress event to let the user know the AI is active
+                self.conversation_manager.truncate_conversation(
+                    session_id, max_history_messages=40
+                )
+            # Emit a thinking progress event to let the user know AI is active
             progress_msg = self._get_progress_message(session_id, turn)
             yield {
                 "event": "tool_progress",
@@ -157,28 +195,39 @@ class AgentOrchestrator:
             messages = self.conversation_manager.get_conversation(session_id)
             
             try:
-                # Call LLM with current history and tools, streaming heartbeats in real-time
+                # Call LLM with current history and tools
                 response_msg = None
                 async for event_or_res in self._generate_chat_with_heartbeat(
                     session_id, messages, tools, turn, max_turns
                 ):
-                    if isinstance(event_or_res, dict) and event_or_res.get("event") == "tool_progress":
+                    if (
+                        isinstance(event_or_res, dict)
+                        and event_or_res.get("event") == "tool_progress"
+                    ):
                         yield event_or_res
                     else:
                         response_msg = event_or_res
             except Exception as e:
                 err_str = str(e)
-                # Handle "empty output" errors from the model API — retry instead of crashing
+                # Handle "empty output" errors - retry instead of crashing
                 if "empty" in err_str.lower() and "tool calls" in err_str.lower():
-                    logger.warning(f"LLM returned empty response on turn {turn} — retrying.")
+                    logger.warning(
+                        "LLM returned empty response on turn "
+                        f"{turn} — retrying."
+                    )
                     continue
                 logger.error(f"LLM generation failed: {e}")
-                yield {"event": "error", "data": {"message": f"LLM generation failed: {err_str}"}}
+                yield {
+                    "event": "error",
+                    "data": {"message": f"LLM generation failed: {err_str}"}
+                }
                 return
 
-            # Guard: if the LLM response is None or has no content and no tool calls, retry
+            # Guard: if the LLM response is None, retry
             if response_msg is None:
-                logger.warning(f"LLM returned None response on turn {turn} — retrying.")
+                logger.warning(
+                    f"LLM returned None response on turn {turn} — retrying."
+                )
                 continue
 
             # Check if LLM generated tool calls
@@ -199,7 +248,9 @@ class AgentOrchestrator:
                         } for tc in tool_calls
                     ]
                 }
-                self.conversation_manager.get_conversation(session_id).append(assistant_msg)
+                self.conversation_manager.get_conversation(session_id).append(
+                    assistant_msg
+                )
                 
                 # Execute each tool call sequentially
                 total_steps = len(tool_calls)
@@ -208,7 +259,11 @@ class AgentOrchestrator:
                     step_num = idx + 1
                     
                     try:
-                        args = json.loads(tc.function.arguments) if isinstance(tc.function.arguments, str) else tc.function.arguments
+                        args = (
+                            json.loads(tc.function.arguments)
+                            if isinstance(tc.function.arguments, str)
+                            else tc.function.arguments
+                        )
                     except Exception:
                         args = {}
 
@@ -222,21 +277,24 @@ class AgentOrchestrator:
                         if num_containers > 0:
                             compile_steps.append({
                                 "name": "Boundary Group",
-                                "message": f"Adding {num_containers} container boundaries..."
+                                "message": (
+                                    f"Adding {num_containers} "
+                                    "container boundaries..."
+                                )
                             })
                         if num_nodes > 0:
                             compile_steps.append({
                                 "name": "Shape Placer",
-                                "message": f"Placing {num_nodes} shapes onto diagram..."
+                                "message": f"Placing {num_nodes} shapes..."
                             })
                         if num_edges > 0:
                             compile_steps.append({
                                 "name": "Connector Router",
-                                "message": f"Routing {num_edges} links and process lines..."
+                                "message": f"Routing {num_edges} links..."
                             })
                         compile_steps.append({
                             "name": "Layout Compiler",
-                            "message": "Compiling full diagram specification..."
+                            "message": "Compiling full diagram..."
                         })
                         
                         total_substeps = len(compile_steps)
@@ -252,7 +310,9 @@ class AgentOrchestrator:
                             }
                             await asyncio.sleep(0.8)
                     else:
-                        tool_desc = self._get_prettified_tool_description(tool_name)
+                        tool_desc = self._get_prettified_tool_description(
+                            tool_name
+                        )
                         yield {
                             "event": "tool_progress",
                             "data": {
@@ -262,14 +322,16 @@ class AgentOrchestrator:
                                 "message": tool_desc["message"]
                             }
                         }
-                        # Small sleep to ensure the frontend renders the tool progress step
+                        # Small sleep to ensure frontend renders the step
                         await asyncio.sleep(0.8)
                     
                     try:
                         tool_res = await call_tool_audited(tool_name, args)
                         tool_res_content = json.dumps(tool_res)
                     except Exception as err:
-                        logger.error(f"Failed to execute tool {tool_name}: {err}")
+                        logger.error(
+                            f"Failed to execute tool {tool_name}: {err}"
+                        )
                         tool_res_content = f"Error executing tool: {str(err)}"
 
                     # Append tool response message to history
@@ -279,62 +341,95 @@ class AgentOrchestrator:
                         "name": tool_name,
                         "content": tool_res_content
                     }
-                    self.conversation_manager.get_conversation(session_id).append(tool_msg)
+                    self.conversation_manager.get_conversation(session_id).append(
+                        tool_msg
+                    )
             else:
-                # Check if the last tool execution was compile_json_spec and if it failed validation
-                history = self.conversation_manager.get_conversation(session_id)
+                # Check validation for compile_json_spec
+                history = self.conversation_manager.get_conversation(
+                    session_id
+                )
                 last_tool_msg = None
                 for msg in reversed(history):
                     if msg.get("role") == "tool":
                         last_tool_msg = msg
                         break
                 
-                if last_tool_msg and last_tool_msg.get("name") == "compile_json_spec":
+                if (
+                    last_tool_msg
+                    and last_tool_msg.get("name") == "compile_json_spec"
+                ):
                     try:
-                        res_data = json.loads(last_tool_msg.get("content", "{}"))
-                        if isinstance(res_data, dict) and not res_data.get("valid", True):
+                        res_data = json.loads(
+                            last_tool_msg.get("content", "{}")
+                        )
+                        if (
+                            isinstance(res_data, dict)
+                            and not res_data.get("valid", True)
+                        ):
                             errors = res_data.get("validation_errors", [])
                             err_msg = "\n".join([f"- {e}" for e in errors])
                             system_feedback = {
                                 "role": "user",
                                 "content": (
-                                    "Your last diagram specification is invalid and failed validation with the following errors:\n"
-                                    f"{err_msg}\n\n"
-                                    "You MUST correct these errors by modifying the spec and calling compile_json_spec again. "
-                                    "Do not finish or output final text until the validation errors are fully resolved."
+                                    "Your last diagram specification is "
+                                    "invalid and failed validation with the "
+                                    f"following errors:\n{err_msg}\n\n"
+                                    "You MUST correct these errors by "
+                                    "modifying the spec and calling "
+                                    "compile_json_spec again. Do not finish "
+                                    "until validation errors are resolved."
                                 )
                             }
-                            self.conversation_manager.get_conversation(session_id).append(system_feedback)
-                            logger.info("Spec validation failed. Forcing LLM to correct the spec.")
+                            self.conversation_manager.get_conversation(
+                                session_id
+                            ).append(system_feedback)
+                            logger.info(
+                                "Spec validation failed. "
+                                "Forcing LLM to correct the spec."
+                            )
                             continue
                     except Exception as ex:
-                        logger.error(f"Error checking last tool message validation: {ex}")
+                        logger.error(
+                            "Error checking last tool validation: "
+                            f"{ex}"
+                        )
 
                 # Final turn - text response only
                 final_text = response_msg.content or ""
 
-                # Guard: Detect if the LLM dumped raw JSON/XML as text instead of calling a tool.
-                # This happens when max_tokens truncates mid-tool-call or the model fails to use function calling.
-                if final_text and self._looks_like_raw_spec(final_text) and turn < max_turns:
-                    logger.warning("Detected raw JSON/XML spec dumped as text — forcing retry via tool call.")
+                # Guard: Detect raw JSON/XML spec dumped as text
+                if (
+                    final_text
+                    and self._looks_like_raw_spec(final_text)
+                    and turn < max_turns
+                ):
+                    logger.warning(
+                        "Detected raw JSON/XML spec dumped as text — "
+                        "forcing retry via tool call."
+                    )
                     correction = {
                         "role": "user",
                         "content": (
-                            "You output a raw JSON or XML diagram specification as text instead of calling the compile_json_spec tool. "
-                            "NEVER output raw JSON or XML in chat. You MUST use the compile_json_spec tool with the spec as its argument. "
-                            "Call compile_json_spec now with the complete specification."
+                            "You output a raw JSON or XML diagram "
+                            "specification as text instead of calling the "
+                            "compile_json_spec tool. NEVER output raw JSON "
+                            "or XML in chat. You MUST use compile_json_spec."
                         )
                     }
-                    self.conversation_manager.get_conversation(session_id).append(correction)
+                    self.conversation_manager.get_conversation(
+                        session_id
+                    ).append(correction)
                     continue
 
-                self.conversation_manager.add_message(session_id, "assistant", final_text)
+                self.conversation_manager.add_message(
+                    session_id, "assistant", final_text
+                )
                 text_already_added = True
                 break
 
         # 4. Finalize diagram and emit diagram_update
         try:
-            # Yield finalizer and validator progress
             yield {
                 "event": "tool_progress",
                 "data": {
@@ -351,11 +446,9 @@ class AgentOrchestrator:
             validation_errors = []
             
             if isinstance(finalize_res, dict):
-                # Check for XML directly in response dict first
                 if "xml" in finalize_res:
                     final_xml = finalize_res["xml"]
                 
-                # Check content for serialized json details
                 if "content" in finalize_res and finalize_res["content"]:
                     text = finalize_res["content"][0].get("text", "")
                     if text.strip().startswith("<"):
@@ -371,53 +464,70 @@ class AgentOrchestrator:
                         except Exception:
                             pass
                 
-                # If we still don't have XML and it's a validation error, we fall back to raising
                 if finalize_res.get("isError") and not final_xml:
                     err_msg = "Cannot finalize diagram - validation failed."
                     if "content" in finalize_res and finalize_res["content"]:
                         try:
-                            detail_json = json.loads(finalize_res["content"][0].get("text", "{}"))
+                            raw_t = finalize_res["content"][0].get("text", "{}")
+                            detail_json = json.loads(raw_t)
                             err_msg = detail_json.get("error", err_msg)
                             if "details" in detail_json and detail_json["details"]:
-                                err_msg += "\n" + "\n".join(detail_json["details"])
+                                err_msg += "\n" + "\n".join(
+                                    detail_json["details"]
+                                )
                         except Exception:
-                            err_msg = finalize_res["content"][0].get("text", err_msg)
+                            err_msg = finalize_res["content"][0].get(
+                                "text", err_msg
+                            )
                     raise RuntimeError(err_msg)
             
             if final_xml:
                 yield {"event": "diagram_update", "data": {"xml": final_xml}}
                 if validation_errors:
-                    warnings_list = "\n".join([f"- {err}" for err in validation_errors])
-                    logger.warning(f"Diagram finalized with validation warnings:\n{warnings_list}")
+                    warnings_list = "\n".join(
+                        [f"- {err}" for err in validation_errors]
+                    )
+                    logger.warning(
+                        "Diagram finalized with validation warnings:\n"
+                        f"{warnings_list}"
+                    )
             else:
                 raise RuntimeError("No XML returned from finalize")
         except Exception as e:
             logger.error(f"Failed to finalize diagram: {e}")
-            yield {"event": "error", "data": {"message": f"Failed to finalize diagram: {str(e)}"}}
+            yield {
+                "event": "error",
+                "data": {"message": f"Failed to finalize diagram: {str(e)}"}
+            }
 
         # 5. Emit final chat response
         if not final_text or not final_text.strip():
-            final_text = "I have successfully compiled your architecture request and updated the diagram canvas."
+            final_text = (
+                "I have successfully compiled your architecture request "
+                "and updated the diagram canvas."
+            )
         else:
             final_text = self._strip_drawio_links(final_text)
             
         if not text_already_added:
-            self.conversation_manager.add_message(session_id, "assistant", final_text)
+            self.conversation_manager.add_message(
+                session_id, "assistant", final_text
+            )
         yield {"event": "chat_message", "data": {"text": final_text}}
 
+        duration = time.time() - start_time
+        diagram_generation_duration_seconds.observe(duration)
+
     def _strip_drawio_links(self, text: str) -> str:
-        """
-        Strips draw.io diagram links and editor URLs from the assistant text response
-        to prevent duplicate or confusing links when the diagram is already loaded.
-        """
-        import re
-        # Remove markdown links pointing to diagrams.net, draw.io, or relative /draw/
+        """Strips draw.io diagram links and editor URLs."""
+        # Remove markdown links pointing to diagrams.net/draw.io
         text = re.sub(
-            r'\[[^\]]*\]\((?:https?://(?:[a-z0-9-]+\.)?(?:diagrams\.net|draw\.io)|/draw)/?[^\)]*\)',
+            r'\[[^\]]*\]\((?:https?://(?:[a-z0-9-]+\.)?'
+            r'(?:diagrams\.net|draw\.io)|/draw)/?[^\)]*\)',
             '',
             text
         )
-        # Remove raw URLs pointing to diagrams.net, draw.io, or relative /draw/
+        # Remove raw URLs pointing to diagrams.net/draw.io
         text = re.sub(
             r'(?:https?://(?:[a-z0-9-]+\.)?(?:diagrams\.net|draw\.io)|/draw)/\S*',
             '',
@@ -425,7 +535,11 @@ class AgentOrchestrator:
         )
         # Clean up labels introducing the URL
         text = re.sub(r'(?i)Draw\.io\s+Editor\s+URL\s*:\s*\n?', '', text)
-        text = re.sub(r'(?i)you can open the diagram using this link\s*:\s*\n?', '', text)
+        text = re.sub(
+            r'(?i)you can open the diagram using this link\s*:\s*\n?',
+            '',
+            text
+        )
         text = re.sub(r'(?i)click here to open\s*:\s*\n?', '', text)
         # Clean up layout artifacts (extra spaces and duplicate newlines)
         text = re.sub(r' +', ' ', text)
@@ -433,33 +547,31 @@ class AgentOrchestrator:
         return text.strip()
 
     def _looks_like_raw_spec(self, text: str) -> bool:
-        """
-        Detects if the LLM has dumped a raw JSON spec or XML diagram as text
-        instead of properly calling compile_json_spec or open_drawio_xml.
-        """
+        """Detects if the LLM has dumped raw JSON spec or XML diagram."""
         stripped = text.strip()
 
         # Check for raw XML (mxGraphModel)
         if '<mxGraphModel' in stripped or '<mxCell' in stripped:
             return True
 
-        # Check for JSON spec patterns — look for the characteristic keys
-        # that indicate a compile_json_spec argument was dumped as text
-        json_indicators = ['"containers"', '"nodes"', '"edges"', '"sourceId"', '"targetId"']
+        # Check for JSON spec patterns
+        json_indicators = [
+            '"containers"', '"nodes"', '"edges"', '"sourceId"', '"targetId"'
+        ]
         indicator_count = sum(1 for ind in json_indicators if ind in stripped)
         if indicator_count >= 3:
             return True
 
         # Check for JSON code blocks containing spec-like content
-        if '```json' in stripped and ('"nodes"' in stripped or '"edges"' in stripped):
+        if '```json' in stripped and (
+            '"nodes"' in stripped or '"edges"' in stripped
+        ):
             return True
 
         return False
 
     def _get_prettified_tool_description(self, tool_name: str) -> Dict[str, str]:
-        """
-        Maps raw MCP tool names to user-friendly titles and progress descriptions.
-        """
+        """Maps raw MCP tool names to user-friendly titles."""
         mapping = {
             "init_diagram": {
                 "name": "Canvas Initializer",
@@ -496,10 +608,7 @@ class AgentOrchestrator:
         })
 
     def _get_progress_message(self, session_id: str, turn: int) -> str:
-        """
-        Dynamically computes a descriptive progress message based on the 
-        current conversation state and the outcome of the last step.
-        """
+        """Computes progress message based on conversation state."""
         messages = self.conversation_manager.get_conversation(session_id)
         if not messages:
             return "Starting agent session..."
@@ -518,12 +627,16 @@ class AgentOrchestrator:
                 return "Canvas initialized. Generating diagram components..."
             elif tool_name == "compile_json_spec":
                 if "error" in content.lower() or "fail" in content.lower():
-                    return "Compilation failed. Rethinking diagram specification..."
-                return "Diagram specification compiled. Applying topological layout rules..."
+                    return "Compilation failed. Rethinking specification..."
+                return "Spec compiled. Applying layout rules..."
             elif tool_name in ["validate_file", "builder_validate"]:
-                if "error" in content.lower() or "violation" in content.lower() or "collision" in content.lower():
-                    return "Topological/domain errors detected. Adjusting component placement..."
-                return "Validation passed. Preparing final layout update..."
+                if (
+                    "error" in content.lower()
+                    or "violation" in content.lower()
+                    or "collision" in content.lower()
+                ):
+                    return "Errors detected. Adjusting component placement..."
+                return "Validation passed. Preparing layout update..."
             elif tool_name == "add_node":
                 return "Added node to diagram. Re-aligning container boundaries..."
             elif tool_name == "add_container":
@@ -531,7 +644,7 @@ class AgentOrchestrator:
             elif tool_name == "connect":
                 return "Connecting nodes and routing process streams..."
             
-            return f"Processed tool response for {tool_name}. Determining next steps..."
+            return f"Processed {tool_name}. Determining next steps..."
             
         elif role == "assistant":
             tool_calls = last_msg.get("tool_calls", [])
@@ -545,21 +658,20 @@ class AgentOrchestrator:
         self, 
         session_id: str, 
         messages: List[Dict[str, Any]], 
-        tools: List[Dict[str, Any]] | None, 
+        tools: Optional[List[Dict[str, Any]]], 
         turn: int, 
         max_turns: int
-    ) -> AsyncGenerator[Any, None]:
-        """
-        Calls generate_chat while concurrently yielding periodic heartbeat progress events
-        to keep the thinking bubble active and responsive.
-        """
-        llm_task = asyncio.create_task(self.llm_service.generate_chat(messages, tools=tools))
+    ) -> AsyncGenerator[Union[Dict[str, Any], Any], None]:
+        """Calls generate_chat while yielding periodic heartbeat events."""
+        llm_task = asyncio.create_task(
+            self.llm_service.generate_chat(messages, tools=tools)
+        )
         base_msg = self._get_progress_message(session_id, turn)
         dots = 0
         
         while not llm_task.done():
             # Wait for 1.5 seconds or until the LLM task completes
-            done, pending = await asyncio.wait([llm_task], timeout=1.5)
+            await asyncio.wait([llm_task], timeout=1.5)
             if llm_task.done():
                 break
                 
@@ -579,4 +691,3 @@ class AgentOrchestrator:
         # Retrieve the final LLM response
         response_msg = await llm_task
         yield response_msg
-

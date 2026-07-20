@@ -39,13 +39,30 @@ spec:
             - name: valkey-data
               mountPath: /data
           {{- end }}
+          startupProbe:
+            exec:
+              command:
+                - valkey-cli
+                - ping
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 30
+          livenessProbe:
+            exec:
+              command:
+                - valkey-cli
+                - ping
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            exec:
+              command:
+                - valkey-cli
+                - ping
+            initialDelaySeconds: 5
+            periodSeconds: 10
           resources:
-            limits:
-              cpu: 500m
-              memory: 512Mi
-            requests:
-              cpu: 100m
-              memory: 256Mi
+            {{- toYaml .Values.collaboration.valkey.resources | nindent 12 }}
       {{- if .Values.collaboration.persistence.enabled }}
       volumes:
         - name: valkey-data

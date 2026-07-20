@@ -4,7 +4,7 @@ import { generateRandomName } from './nameGenerator';
 describe('generateRandomName', () => {
   test('should generate a string in the format Adj-Noun-Hex', () => {
     const name = generateRandomName();
-    expect(name).toMatch(/^[A-Z][a-z]+-[A-Z][a-z]+-[0-9a-f]{4}$/);
+    expect(name).toMatch(/^[A-Z][a-z]+-[A-Z][a-z]+-[0-9a-f]{6}$/);
   });
 
   test('should generate different names on successive calls', () => {

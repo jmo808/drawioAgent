@@ -2,19 +2,22 @@
 
 import logging
 import re
-from typing import Any
+from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
+
 
 class ValidationError(Exception):
     """Exception raised when an MCP tool call fails validation checks."""
     pass
 
+
 class MCPValidator:
-    """
-    Validates MCP tool call requests for safety.
+    """Validates MCP tool call requests for safety.
+
     Filters by allowed tool names and checks string arguments for path traversal.
     """
+
     ALLOWLISTED_TOOLS = {
         "open_drawio_xml",
         "open_drawio_csv",
@@ -38,9 +41,9 @@ class MCPValidator:
         "finalize",
     }
 
-    def validate(self, tool_name: str, arguments: dict) -> None:
-        """
-        Validates the tool name and its arguments.
+    def validate(self, tool_name: str, arguments: Dict[str, Any]) -> None:
+        """Validates the tool name and its arguments.
+
         Raises ValidationError if validation fails.
         """
         # 1. Check allowlist
@@ -59,13 +62,25 @@ class MCPValidator:
             for item in args:
                 self._check_arguments(item)
         elif isinstance(args, str):
-            # Check for path traversal patterns (e.g., '..', absolute paths starting with '/' or '\\')
+            # Check for path traversal patterns
             # Normalized checks to prevent sneaky traversal bypasses
             truncated = args[:30] + "..." if len(args) > 30 else args
-            if ".." in args or args.startswith("/") or args.startswith("\\") or args.startswith("~") or "file://" in args:
-                raise ValidationError(f"Path traversal detected in argument value: '{truncated}'")
-            # Enforce that it doesn't contain windows-style drive letters (e.g. C:\)
+            is_traversal = (
+                ".." in args
+                or args.startswith("/")
+                or args.startswith("\\")
+                or args.startswith("~")
+                or "file://" in args
+            )
+            if is_traversal:
+                raise ValidationError(
+                    f"Path traversal detected in argument value: '{truncated}'"
+                )
+            # Enforce that it doesn't contain windows-style drive letters (C:\)
             # Use regex to allow normal text with colons like "Time: 3pm"
             if re.match(r'^[a-zA-Z]:[/\\]', args):
                 # Potential absolute windows path
-                raise ValidationError(f"Windows absolute path detected in argument value: '{truncated}'")
+                raise ValidationError(
+                    "Windows absolute path detected in argument value: "
+                    f"'{truncated}'"
+                )

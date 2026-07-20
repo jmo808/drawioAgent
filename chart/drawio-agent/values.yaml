@@ -19,11 +19,11 @@ frontend:
     tag: ""
   resources:
     limits:
-      cpu: 500m
-      memory: 512Mi
+      cpu: 200m
+      memory: 256Mi
     requests:
       cpu: 100m
-      memory: 256Mi
+      memory: 128Mi
 
 # Fastify API Server settings
 api:
@@ -39,7 +39,7 @@ api:
       memory: 512Mi
     requests:
       cpu: 100m
-      memory: 256Mi
+      memory: 128Mi
 
 # Python AI Agent settings
 agent:
@@ -54,8 +54,8 @@ agent:
       cpu: 1000m
       memory: 1Gi
     requests:
-      cpu: 250m
-      memory: 512Mi
+      cpu: 200m
+      memory: 256Mi
   # LLM Provider Configuration
   llm:
     # Set to true to prioritize local/self-hosted LLM (Ollama) to prevent accidental data leakage
@@ -88,6 +88,13 @@ collaboration:
     existingSecret: ""
     # Secret key containing Valkey password
     existingSecretKey: "password"
+    resources:
+      limits:
+        cpu: 200m
+        memory: 256Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
   # Valkey TLS/Encryption configuration
   tls:
     enabled: false
@@ -133,3 +140,58 @@ httproute:
 #     serverCertSecret: "agent-server-tls" # Contains server cert/key
 #     clientCASecret: "agent-client-ca"    # CA to verify API clients
 
+# Metrics settings
+metrics:
+  # Enable prometheus scrape annotations on pods
+  enabled: true
+  # Create ServiceMonitor CRDs for Prometheus Operator
+  serviceMonitor:
+    enabled: false
+    # Additional labels for the ServiceMonitor
+    labels: {}
+    # Interval at which metrics should be scraped
+    interval: 30s
+    # Timeout after which the scrape is ended
+    scrapeTimeout: 10s
+
+# Rate limiting settings
+rateLimiting:
+  # Global rate limits for HTTP requests
+  http:
+    max: 60
+    timeWindow: 1m
+  # Limits for WebSocket chat messages
+  websocket:
+    max: 30
+    timeWindow: 1m
+
+# HPA settings
+hpa:
+  agent:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPU: 70
+
+# NetworkPolicy settings
+networkPolicy:
+  enabled: true
+
+# PodDisruptionBudget settings
+pdb:
+  enabled: true
+  minAvailable: 1
+
+# Grafana settings
+grafana:
+  dashboards:
+    enabled: true
+
+# Alerting settings
+alerting:
+  enabled: false
+
+# Tracing settings
+tracing:
+  enabled: false
+  otlpEndpoint: "http://tempo.monitoring.svc:4318"

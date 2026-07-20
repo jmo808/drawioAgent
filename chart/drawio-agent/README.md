@@ -85,6 +85,16 @@ helm upgrade drawio-agent ./chart/drawio-agent \
 | `collaboration.persistence.size` | PVC size for the internal Valkey storage volume. | String | `"1Gi"` |
 | `collaboration.persistence.storageClass` | Custom StorageClass name for Valkey data volume. | String | `""` (default Class) |
 | `collaboration.persistence.accessMode` | Persistent Volume Access Mode. | String | `ReadWriteOnce` |
+| **Observability & Hardening** | | | |
+| `metrics.enabled` | Enable Prometheus metric scraping endpoints on API/Agent pods. | Boolean | `true` |
+| `metrics.serviceMonitor.enabled` | Deploy Prometheus Operator `ServiceMonitor` resource. | Boolean | `true` |
+| `alerting.enabled` | Deploy Prometheus Operator `PrometheusRule` alerting rules. | Boolean | `false` |
+| `grafana.dashboards.enabled` | Export operational Grafana dashboards as labeled ConfigMaps. | Boolean | `false` |
+| `tracing.enabled` | Enable OpenTelemetry tracing context propagation. | Boolean | `false` |
+| `tracing.otlpEndpoint` | Target OTLP trace collector/tempo HTTP endpoint. | String | `http://tempo.monitoring.svc:4318` |
+| `networkPolicy.enabled` | Deploy NetworkPolicies restricting communications. | Boolean | `false` |
+| `pdb.enabled` | Deploy PodDisruptionBudgets for high availability. | Boolean | `false` |
+| `agent.hpa.enabled` | Deploy HorizontalPodAutoscaler for the Agent service. | Boolean | `false` |
 
 ---
 

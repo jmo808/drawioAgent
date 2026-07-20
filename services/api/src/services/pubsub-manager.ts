@@ -47,7 +47,7 @@ export class PubSubManager {
    * Subscribe a WebSocket connection to a session's event channel.
    * If this is the first connection for the session on this node, subscribes via Valkey.
    */
-  public async subscribeToSession(sessionId: string, socket: WebSocket, connId: string): Promise<void> {
+  async subscribeToSession(sessionId: string, socket: WebSocket, connId: string): Promise<void> {
     let sockets = this.sessionSockets.get(sessionId);
     if (!sockets) {
       sockets = new Map();
@@ -62,7 +62,7 @@ export class PubSubManager {
    * Unsubscribe a WebSocket connection from a session.
    * If this was the last connection for the session on this node, unsubscribes via Valkey.
    */
-  public async unsubscribeFromSession(sessionId: string, connId: string): Promise<void> {
+  async unsubscribeFromSession(sessionId: string, connId: string): Promise<void> {
     const sockets = this.sessionSockets.get(sessionId);
     if (sockets) {
       sockets.delete(connId);
@@ -76,7 +76,7 @@ export class PubSubManager {
   /**
    * Broadcasts a diagram update to all session members and persists it.
    */
-  public async broadcastDiagramUpdate(sessionId: string, xml: string, senderConnId: string, senderName: string): Promise<void> {
+  async broadcastDiagramUpdate(sessionId: string, xml: string, senderConnId: string, senderName: string): Promise<void> {
     // 1. Persist the diagram
     await this.valkey.set(`session:${sessionId}:diagram`, xml);
 
@@ -97,7 +97,7 @@ export class PubSubManager {
   /**
    * Broadcasts a chat message to all session members and persists it in history.
    */
-  public async broadcastChatMessage(sessionId: string, message: string, senderConnId: string, senderName: string): Promise<void> {
+  async broadcastChatMessage(sessionId: string, message: string, senderConnId: string, senderName: string): Promise<void> {
     const timestamp = new Date().toISOString();
     
     // 1. Persist the chat message
@@ -131,7 +131,7 @@ export class PubSubManager {
    * Retrieves the chat history for a session (up to 500 messages).
    * Messages are returned in chronological order (oldest first).
    */
-  public async getChatHistory(sessionId: string): Promise<any[]> {
+  async getChatHistory(sessionId: string): Promise<Array<{ message: string; senderConnId: string; senderName: string; timestamp: string }>> {
     const key = `session:${sessionId}:chat`;
     const messages = await this.valkey.lrange(key, 0, -1);
     
@@ -143,7 +143,7 @@ export class PubSubManager {
   /**
    * Publishes a generic event message to the session's pub/sub channel.
    */
-  public async publishEvent(sessionId: string, event: any): Promise<void> {
+  async publishEvent(sessionId: string, event: WebSocketMessage | Record<string, unknown>): Promise<void> {
     await this.valkey.publish(`session:${sessionId}:events`, JSON.stringify(event));
   }
 }

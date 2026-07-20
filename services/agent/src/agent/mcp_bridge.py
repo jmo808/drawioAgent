@@ -1,33 +1,38 @@
+"""MCP Bridge managing standard I/O process wrapping the Draw.io MCP server."""
+
 import asyncio
 import json
-import logging
-from typing import Any, Dict, List
+import time
+from typing import Any, Dict, List, Optional
+import structlog
+from opentelemetry import trace
+
 from agent.config import Settings
 from agent.mcp_validator import MCPValidator
+from agent.metrics import mcp_tool_duration_seconds, mcp_tool_calls_total
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
+
 
 class MCPBridge:
-    """
-    Bridge service for managing the Model Context Protocol (MCP) server process
-    and routing JSON-RPC 2.0 requests over standard input/output.
-    """
-    def __init__(self, settings: Settings):
+    """Bridge service for managing the Model Context Protocol child process."""
+
+    def __init__(self, settings: Settings) -> None:
+        """Initialize MCPBridge configurations."""
         self.settings = settings
-        self.process: asyncio.subprocess.Process | None = None
-        self.read_task: asyncio.Task | None = None
-        self._stderr_task: asyncio.Task | None = None
+        self.process: Optional[asyncio.subprocess.Process] = None
+        self.read_task: Optional[asyncio.Task[None]] = None
+        self._stderr_task: Optional[asyncio.Task[None]] = None
         self.next_id = 1
         self.pending_requests: Dict[int, asyncio.Future[Any]] = {}
         self.tools: List[Dict[str, Any]] = []
         self.validator = MCPValidator()
 
     async def start(self) -> None:
-        """
-        Spawns the MCP server child process and initiates the message reader loop.
-        Discovers tools on startup.
-        """
-        logger.info(f"Starting MCP server at {self.settings.mcp_server_path}")
+        """Spawns the MCP server child process and runs discover_tools."""
+        logger.info(
+            f"Starting MCP server at {self.settings.mcp_server_path}"
+        )
         
         cmd = "node"
         args = [self.settings.mcp_server_path]
@@ -50,9 +55,11 @@ class MCPBridge:
         """Check if the MCP child process is still running."""
         return self.process is not None and self.process.returncode is None
 
-    async def _read_stderr(self):
+    async def _read_stderr(self) -> None:
         """Read and log MCP server stderr for debugging."""
         try:
+            if not self.process or not self.process.stderr:
+                return
             while True:
                 line = await self.process.stderr.readline()
                 if not line:
@@ -64,9 +71,7 @@ class MCPBridge:
             logger.warning(f"MCP stderr reader stopped: {e}")
 
     async def stop(self) -> None:
-        """
-        Gracefully terminates the MCP child process and cancels the reader loop.
-        """
+        """Gracefully terminates the MCP child process."""
         if self._stderr_task:
             self._stderr_task.cancel()
             try:
@@ -102,49 +107,102 @@ class MCPBridge:
         self.pending_requests.clear()
 
     def get_tools(self) -> List[Dict[str, Any]]:
-        """
-        Returns the list of discovered tools.
-        """
+        """Returns the list of discovered tools."""
         return self.tools
 
-    async def call_tool(self, name: str, arguments: Dict[str, Any], timeout: float = 30.0) -> Any:
-        """
-        Executes an MCP tool call and returns the result dictionary.
-
-        Args:
-            name: MCP tool name.
-            arguments: Tool arguments dict.
-            timeout: Seconds to wait for a response. ``finalize`` uses a longer
-                default because the downstream draw.io MCP server must finish
-                an I/O round-trip before returning.
-        """
+    async def call_tool(
+        self,
+        name: str,
+        arguments: Dict[str, Any],
+        timeout: float = 30.0
+    ) -> Any:
+        """Executes an MCP tool call and returns the result dictionary."""
         # Log all MCP tool invocations with arguments for forensics
-        logger.info(f"AUDIT: Executing MCP tool '{name}' with arguments: {json.dumps(arguments)}")
+        args_json = json.dumps(arguments)
+        logger.info(f"AUDIT: Executing MCP tool '{name}' args: {args_json}")
         
         # Security validation check
         self.validator.validate(name, arguments)
 
         if not self.is_healthy():
-            raise RuntimeError("MCP server process is not running. The diagram server may have crashed.")
+            raise RuntimeError(
+                "MCP server process is not running. "
+                "The diagram server may have crashed."
+            )
+        
         if name == "finalize" and timeout == 30.0:
             timeout = 60.0
-        payload = {
-            "jsonrpc": "2.0",
-            "method": "tools/call",
-            "params": {
-                "name": name,
-                "arguments": arguments
-            }
-        }
-        response = await self._send_request(payload, timeout)
-        if "error" in response:
-            raise RuntimeError(f"MCP tool execution failed: {response['error']}")
-        return response.get("result")
+        
+        start_time = time.time()
+        request_id = self.next_id
+        
+        tracer = trace.get_tracer("drawio-agent")
+        with tracer.start_as_current_span("mcp.tool_call") as otel_span:
+            otel_span.set_attribute("tool_name", name)
+            try:
+                response = await self._send_request({
+                    "jsonrpc": "2.0",
+                    "id": request_id,
+                    "method": "tools/call",
+                    "params": {
+                        "name": name,
+                        "arguments": arguments
+                    }
+                }, timeout)
+
+                duration = time.time() - start_time
+                duration_ms = int(duration * 1000)
+                
+                mcp_tool_duration_seconds.labels(tool_name=name).observe(
+                    duration
+                )
+                
+                if "error" in response:
+                    mcp_tool_calls_total.labels(
+                        tool_name=name, status="error"
+                    ).inc()
+                    error_msg = response["error"].get("message", "Unknown error")
+                    error_code = response["error"].get("code", -32000)
+                    otel_span.set_status(
+                        trace.StatusCode.ERROR,
+                        f"MCP tool error ({error_code}): {error_msg}"
+                    )
+                    raise RuntimeError(
+                        f"MCP tool error ({error_code}): {error_msg}"
+                    )
+                
+                mcp_tool_calls_total.labels(
+                    tool_name=name, status="success"
+                ).inc()
+
+                logger.info(
+                    "MCP tool call completed",
+                    tool_name=name,
+                    duration_ms=duration_ms
+                )
+
+                return response.get("result", {})
+            except Exception as e:
+                otel_span.record_exception(e)
+                otel_span.set_status(trace.StatusCode.ERROR, str(e))
+                mcp_tool_calls_total.labels(
+                    tool_name=name, status="error"
+                ).inc()
+                duration = time.time() - start_time
+                duration_ms = int(duration * 1000)
+                mcp_tool_duration_seconds.labels(tool_name=name).observe(
+                    duration
+                )
+                logger.error(
+                    "MCP tool call failed",
+                    tool_name=name,
+                    duration_ms=duration_ms,
+                    error=str(e)
+                )
+                raise
 
     async def _discover_tools(self) -> None:
-        """
-        Queries the MCP server for the list of available tools.
-        """
+        """Queries the MCP server for the list of available tools."""
         payload = {
             "jsonrpc": "2.0",
             "method": "tools/list",
@@ -159,10 +217,12 @@ class MCPBridge:
             logger.error(f"Failed to discover tools from MCP server: {e}")
             self.tools = []
 
-    async def _send_request(self, payload: Dict[str, Any], timeout: float) -> Dict[str, Any]:
-        """
-        Sends a JSON-RPC request to stdin, assigns an ID, and awaits the response from stdout.
-        """
+    async def _send_request(
+        self,
+        payload: Dict[str, Any],
+        timeout: float
+    ) -> Dict[str, Any]:
+        """Sends a JSON-RPC request to stdin and awaits response from stdout."""
         if not self.process or not self.process.stdin:
             raise RuntimeError("MCP process not running")
 
@@ -184,9 +244,7 @@ class MCPBridge:
             self.pending_requests.pop(req_id, None)
 
     async def _read_loop(self) -> None:
-        """
-        Reads output lines from stdout of the child process and resolves pending requests.
-        """
+        """Reads output lines from stdout of child process."""
         if not self.process or not self.process.stdout:
             return
 
@@ -208,7 +266,10 @@ class MCPBridge:
                         if fut and not fut.done():
                             fut.set_result(data)
                 except json.JSONDecodeError:
-                    logger.warning(f"Failed to parse JSON-RPC line from MCP server: {line}")
+                    logger.warning(
+                        "Failed to parse JSON-RPC line from MCP server: "
+                        f"{line}"
+                    )
                 except Exception as e:
                     logger.error(f"Error in MCPBridge read handler: {e}")
         except asyncio.CancelledError:

@@ -124,6 +124,7 @@ describe('Logging and Correlation IDs', () => {
     // Mock the global fetch to track headers sent to agent
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
+      status: 200,
       json: async () => ({ status: 'ok' }),
       body: {
         getReader: () => ({ 

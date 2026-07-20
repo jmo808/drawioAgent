@@ -1,0 +1,51 @@
+{{- if .Values.pdb.enabled -}}
+{{- if ge (int .Values.frontend.replicaCount) 2 -}}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "drawio-agent.fullname" . }}-frontend
+  labels:
+    {{- include "drawio-agent.labels" . | nindent 4 }}
+    app.kubernetes.io/component: frontend
+spec:
+  minAvailable: {{ .Values.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "drawio-agent.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: frontend
+---
+{{- end }}
+
+{{- if ge (int .Values.api.replicaCount) 2 -}}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "drawio-agent.fullname" . }}-api
+  labels:
+    {{- include "drawio-agent.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api
+spec:
+  minAvailable: {{ .Values.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "drawio-agent.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: api
+---
+{{- end }}
+
+{{- if ge (int .Values.agent.replicaCount) 2 -}}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "drawio-agent.fullname" . }}-agent
+  labels:
+    {{- include "drawio-agent.labels" . | nindent 4 }}
+    app.kubernetes.io/component: agent
+spec:
+  minAvailable: {{ .Values.pdb.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "drawio-agent.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: agent
+{{- end }}
+{{- end -}}

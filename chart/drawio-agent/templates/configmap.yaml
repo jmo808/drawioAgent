@@ -12,3 +12,6 @@ data:
   AUTH_JWKS_URI: {{ .Values.auth.jwksUri | quote }}
   AUTH_ISSUER: {{ .Values.auth.issuer | quote }}
   AUTH_AUDIENCE: {{ .Values.auth.audience | quote }}
+  COLLABORATION_ENABLED: {{ .Values.collaboration.enabled | quote }}
+  VALKEY_HOST: {{ if .Values.collaboration.valkey.enabled }}{{ printf "%s-valkey" (include "drawio-agent.fullname" .) | quote }}{{ else }}{{ .Values.collaboration.valkey.host | quote }}{{ end }}
+  VALKEY_PORT: {{ if .Values.collaboration.valkey.enabled }}"6379"{{ else }}{{ .Values.collaboration.valkey.port | quote }}{{ end }}

@@ -13,7 +13,7 @@ export interface SessionState {
   sessionId: string;
   shortCode: string;
   members: SessionMember[];
-  chatHistory: any[];
+  chatHistory: Array<Record<string, unknown>>;
   diagramXml: string | null;
 }
 
@@ -223,6 +223,34 @@ export class SessionManager {
       chatHistory,
       diagramXml: diagramXml || null,
     };
+  }
+
+  /**
+   * Scans a session's member list and leaves the session for any member whose
+   * heartbeat has expired, returning the array of connection IDs that were removed.
+   */
+  async cleanExpiredMembers(sessionId: string): Promise<string[]> {
+    const membersRaw = await this.valkey.hgetall(`session:${sessionId}:members`);
+    const expiredConnIds: string[] = [];
+    for (const [connId, raw] of Object.entries(membersRaw)) {
+      try {
+        const member = JSON.parse(raw) as SessionMember;
+        if (member.disconnected) {
+          const hasHeartbeat = await this.valkey.exists(`session:${sessionId}:member:${connId}:heartbeat`);
+          if (!hasHeartbeat) {
+            expiredConnIds.push(connId);
+          }
+        }
+      } catch (err) {
+        expiredConnIds.push(connId);
+      }
+    }
+    if (expiredConnIds.length > 0) {
+      for (const connId of expiredConnIds) {
+        await this.leaveSession(sessionId, connId);
+      }
+    }
+    return expiredConnIds;
   }
 
   /**

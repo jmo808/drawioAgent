@@ -4,7 +4,7 @@ import Redis from 'ioredis';
 
 // Simple in-memory mock of Redis client to avoid network dependencies
 class InMemoryRedisMock {
-  public store: Record<string, any> = {};
+  store: Record<string, unknown> = {};
 
   async get(key: string): Promise<string | null> {
     const val = this.store[key];
@@ -12,7 +12,7 @@ class InMemoryRedisMock {
     return null;
   }
 
-  async set(key: string, val: string, ...options: any[]): Promise<'OK' | null> {
+  async set(key: string, val: string, ...options: unknown[]): Promise<'OK' | null> {
     const nx = options.includes('NX');
     if (nx && key in this.store) {
       return null;

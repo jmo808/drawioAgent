@@ -1,0 +1,80 @@
+# Production-grade deployment values file
+global:
+  apiKey: "change-this-to-a-secure-random-key"
+
+# High availability and resource limits
+frontend:
+  replicaCount: 2
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+api:
+  replicaCount: 2
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+agent:
+  replicaCount: 2
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 250m
+      memory: 512Mi
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+
+# Real-time multi-user collaboration enabled with state persistence
+collaboration:
+  enabled: true
+  valkey:
+    enabled: true
+    persistence:
+      enabled: true
+      size: 5Gi
+
+# Kubernetes traffic routing and security
+gateway:
+  enabled: true
+  tls:
+    enabled: true
+    secretName: "drawio-gateway-tls"
+
+# Enable production Network Isolation
+networkPolicy:
+  enabled: true
+
+# Enable Pod Disruption Budgets for high availability during upgrades
+pdb:
+  enabled: true
+
+# Comprehensive Observability features enabled
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+
+alerting:
+  enabled: true
+
+grafana:
+  dashboards:
+    enabled: true
+
+tracing:
+  enabled: true
+  otlpEndpoint: "http://tempo-collector.monitoring.svc.cluster.local:4318"

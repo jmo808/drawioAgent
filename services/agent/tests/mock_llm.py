@@ -114,6 +114,8 @@ async def chat_completions(request: Request):
                 }
             else:
                 content = "Here is the AWS 3-tier architecture diagram."
+        elif "fail" in prompt.lower() or "circuit-fail" in prompt.lower():
+            return JSONResponse(status_code=500, content={"error": "Simulated LLM failure"})
         elif "invalid" in prompt.lower() or "error" in prompt.lower():
             content = "Error: I cannot parse this prompt."
         else:

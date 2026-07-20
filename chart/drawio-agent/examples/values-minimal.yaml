@@ -1,0 +1,65 @@
+# Minimal values file for quick, low-resource evaluation
+global:
+  apiKey: "minimal-evaluation-key"
+
+# Single replica configurations
+frontend:
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 250m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 128Mi
+
+api:
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 250m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 128Mi
+
+agent:
+  replicaCount: 1
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  hpa:
+    enabled: false
+
+# Disabled Gateway and Collaboration
+gateway:
+  enabled: false
+
+collaboration:
+  enabled: false
+
+# Disable all optional observability & hardening features
+metrics:
+  enabled: false
+  serviceMonitor:
+    enabled: false
+
+alerting:
+  enabled: false
+
+grafana:
+  dashboards:
+    enabled: false
+
+tracing:
+  enabled: false
+
+networkPolicy:
+  enabled: false
+
+pdb:
+  enabled: false

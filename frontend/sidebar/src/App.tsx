@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { ChatPanel } from './components/ChatPanel'
 import { TemplateLibrary } from './components/TemplateLibrary'
 import { DisplayNamePrompt } from './components/DisplayNamePrompt'
@@ -23,7 +23,7 @@ function App({ ui }: AppProps) {
     return urlParams.get('apiKey') || localStorage.getItem('drawio_agent_api_key') || 'default-secret-key'
   })
 
-  const { state, dispatch } = useChatStore(sessionId)
+  const { state, dispatch } = useChatStore()
   const [isOpen, setIsOpen] = useState(true)
 
   const [collabEnabled, setCollabEnabled] = useState(false)
@@ -246,6 +246,12 @@ function App({ ui }: AppProps) {
     document.addEventListener('mouseup', handleMouseUp)
   }
 
+  interface Member {
+    connId: string;
+    displayName: string;
+    disconnected?: boolean;
+  }
+
   const { sendMessage, broadcastDiagram, createSession, joinSession, leaveSession } = useWebSocket({
     sessionId,
     collabSessionId: state.sessionId,
@@ -267,14 +273,14 @@ function App({ ui }: AppProps) {
           }
         });
       } else if (message.type === 'chat_message') {
-        const payload = message.payload as any;
-        const senderConnId = (message as any).senderConnId;
-        const senderName = (message as any).senderName || 'Anonymous';
+        const payload = message.payload as Record<string, unknown>;
+        const senderConnId = (message as unknown as Record<string, unknown>).senderConnId as string | undefined;
+        const senderName = ((message as unknown as Record<string, unknown>).senderName as string | undefined) || 'Anonymous';
         const isAgent = !senderConnId || senderConnId === 'agent';
         dispatch({
           type: 'RECEIVE_COLLAB_CHAT',
           payload: {
-            text: payload.text,
+            text: payload.text as string,
             senderName,
             isAgent
           }
@@ -294,71 +300,71 @@ function App({ ui }: AppProps) {
         const payload = message.payload as unknown as ErrorPayload;
         dispatch({ type: 'SET_ERROR', payload: payload.message });
       } else if (message.type === 'session_state') {
-        const payload = message.payload as any;
-        dispatch({ type: 'SET_SESSION', payload: { sessionId: payload.sessionId, shortCode: payload.shortCode } });
-        dispatch({ type: 'SET_MEMBERS', payload: payload.members });
+        const payload = message.payload as Record<string, unknown>;
+        dispatch({ type: 'SET_SESSION', payload: { sessionId: payload.sessionId as string, shortCode: payload.shortCode as string } });
+        dispatch({ type: 'SET_MEMBERS', payload: payload.members as Member[] });
         if (ui && payload.diagramXml) {
           try {
-            drawioBridge.setGraphXmlPreservingViewport(ui, payload.diagramXml);
+            drawioBridge.setGraphXmlPreservingViewport(ui, payload.diagramXml as string);
           } catch (e) {
             console.error('[DrawioAgent] Failed to apply sync state XML:', e);
           }
         }
       } else if (message.type === 'member_joined') {
-        const payload = message.payload as any;
-        dispatch({ type: 'ADD_MEMBER', payload: { connId: payload.connId, displayName: payload.displayName, disconnected: payload.disconnected } });
+        const payload = message.payload as Record<string, unknown>;
+        dispatch({ type: 'ADD_MEMBER', payload: { connId: payload.connId as string, displayName: payload.displayName as string, disconnected: payload.disconnected as boolean | undefined } });
         if (!payload.disconnected) {
           showToast(`${payload.displayName} joined the session`);
         }
       } else if (message.type === 'member_left') {
-        const payload = message.payload as any;
-        dispatch({ type: 'REMOVE_MEMBER', payload: payload.connId });
+        const payload = message.payload as Record<string, unknown>;
+        dispatch({ type: 'REMOVE_MEMBER', payload: payload.connId as string });
         const member = state.members.find(m => m.connId === payload.connId);
         showToast(`${member?.displayName || 'A member'} left the session`);
       } else if (message.type === 'diagram_broadcast') {
-        const payload = message.payload as any;
+        const payload = message.payload as Record<string, unknown>;
         if (ui && payload.diagramXml) {
           try {
-            drawioBridge.setGraphXmlPreservingViewport(ui, payload.diagramXml);
-            showToast(`Diagram updated by ${payload.senderName || 'another user'}`);
+            drawioBridge.setGraphXmlPreservingViewport(ui, payload.diagramXml as string);
+            showToast(`Diagram updated by ${(message as unknown as Record<string, unknown>).senderName as string || 'another user'}`);
           } catch (e) {
             console.error('[DrawioAgent] Failed to apply broadcast XML:', e);
           }
         }
       } else if (message.type === 'ai_locked') {
-        const payload = message.payload as any;
-        dispatch({ type: 'SET_AI_WORKING_FOR', payload: payload.displayName });
+        const payload = message.payload as Record<string, unknown>;
+        dispatch({ type: 'SET_AI_WORKING_FOR', payload: payload.displayName as string });
       } else if (message.type === 'ai_unlocked') {
         dispatch({ type: 'SET_AI_WORKING_FOR', payload: null });
       }
     }
   });
 
-  const handleCreateSession = () => {
+  const handleCreateSession = useCallback(() => {
     if (!displayName) {
       setPendingAction({ type: 'create' });
       setShowNamePrompt(true);
     } else {
       createSession(displayName);
     }
-  };
+  }, [displayName, createSession]);
 
-  const handleJoinSession = (codeOrId: string) => {
+  const handleJoinSession = useCallback((codeOrId: string) => {
     if (!displayName) {
       setPendingAction({ type: 'join', codeOrId });
       setShowNamePrompt(true);
     } else {
       joinSession(codeOrId, displayName);
     }
-  };
+  }, [displayName, joinSession]);
 
-  const handleLeaveSession = () => {
+  const handleLeaveSession = useCallback(() => {
     if (state.sessionId) {
       leaveSession(state.sessionId);
       dispatch({ type: 'CLEAR_SESSION' });
       showToast('Left collaboration session');
     }
-  };
+  }, [state.sessionId, leaveSession, dispatch]);
 
   const handleNameConfirm = (name: string) => {
     setDisplayName(name);
@@ -390,7 +396,7 @@ function App({ ui }: AppProps) {
       console.log('[DrawioAgent] Auto-joining session from URL parameter:', sessionParam);
       handleJoinSession(sessionParam);
     }
-  }, [collabEnabled, state.connectionStatus]);
+  }, [collabEnabled, state.connectionStatus, state.sessionId, handleJoinSession]);
 
   useEffect(() => {
     if (!ui || !state.sessionId) return

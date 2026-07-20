@@ -7,13 +7,13 @@ import { MockAgent, setGlobalDispatcher } from 'undici';
 
 const hoisted = vi.hoisted(() => {
   class InMemoryRedisMock {
-    public store: Record<string, any> = {};
-    public status = 'ready';
+    store: Record<string, unknown> = {};
+    status = 'ready';
 
-    private static listeners: Record<string, any[]> = {};
+    private static listeners: Record<string, Array<(...args: unknown[]) => void>> = {};
     private static subscriptions: Record<string, InMemoryRedisMock[]> = {};
 
-    on(event: string, handler: any) {
+    on(event: string, handler: (...args: unknown[]) => void) {
       if (event === 'connect' || event === 'ready') {
         setTimeout(() => handler(), 0);
       }

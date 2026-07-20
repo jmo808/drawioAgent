@@ -42,23 +42,18 @@ async def test_audit_logging_chat_request_and_tool_call(caplog_audit):
     
     # Run orchestrator with headers context simulating incoming API requests
     events = []
-    async for event in orchestrator.run(
-        session_id="session-audit-123",
-        prompt="hello agent",
-        request_id="req-uuid-999",
-        user_identity="test-user-sub"
-    ):
-        events.append(event)
+    from structlog.testing import capture_logs
+    with capture_logs() as cap_logs:
+        async for event in orchestrator.run(
+            session_id="session-audit-123",
+            prompt="hello agent",
+            request_id="req-uuid-999",
+            user_identity="test-user-sub"
+        ):
+            events.append(event)
         
     # Analyze caplog for audit events
-    audit_records = []
-    for record in caplog_audit.records:
-        try:
-            log_data = json.loads(record.message)
-            if log_data.get("audit") is True:
-                audit_records.append(log_data)
-        except json.JSONDecodeError:
-            continue
+    audit_records = [log for log in cap_logs if log.get("audit") is True]
             
     # Assertions
     assert len(audit_records) >= 1

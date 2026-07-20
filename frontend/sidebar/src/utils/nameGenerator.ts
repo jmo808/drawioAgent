@@ -11,6 +11,6 @@ const nouns = [
 export function generateRandomName(): string {
   const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
   const noun = nouns[Math.floor(Math.random() * nouns.length)];
-  const hex = Math.random().toString(16).substring(2, 6);
+  const hex = Math.random().toString(16).substring(2, 8);
   return `${adj}-${noun}-${hex}`;
 }

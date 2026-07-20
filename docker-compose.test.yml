@@ -31,6 +31,8 @@ services:
       context: .
       dockerfile: services/api/Dockerfile
       target: builder
+    ports:
+      - "3000:3000"
     volumes:
       - ./services/api/src:/app/services/api/src:ro,z
       - ./packages/shared/src:/app/packages/shared/src:ro,z
@@ -62,6 +64,8 @@ services:
     build:
       context: ..
       dockerfile: drawioAgent/services/agent/Dockerfile
+    ports:
+      - "8000:8000"
     volumes:
       - ./services/agent/src:/app/agent/src:ro,z
       - ../drawio_plugin:/app/mcp-server:ro,z

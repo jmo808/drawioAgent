@@ -4,11 +4,11 @@ import Redis from 'ioredis';
 
 // Simple in-memory mock of Redis client to avoid network dependencies
 class InMemoryRedisMock {
-  public store: Record<string, any> = {};
-  public subscriptions = new Set<string>();
-  public publishedMessages: { channel: string, message: string }[] = [];
-  public listeners: Record<string, Function[]> = {};
-  public lists: Record<string, string[]> = {};
+  store: Record<string, unknown> = {};
+  subscriptions = new Set<string>();
+  publishedMessages: { channel: string, message: string }[] = [];
+  listeners: Record<string, Array<(channel: string, message: string) => void>> = {};
+  lists: Record<string, string[]> = {};
 
   async set(key: string, val: string): Promise<'OK'> {
     this.store[key] = val;
@@ -46,7 +46,7 @@ class InMemoryRedisMock {
   }
 
   // We will link the publisher to the subscriber in the test setup
-  public linkedSubscriber?: InMemoryRedisMock;
+  linkedSubscriber?: InMemoryRedisMock;
 
   async publish(channel: string, message: string): Promise<number> {
     this.publishedMessages.push({ channel, message });

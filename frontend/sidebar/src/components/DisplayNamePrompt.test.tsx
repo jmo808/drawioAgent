@@ -45,7 +45,7 @@ describe('DisplayNamePrompt', () => {
 
     expect(handleConfirm).toHaveBeenCalled();
     const confirmedName = handleConfirm.mock.calls[0][0];
-    expect(confirmedName).toMatch(/^[A-Z][a-z]+-[A-Z][a-z]+-[0-9a-f]{4}$/);
+    expect(confirmedName).toMatch(/^[A-Z][a-z]+-[A-Z][a-z]+-[0-9a-f]{6}$/);
   });
 
   test('calls onCancel when cancel button clicked', () => {

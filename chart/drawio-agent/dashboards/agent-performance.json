@@ -1,0 +1,115 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "title": "LLM Call Latency by Provider (p99)",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(llm_call_duration_seconds_bucket[5m])) by (le, provider))",
+          "legendFormat": "{{provider}} p99",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Token Usage by Provider & Type",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(llm_tokens_total[5m])) by (provider, token_type)",
+          "legendFormat": "{{provider}} - {{token_type}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "MCP Tool Call Distribution",
+      "type": "bargraph",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(mcp_tool_calls_total[5m])) by (tool_name)",
+          "legendFormat": "{{tool_name}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "MCP Tool Error Rate Percentage",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(mcp_tool_calls_total{status=\"error\"}[5m])) / sum(rate(mcp_tool_calls_total[5m])) * 100",
+          "legendFormat": "Error Rate %",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Circuit Breaker State per Provider",
+      "type": "state-timeline",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "llm_circuit_state",
+          "legendFormat": "{{provider}} (0=Closed, 1=Open, 2=Half-Open)",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Diagram Generation End-to-End Latency",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(diagram_generation_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p99 Generation",
+          "refId": "A"
+        }
+      ]
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 36,
+  "style": "dark",
+  "tags": ["drawio-agent", "agent"],
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "AI Agent Performance",
+  "version": 1
+}

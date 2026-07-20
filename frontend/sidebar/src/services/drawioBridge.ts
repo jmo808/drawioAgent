@@ -1,140 +1,187 @@
-export const getGraphXml = (ui: EditorUi): string => {
-  if (!ui || !ui.editor) return ''
-  const xmlNode = ui.editor.getGraphXml()
-  if (!xmlNode) return ''
-  if (typeof xmlNode === 'string') {
-    return xmlNode
-  }
-  const mxUtils = (window as any).mxUtils
-  if (mxUtils && typeof mxUtils.getXml === 'function') {
-    return mxUtils.getXml(xmlNode)
-  }
-  return new XMLSerializer().serializeToString(xmlNode)
+interface MxUtils {
+  getXml(node: Node): string;
+  parseXml(xml: string): Document;
 }
+
+interface MxClient {
+  IS_DARK?: boolean;
+}
+
+interface MxEvent {
+  CHANGE: string;
+}
+
+interface GraphModelMock {
+  cells?: Record<string, { vertex?: boolean; edge?: boolean }>;
+  addListener?(name: string, f: () => void): void;
+  removeListener?(f: () => void): void;
+}
+
+interface ViewMock {
+  getScale(): number;
+  getTranslate(): { x: number; y: number };
+  setScale(scale: number): void;
+  setTranslate(x: number, y: number): void;
+}
+
+interface GraphMock {
+  view: ViewMock;
+  refresh(): void;
+}
+
+export const getGraphXml = (ui: EditorUi): string => {
+  if (!ui || !ui.editor) {
+    return '';
+  }
+  const xmlNode = ui.editor.getGraphXml();
+  if (!xmlNode) {
+    return '';
+  }
+  if (typeof xmlNode === 'string') {
+    return xmlNode;
+  }
+  const mxUtils = (window as unknown as { mxUtils?: MxUtils }).mxUtils;
+  if (mxUtils && typeof mxUtils.getXml === 'function') {
+    return mxUtils.getXml(xmlNode);
+  }
+  return new XMLSerializer().serializeToString(xmlNode);
+};
 
 export const setGraphXml = (ui: EditorUi, xml: string): void => {
-  if (!ui || !ui.editor) return
+  if (!ui || !ui.editor) {
+    return;
+  }
   
-  let xmlNode: any
-  const mxUtils = (window as any).mxUtils
+  let xmlNode: Element;
+  const mxUtils = (window as unknown as { mxUtils?: MxUtils }).mxUtils;
   if (mxUtils && typeof mxUtils.parseXml === 'function') {
-    const doc = mxUtils.parseXml(xml)
-    xmlNode = doc.documentElement
+    const doc = mxUtils.parseXml(xml);
+    xmlNode = doc.documentElement;
   } else {
-    const parser = new DOMParser()
-    const doc = parser.parseFromString(xml, 'text/xml')
-    xmlNode = doc.documentElement
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(xml, 'text/xml');
+    xmlNode = doc.documentElement;
   }
 
-  const graph = ui.editor.graph
-  const model = graph?.model
+  const graph = ui.editor.graph;
+  const model = graph?.model;
   
   if (model) {
-    model.beginUpdate()
+    model.beginUpdate();
     try {
-      ui.editor.setGraphXml(xmlNode)
+      ui.editor.setGraphXml(xmlNode);
     } finally {
-      model.endUpdate()
+      model.endUpdate();
     }
   } else {
-    ui.editor.setGraphXml(xmlNode)
+    ui.editor.setGraphXml(xmlNode);
   }
-}
+};
 
 let isApplyingRemoteUpdate = false;
 
 export const setGraphXmlPreservingViewport = (ui: EditorUi, xml: string): void => {
   if (!ui || !ui.editor || !ui.editor.graph) {
-    setGraphXml(ui, xml)
-    return
+    setGraphXml(ui, xml);
+    return;
   }
 
-  const graph = ui.editor.graph as any
-  const view = graph.view
+  const graph = ui.editor.graph as unknown as GraphMock;
+  const view = graph.view;
   if (!view || typeof view.getScale !== 'function' || typeof view.getTranslate !== 'function') {
-    setGraphXml(ui, xml)
-    return
+    setGraphXml(ui, xml);
+    return;
   }
 
-  const scale = view.getScale()
-  const translate = view.getTranslate() || { x: 0, y: 0 }
+  const scale = view.getScale();
+  const translate = view.getTranslate() || { x: 0, y: 0 };
 
-  isApplyingRemoteUpdate = true
+  isApplyingRemoteUpdate = true;
   try {
-    setGraphXml(ui, xml)
+    setGraphXml(ui, xml);
 
     if (typeof view.setScale === 'function') {
-      view.setScale(scale)
+      view.setScale(scale);
     }
     if (typeof view.setTranslate === 'function') {
-      view.setTranslate(translate.x, translate.y)
+      view.setTranslate(translate.x, translate.y);
     }
     if (typeof graph.refresh === 'function') {
-      graph.refresh()
+      graph.refresh();
     }
   } finally {
-    isApplyingRemoteUpdate = false
+    isApplyingRemoteUpdate = false;
   }
-}
+};
 
 export const getTheme = (): 'dark' | 'light' => {
   const isDark = document.body.classList.contains('geDarkPage') ||
                  document.body.classList.contains('geDark') ||
                  document.body.classList.contains('dark') ||
-                 (window as any).mxClient?.IS_DARK
-  return isDark ? 'dark' : 'light'
-}
+                 (window as unknown as { mxClient?: MxClient }).mxClient?.IS_DARK;
+  return isDark ? 'dark' : 'light';
+};
 
 export const getDiagramStats = (ui: EditorUi): { nodeCount: number; edgeCount: number } => {
   if (!ui || !ui.editor || !ui.editor.graph || !ui.editor.graph.model) {
-    return { nodeCount: 0, edgeCount: 0 }
+    return { nodeCount: 0, edgeCount: 0 };
   }
 
-  const model = ui.editor.graph.model as any
-  const cells = model.cells || {}
+  const model = ui.editor.graph.model as unknown as GraphModelMock;
+  const cells = model.cells || {};
   
-  let nodeCount = 0
-  let edgeCount = 0
+  let nodeCount = 0;
+  let edgeCount = 0;
 
   for (const id in cells) {
-    const cell = cells[id]
-    if (cell.vertex) nodeCount++
-    if (cell.edge) edgeCount++
+    if (Object.prototype.hasOwnProperty.call(cells, id)) {
+      const cell = cells[id];
+      if (cell.vertex) {
+        nodeCount++;
+      }
+      if (cell.edge) {
+        edgeCount++;
+      }
+    }
   }
 
-  return { nodeCount, edgeCount }
-}
+  return { nodeCount, edgeCount };
+};
 
 export const subscribeToGraphChanges = (
   ui: EditorUi, 
   onChange: (xml: string) => void, 
-  debounceMs: number = 500
+  debounceMs = 500
 ): () => void => {
   if (!ui || !ui.editor || !ui.editor.graph || !ui.editor.graph.model) {
-    return () => {}
+    return () => {};
   }
 
-  let timeoutId: ReturnType<typeof setTimeout>
+  let timeoutId: ReturnType<typeof setTimeout>;
   
   const listener = () => {
-    if (isApplyingRemoteUpdate) return
-    clearTimeout(timeoutId)
+    if (isApplyingRemoteUpdate) {
+      return;
+    }
+    clearTimeout(timeoutId);
     timeoutId = setTimeout(() => {
-      onChange(getGraphXml(ui))
-    }, debounceMs)
-  }
+      onChange(getGraphXml(ui));
+    }, debounceMs);
+  };
   
-  const model = ui.editor.graph.model as any
-  const mxEvent = (window as any).mxEvent
+  const model = ui.editor.graph.model as unknown as GraphModelMock;
+  const mxEvent = (window as unknown as { mxEvent?: MxEvent }).mxEvent;
   
   if (model.addListener && mxEvent && mxEvent.CHANGE) {
-    model.addListener(mxEvent.CHANGE, listener)
+    model.addListener(mxEvent.CHANGE, listener);
     
     return () => {
-      clearTimeout(timeoutId)
-      model.removeListener(listener)
-    }
+      clearTimeout(timeoutId);
+      if (model.removeListener) {
+        model.removeListener(listener);
+      }
+    };
   }
   
-  return () => {}
-}
+  return () => {};
+};

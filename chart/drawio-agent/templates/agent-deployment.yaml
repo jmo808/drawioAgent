@@ -13,6 +13,12 @@ spec:
       app.kubernetes.io/component: agent
   template:
     metadata:
+      {{- if .Values.metrics.enabled }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+      {{- end }}
       labels:
         {{- include "drawio-agent.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: agent
@@ -50,6 +56,12 @@ spec:
                   name: {{ include "drawio-agent.fullname" . }}-secrets
                   key: llm-api-key
                   optional: true
+            {{- if .Values.tracing.enabled }}
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: {{ .Values.tracing.otlpEndpoint | quote }}
+            - name: OTEL_SERVICE_NAME
+              value: "{{ include "drawio-agent.fullname" . }}-agent"
+            {{- end }}
           livenessProbe:
             httpGet:
               path: /health

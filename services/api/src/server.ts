@@ -1,3 +1,4 @@
+import './tracing.js';
 import Fastify from 'fastify';
 import { buildApp } from './app.js';
 

@@ -1,0 +1,100 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "title": "Pod Health / Status per Deployment",
+      "type": "state-timeline",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum(kube_pod_status_ready{condition=\"true\"}) by (deployment)",
+          "legendFormat": "{{deployment}} Ready",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "CPU Usage per Pod vs Request / Limit",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(container_cpu_usage_seconds_total{container!=\"\"}[5m])) by (pod)",
+          "legendFormat": "{{pod}} CPU",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Memory Usage per Pod vs Request / Limit",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum(container_memory_working_set_bytes{container!=\"\"}) by (pod)",
+          "legendFormat": "{{pod}} Memory",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Total Diagrams Generated per Hour",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum(increase(diagram_generation_duration_seconds_count[1h]))",
+          "legendFormat": "Diagrams/Hour",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "WebSocket Connection Trends",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "expr": "sum(ws_connections_active)",
+          "legendFormat": "Active Connections",
+          "refId": "A"
+        }
+      ]
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 36,
+  "style": "dark",
+  "tags": ["drawio-agent", "system"],
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "System Overview",
+  "version": 1
+}

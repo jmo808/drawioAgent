@@ -11,7 +11,7 @@ export class TokenBucketLimiter {
     this.lastRefill = Date.now();
   }
 
-  public consume(tokensToConsume = 1): boolean {
+  consume(tokensToConsume = 1): boolean {
     const now = Date.now();
     const elapsed = now - this.lastRefill;
     this.tokens = Math.min(this.maxTokens, this.tokens + elapsed * this.refillRate);

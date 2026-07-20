@@ -130,30 +130,30 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
       return {
         ...state,
         collaborationEnabled: action.payload
-      }
+      };
     case 'SET_SESSION':
       return {
         ...state,
         sessionId: action.payload.sessionId,
         shortCode: action.payload.shortCode
-      }
+      };
     case 'CLEAR_SESSION':
       return {
         ...state,
         sessionId: null,
         shortCode: undefined,
         members: []
-      }
+      };
     case 'SET_DISPLAY_NAME':
       return {
         ...state,
         displayName: action.payload
-      }
+      };
     case 'SET_MEMBERS':
       return {
         ...state,
         members: action.payload
-      }
+      };
     case 'ADD_MEMBER': {
       const exists = state.members.some(m => m.connId === action.payload.connId);
       if (exists) {
@@ -175,18 +175,18 @@ const chatReducer = (state: ChatState, action: ChatAction): ChatState => {
       return {
         ...state,
         members: state.members.filter(m => m.connId !== action.payload)
-      }
+      };
     case 'SET_AI_WORKING_FOR':
       return {
         ...state,
         aiWorkingFor: action.payload
-      }
+      };
     default:
-      return state
+      return state;
   }
 }
 
-export const useChatStore = (_sessionId: string) => {
+export const useChatStore = () => {
   const [state, dispatch] = useReducer(chatReducer, {
     messages: [],
     isLoading: false,
@@ -195,7 +195,7 @@ export const useChatStore = (_sessionId: string) => {
     sessionId: null,
     members: [],
     aiWorkingFor: null
-  })
+  });
 
-  return { state, dispatch }
-}
+  return { state, dispatch };
+};

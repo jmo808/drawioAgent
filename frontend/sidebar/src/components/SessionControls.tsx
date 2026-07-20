@@ -24,10 +24,14 @@ export const SessionControls: React.FC<SessionControlsProps> = ({
   const handleCopy = () => {
     if (!sessionId) return;
     const url = `${window.location.origin}${window.location.pathname}?session=${sessionId}`;
-    navigator.clipboard.writeText(url).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
+    navigator.clipboard.writeText(url)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      })
+      .catch((err) => {
+        console.error('Failed to copy session link: ', err);
+      });
   };
 
   const handleJoinSubmit = (e: React.FormEvent) => {

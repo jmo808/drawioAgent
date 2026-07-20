@@ -3,16 +3,59 @@ import { validateWebSocketMessage, isChatMessage } from '@drawio-agent/shared';
 import type { ChatMessage } from '@drawio-agent/shared';
 import { AgentProxy } from '../services/agent-proxy.js';
 import { TokenBucketLimiter } from '../services/rate-limiter.js';
-import { SessionManager } from '../services/session-manager.js';
+import { SessionManager, SessionMember } from '../services/session-manager.js';
 import crypto from 'crypto';
+import { ws_connections_active, ws_messages_total } from '../plugins/metrics.js';
 
 const agentProxy = new AgentProxy();
 
 /**
  * Registers the WebSocket chat route.
  */
+interface SessionCreatePayload {
+  displayName?: string;
+}
+
+interface SessionJoinPayload {
+  sessionId: string;
+  displayName?: string;
+}
+
+interface SessionLeavePayload {
+  sessionId: string;
+}
+
+interface DiagramBroadcastPayload {
+  diagramXml: string;
+}
+
 export async function chatRoutes(app: FastifyInstance) {
   const sessionManager = app.valkey ? new SessionManager(app.valkey) : null;
+  const activeSessionsOnServer = new Map<string, number>();
+
+  if (sessionManager && app.pubsubManager) {
+    const pubsub = app.pubsubManager;
+    const intervalId = setInterval(async () => {
+      for (const collabId of activeSessionsOnServer.keys()) {
+        try {
+          const expired = await sessionManager.cleanExpiredMembers(collabId);
+          for (const deadConnId of expired) {
+            await pubsub.publishEvent(collabId, {
+              type: 'member_left',
+              payload: { connId: deadConnId },
+              timestamp: new Date().toISOString(),
+            });
+          }
+        } catch (err) {
+          app.log.error({ err, collabId }, 'Error checking/cleaning expired session members');
+        }
+      }
+    }, 60 * 1000);
+
+    app.addHook('onClose', async () => {
+      clearInterval(intervalId);
+    });
+  }
 
   app.get('/api/v1/ws/chat', { websocket: true }, (socket, req) => {
     const sessionId = crypto.randomUUID();
@@ -35,9 +78,23 @@ export async function chatRoutes(app: FastifyInstance) {
     }
 
     req.log.info({ sessionId, classification }, 'New WebSocket connection established');
+    ws_connections_active.inc();
 
     const valkey = app.valkey;
     const pubsubManager = app.pubsubManager;
+
+    const trackCollabSession = (collabId: string) => {
+      activeSessionsOnServer.set(collabId, (activeSessionsOnServer.get(collabId) || 0) + 1);
+    };
+
+    const untrackCollabSession = (collabId: string) => {
+      const count = activeSessionsOnServer.get(collabId) || 0;
+      if (count <= 1) {
+        activeSessionsOnServer.delete(collabId);
+      } else {
+        activeSessionsOnServer.set(collabId, count - 1);
+      }
+    };
 
     // Keep track of the active collaboration session ID for this connection
     let activeCollabSessionId: string | null = null;
@@ -64,9 +121,7 @@ export async function chatRoutes(app: FastifyInstance) {
       });
     }
 
-    const limitMax = Number(process.env.RATE_LIMIT_MAX_TOKENS) || 10;
-    const limitRefill = Number(process.env.RATE_LIMIT_REFILL_RATE) || 2;
-    const limiter = new TokenBucketLimiter(limitMax, limitRefill);
+    const wsLimit = Number(process.env.RATE_LIMIT_MAX_TOKENS) || 30;
 
     const processQueue = async (collabSessionId: string) => {
       if (!sessionManager || !pubsubManager || !valkey) {
@@ -182,7 +237,9 @@ export async function chatRoutes(app: FastifyInstance) {
 
     socket.on('message', async (message) => {
       try {
-        if (!limiter.consume()) {
+        const apiKey = query.apiKey || req.ip;
+        const allowed = await app.wsRateLimiter.consume(apiKey, wsLimit);
+        if (!allowed) {
           req.log.warn({
             audit: true,
             eventType: 'rate_limit_violation',
@@ -207,6 +264,7 @@ export async function chatRoutes(app: FastifyInstance) {
           parsed = JSON.parse(dataStr);
         } catch (err: unknown) {
           req.log.warn({ error: err }, 'Malformed WebSocket message received (not JSON)');
+          ws_messages_total.labels('unknown', 'error').inc();
           socket.send(JSON.stringify({
             type: 'error',
             payload: { code: 'BAD_REQUEST', message: 'Message is not valid JSON' },
@@ -217,6 +275,7 @@ export async function chatRoutes(app: FastifyInstance) {
 
         if (!validateWebSocketMessage(parsed)) {
           req.log.warn({ parsed }, 'WebSocket message fails validation schema');
+          ws_messages_total.labels(parsed?.type || 'unknown', 'error').inc();
           socket.send(JSON.stringify({
             type: 'error',
             payload: { code: 'BAD_REQUEST', message: 'Message does not match WebSocketMessage schema' },
@@ -224,6 +283,8 @@ export async function chatRoutes(app: FastifyInstance) {
           }));
           return;
         }
+
+        ws_messages_total.labels(parsed.type, 'success').inc();
 
         if (parsed.type === 'session_create') {
           if (!sessionManager || !pubsubManager) {
@@ -234,15 +295,16 @@ export async function chatRoutes(app: FastifyInstance) {
             }));
             return;
           }
-          const payload = parsed.payload as any;
+          const payload = parsed.payload as SessionCreatePayload;
           displayName = payload.displayName || 'anonymous';
           const { sessionId: newSessionId, shortCode } = await sessionManager.createSession(displayName);
           
           await sessionManager.joinSession(newSessionId, connId, displayName);
           
           await pubsubManager.unsubscribeFromSession(sessionId, connId);
-          await pubsubManager.subscribeToSession(newSessionId, socket as any, connId);
+          await pubsubManager.subscribeToSession(newSessionId, socket, connId);
           
+          trackCollabSession(newSessionId);
           activeCollabSessionId = newSessionId;
 
           socket.send(JSON.stringify({
@@ -266,7 +328,7 @@ export async function chatRoutes(app: FastifyInstance) {
             }));
             return;
           }
-          const payload = parsed.payload as any;
+          const payload = parsed.payload as unknown as SessionJoinPayload;
           displayName = payload.displayName || 'anonymous';
           const targetSessionId = payload.sessionId;
 
@@ -284,11 +346,15 @@ export async function chatRoutes(app: FastifyInstance) {
             const state = await sessionManager.joinSession(targetSessionId, connId, displayName);
             const oldSession = activeCollabSessionId || sessionId;
             await pubsubManager.unsubscribeFromSession(oldSession, connId);
-            await pubsubManager.subscribeToSession(state.sessionId, socket as any, connId);
+            await pubsubManager.subscribeToSession(state.sessionId, socket, connId);
             
+            if (activeCollabSessionId) {
+              untrackCollabSession(activeCollabSessionId);
+            }
+            trackCollabSession(state.sessionId);
             activeCollabSessionId = state.sessionId;
 
-            const membersMapped = state.members.map((m: any) => ({
+            const membersMapped = state.members.map((m: SessionMember) => ({
               connId: m.connId,
               displayName: m.name,
               disconnected: m.disconnected
@@ -313,17 +379,18 @@ export async function chatRoutes(app: FastifyInstance) {
               timestamp: new Date().toISOString(), requestId: req.id
             });
 
-          } catch (joinErr: any) {
+          } catch (joinErr: unknown) {
+            const errMsg = joinErr instanceof Error ? joinErr.message : 'Unknown error';
             socket.send(JSON.stringify({
               type: 'error',
-              payload: { code: 'NOT_FOUND', message: joinErr.message },
+              payload: { code: 'NOT_FOUND', message: errMsg },
               timestamp: new Date().toISOString(), requestId: req.id
             }));
           }
 
         } else if (parsed.type === 'session_leave') {
           if (!sessionManager || !pubsubManager) return;
-          const payload = parsed.payload as any;
+          const payload = parsed.payload as unknown as SessionLeavePayload;
           const collabSessionId = payload.sessionId;
 
           const emptied = await sessionManager.leaveSession(collabSessionId, connId);
@@ -336,8 +403,11 @@ export async function chatRoutes(app: FastifyInstance) {
             });
           }
           await pubsubManager.unsubscribeFromSession(collabSessionId, connId);
-          await pubsubManager.subscribeToSession(sessionId, socket as any, connId);
+          await pubsubManager.subscribeToSession(sessionId, socket, connId);
           
+          if (activeCollabSessionId) {
+            untrackCollabSession(activeCollabSessionId);
+          }
           activeCollabSessionId = null;
 
         } else if (parsed.type === 'chat_message') {
@@ -445,9 +515,10 @@ export async function chatRoutes(app: FastifyInstance) {
           req.log.info({ sessionId: activeCollabSessionId || sessionId, classification }, 'Broadcasting diagram update from client');
           const targetSessionId = activeCollabSessionId || sessionId;
           if (pubsubManager && parsed.payload && typeof parsed.payload.diagramXml === 'string') {
+            const broadcastPayload = parsed.payload as unknown as DiagramBroadcastPayload;
             pubsubManager.broadcastDiagramUpdate(
               targetSessionId,
-              parsed.payload.diagramXml,
+              broadcastPayload.diagramXml,
               connId,
               displayName
             ).catch(err => {
@@ -466,6 +537,7 @@ export async function chatRoutes(app: FastifyInstance) {
     });
 
     socket.on('close', async () => {
+      ws_connections_active.dec();
       abortController.abort();
       req.log.info({ sessionId: activeCollabSessionId || sessionId }, 'WebSocket connection closed');
       
@@ -476,39 +548,24 @@ export async function chatRoutes(app: FastifyInstance) {
         
         if (activeCollabSessionId && sessionManager) {
           const collabId = activeCollabSessionId;
+          untrackCollabSession(collabId);
           // Temporary disconnect flow
           const memberRaw = await valkey.hget(`session:${collabId}:members`, connId);
           if (memberRaw) {
-            const member = JSON.parse(memberRaw);
+            const member = JSON.parse(memberRaw) as SessionMember;
             member.disconnected = true;
             await valkey.hset(`session:${collabId}:members`, connId, JSON.stringify(member));
             
             // Broadcast member update
             await pubsubManager.publishEvent(collabId, {
               type: 'member_joined',
-              payload: member,
+              payload: member as unknown as Record<string, unknown>,
               senderConnId: connId,
               timestamp: new Date().toISOString(), requestId: req.id
             });
 
-            // Start 5-minute cleanup timer
-            setTimeout(async () => {
-              const currentMemberRaw = await valkey.hget(`session:${collabId}:members`, connId);
-              if (currentMemberRaw) {
-                const currentMember = JSON.parse(currentMemberRaw);
-                if (currentMember.disconnected) {
-                  const emptied = await sessionManager.leaveSession(collabId, connId);
-                  if (!emptied) {
-                    await pubsubManager.publishEvent(collabId, {
-                      type: 'member_left',
-                      payload: { connId },
-                      senderConnId: connId,
-                      timestamp: new Date().toISOString(), requestId: req.id
-                    });
-                  }
-                }
-              }
-            }, 5 * 60 * 1000);
+            // Set Valkey TTL heartbeat (5 minutes) instead of local setTimeout
+            await valkey.set(`session:${collabId}:member:${connId}:heartbeat`, '1', 'EX', 300);
           }
         }
       }

@@ -289,6 +289,26 @@ helm install drawio-agent ./chart/drawio-agent \
 
 ---
 
+## 📊 Observability & Production Operations
+
+The DrawIO Agent is built for production operations, equipped with standard observability features including metrics, structured logs, rate limits, circuit breakers, and distributed tracing.
+
+### 📈 Metrics
+Both services expose Prometheus metrics endpoints at `/metrics`:
+- **API service**: HTTP request counts/durations, active WebSocket connections, and agent proxy delays.
+- **Agent service**: LLM call durations, prompt/completion token usages, MCP tool call outcomes, and circuit breaker states.
+Deploy `ServiceMonitor` resources to scrape these endpoints automatically.
+
+### 🛡️ Operational Hardening
+- **Rate Limits**: Global HTTP rate limits (60 req/min) and WebSocket limits (30 messages/min) protect API availability.
+- **Circuit Breakers**: Outbound LLM calls are protected by `pybreaker`. The circuit transitions to `open` upon consecutive failures (configurable via `CIRCUIT_FAIL_MAX`), shielding downstream systems.
+
+### 🔗 Distributed Tracing & Correlation
+- Request correlation is tracked end-to-end via `X-Request-ID` headers propagated from Gateway → API → Agent.
+- OpenTelemetry is integrated. Trace context is propagated using W3C standard `traceparent` headers to produce unified traces across Fastify API (`drawio-agent-api` service) and FastAPI Agent (`drawio-agent-agent` service).
+
+---
+
 ## 🗺️ Roadmap
 
 - [x] Multi-user collaborative editing with real-time WebSocket sync, Valkey pub-sub, and AI locks/queuing

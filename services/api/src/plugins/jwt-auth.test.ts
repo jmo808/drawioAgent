@@ -60,11 +60,6 @@ describe('OIDC/JWT Authentication Middleware', () => {
     app.get('/test-secure', async (request) => {
       return { secure: true, user: request.user };
     });
-
-    // Metrics route for testing bypass
-    app.get('/metrics', async () => {
-      return { metrics: true };
-    });
   });
 
   afterEach(async () => {

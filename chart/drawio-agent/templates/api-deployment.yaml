@@ -13,6 +13,12 @@ spec:
       app.kubernetes.io/component: api
   template:
     metadata:
+      {{- if .Values.metrics.enabled }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3000"
+        prometheus.io/path: "/metrics"
+      {{- end }}
       labels:
         {{- include "drawio-agent.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: api
@@ -58,12 +64,21 @@ spec:
                   name: {{ include "drawio-agent.fullname" . }}-config
                   key: AUTH_AUDIENCE
             - name: COLLABORATION_ENABLED
-              value: {{ .Values.collaboration.enabled | quote }}
-            {{- if .Values.collaboration.enabled }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "drawio-agent.fullname" . }}-config
+                  key: COLLABORATION_ENABLED
             - name: VALKEY_HOST
-              value: {{ if .Values.collaboration.valkey.enabled }}{{ printf "%s-valkey" (include "drawio-agent.fullname" .) | quote }}{{ else }}{{ .Values.collaboration.valkey.host | quote }}{{ end }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "drawio-agent.fullname" . }}-config
+                  key: VALKEY_HOST
             - name: VALKEY_PORT
-              value: {{ if .Values.collaboration.valkey.enabled }}"6379"{{ else }}{{ .Values.collaboration.valkey.port | quote }}{{ end }}
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "drawio-agent.fullname" . }}-config
+                  key: VALKEY_PORT
+            {{- if .Values.collaboration.enabled }}
             {{- if .Values.collaboration.valkey.password }}
             - name: VALKEY_PASSWORD
               value: {{ .Values.collaboration.valkey.password | quote }}
@@ -74,6 +89,12 @@ spec:
                   name: {{ .Values.collaboration.valkey.existingSecret }}
                   key: {{ .Values.collaboration.valkey.existingSecretKey | default "password" }}
             {{- end }}
+            {{- end }}
+            {{- if .Values.tracing.enabled }}
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: {{ .Values.tracing.otlpEndpoint | quote }}
+            - name: OTEL_SERVICE_NAME
+              value: "{{ include "drawio-agent.fullname" . }}-api"
             {{- end }}
           livenessProbe:
             httpGet:

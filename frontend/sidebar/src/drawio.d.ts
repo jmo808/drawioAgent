@@ -18,7 +18,7 @@ declare class mxGraph {
 declare class Editor {
   graph: mxGraph;
   getGraphXml(): string;
-  setGraphXml(xml: string, force?: boolean): void;
+  setGraphXml(xml: Element | string, force?: boolean): void;
 }
 
 declare class EditorUi {

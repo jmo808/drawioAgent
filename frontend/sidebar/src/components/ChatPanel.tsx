@@ -68,18 +68,11 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   if (!isOpen) {
     return (
       <button
-        className="drawio-agent-toggle-fab"
+        className="drawio-agent-toggle-fab drawio-agent-fab-inner"
         onClick={() => setIsOpen(true)}
         onMouseDown={onHeaderMouseDown}
         title={MESSAGES.openSidebarFabTitle}
         id="drawio-agent-open-fab"
-        style={{
-          position: 'static',
-          width: '100%',
-          height: '100%',
-          margin: 0,
-          cursor: 'move'
-        }}
       >
         <MessageSquare size={30} />
       </button>
@@ -87,7 +80,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   }
 
   return (
-    <div className="drawio-agent-sidebar" style={{ position: 'relative' }}>
+    <div className="drawio-agent-sidebar drawio-agent-sidebar-inner">
       {/* Absolute positioned resize handles for all 8 directions */}
       <div
         className="drawio-agent-resize-handle top"
@@ -140,9 +133,8 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
 
       {/* Header (Draggable) */}
       <div
-        className="drawio-agent-header"
+        className="drawio-agent-header drawio-agent-header-inner"
         onMouseDown={onHeaderMouseDown}
-        style={{ cursor: 'move', userSelect: 'none' }}
       >
         <div className="drawio-agent-title-section">
           <Sparkles className="drawio-agent-sparkle-icon" size={16} />
@@ -153,11 +145,11 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
             <PresenceBar members={members} aiWorkingFor={aiWorkingFor} />
           )}
           {connectionStatus === 'connected' ? (
-            <span title="Connected" style={{ display: 'flex', alignItems: 'center' }}>
+            <span title="Connected" className="drawio-agent-status-indicator">
               <Wifi className="drawio-agent-status-icon connected" size={14} />
             </span>
           ) : (
-            <span title="Disconnected" style={{ display: 'flex', alignItems: 'center' }}>
+            <span title="Disconnected" className="drawio-agent-status-indicator">
               <WifiOff className="drawio-agent-status-icon disconnected" size={14} />
             </span>
           )}
@@ -216,7 +208,7 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
       {/* Footer / Input */}
       <div className="drawio-agent-footer">
         {aiWorkingFor && (
-          <div className="drawio-agent-ai-status ai-working-status" style={{ padding: '4px 8px', fontSize: '12px', color: '#ef4444', animation: 'pulse-badge 2s infinite' }}>
+          <div className="drawio-agent-ai-status ai-working-status drawio-agent-ai-status-active">
             {`AI is working for ${aiWorkingFor}...`}
           </div>
         )}
