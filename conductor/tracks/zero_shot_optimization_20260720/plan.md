@@ -2,7 +2,7 @@
 
 ## Phase 1: ELK Auto-Layout Engine Integration
 
-- [ ] Task: Install elkjs dependency and verify runtime
+- [x] Task: Install elkjs dependency and verify runtime [1ca47c0]
     - [ ] Add `elkjs` to the drawio_plugin's package.json
     - [ ] Install and verify the module loads correctly in Node.js (`require('elkjs')`)
     - [ ] Verify ELK's layered algorithm runs a trivial graph in < 10ms
