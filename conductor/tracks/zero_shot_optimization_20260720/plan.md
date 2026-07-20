@@ -24,7 +24,7 @@
     - [ ] Implement `toElkGraph()` method on DiagramBuilder that reads from `this.cells` and `this.edges` and outputs an ELK-compatible JSON graph
     - [ ] Verify tests pass
 
-- [ ] Task: Implement ELK position applicator (`applyElkLayout()`)
+- [x] Task: Implement ELK position applicator (applyElkLayout()) [c909b1c]
     - [ ] Write failing tests for applying ELK-computed positions:
       - Container x, y, width, height written back to `this.cells` entries
       - Node x, y written back (width/height preserved from original)
