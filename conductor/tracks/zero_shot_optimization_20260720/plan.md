@@ -56,7 +56,7 @@
     - [ ] Create `references/templates/index.json` manifest with metadata
     - [ ] Verify tests pass
 
-- [ ] Task: Implement TF-IDF + cosine similarity template matcher
+- [x] Task: Implement TF-IDF + cosine similarity template matcher [baf34c9]
     - [ ] Write failing tests for template matching:
       - Given a query string, returns top-K matching template IDs with scores
       - Similarity threshold (cosine > 0.3) filters out weak matches
