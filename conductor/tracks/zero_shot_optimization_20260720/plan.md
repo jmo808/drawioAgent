@@ -127,7 +127,7 @@
     - [ ] Execute all 10 Playwright E2E tests against the test stack
     - [ ] Verify all pass with no modifications required
 
-- [ ] Task: Benchmark zero-shot success rate
+- [x] Task: Benchmark zero-shot success rate [fcbfd4d]
     - [ ] Create a benchmark script (`scripts/benchmark_zeroshot.py`) that:
       - Runs 10 representative prompts through the full pipeline
       - Records first-attempt compilation success/failure for each
