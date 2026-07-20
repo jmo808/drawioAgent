@@ -7,7 +7,7 @@
     - [ ] Install and verify the module loads correctly in Node.js (`require('elkjs')`)
     - [ ] Verify ELK's layered algorithm runs a trivial graph in < 10ms
 
-- [ ] Task: Define ELK layout configuration module
+- [x] Task: Define ELK layout configuration module [322e29c]
     - [ ] Write failing tests for ELK layout config: layout algorithm presets per diagram type (architecture → layered/DOWN, flowchart → layered/DOWN, network → layered/RIGHT), node spacing, layer spacing, container padding per type
     - [ ] Implement `elk-layout.js` module in `scripts/` with:
       - `getElkOptions(diagramType)` returning ELK algorithm config
