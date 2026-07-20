@@ -254,6 +254,7 @@ class AgentOrchestrator:
                 
                 # Execute each tool call sequentially
                 total_steps = len(tool_calls)
+                schema_failed = False
                 for idx, tc in enumerate(tool_calls):
                     tool_name = tc.function.name
                     step_num = idx + 1
@@ -269,6 +270,52 @@ class AgentOrchestrator:
 
                     if tool_name == "compile_json_spec" and isinstance(args, dict):
                         spec = args.get("spec", {}) or {}
+                        if not isinstance(spec, dict):
+                            spec = {}
+
+                        # Validate spec schema using Pydantic
+                        from pydantic import ValidationError
+                        from agent.schema import DiagramSpec
+                        try:
+                            DiagramSpec.model_validate(spec)
+                            # Reset retry counter on success
+                            session_state = self.conversation_manager.conversations.get(session_id, {})
+                            session_state["schema_retries"] = 0
+                        except ValidationError as ve:
+                            session_state = self.conversation_manager.conversations.get(session_id, {})
+                            schema_retries = session_state.get("schema_retries", 0)
+                            if schema_retries < 1:
+                                session_state["schema_retries"] = schema_retries + 1
+                                errors_formatted = "\n".join([f"- {err['loc']}: {err['msg']} (got: {err.get('input')})" for err in ve.errors()])
+                                tool_res_content = json.dumps({
+                                    "success": False,
+                                    "error": f"Schema Validation Error: {errors_formatted}",
+                                    "valid": False,
+                                    "validation_errors": [f"{err['loc']}: {err['msg']} (got: {err.get('input')})" for err in ve.errors()]
+                                })
+                                # Append tool response message to history
+                                tool_msg = {
+                                    "role": "tool",
+                                    "tool_call_id": tc.id,
+                                    "name": tool_name,
+                                    "content": tool_res_content
+                                }
+                                self.conversation_manager.get_conversation(session_id).append(tool_msg)
+                                
+                                feedback_content = (
+                                    "System Notification: Your last compile_json_spec call was rejected due to "
+                                    f"Pydantic schema validation errors:\n{errors_formatted}\n"
+                                    "Please correct the JSON spec and try compile_json_spec again."
+                                )
+                                self.conversation_manager.add_message(session_id, "system", feedback_content)
+                                logger.info(
+                                    "Schema validation failed. "
+                                    "Forcing LLM to correct the spec."
+                                )
+                                schema_failed = True
+                                break # Stop executing further tools
+                            else:
+                                logger.warning("Schema validation failed but retry limit reached. Forwarding best-effort spec.")
                         num_containers = len(spec.get("containers", []) or [])
                         num_nodes = len(spec.get("nodes", []) or [])
                         num_edges = len(spec.get("edges", []) or [])
@@ -344,6 +391,8 @@ class AgentOrchestrator:
                     self.conversation_manager.get_conversation(session_id).append(
                         tool_msg
                     )
+                if schema_failed:
+                    continue
             else:
                 # Check validation for compile_json_spec
                 history = self.conversation_manager.get_conversation(
@@ -369,21 +418,18 @@ class AgentOrchestrator:
                         ):
                             errors = res_data.get("validation_errors", [])
                             err_msg = "\n".join([f"- {e}" for e in errors])
-                            system_feedback = {
-                                "role": "user",
-                                "content": (
-                                    "Your last diagram specification is "
-                                    "invalid and failed validation with the "
-                                    f"following errors:\n{err_msg}\n\n"
-                                    "You MUST correct these errors by "
-                                    "modifying the spec and calling "
-                                    "compile_json_spec again. Do not finish "
-                                    "until validation errors are resolved."
-                                )
-                            }
-                            self.conversation_manager.get_conversation(
-                                session_id
-                            ).append(system_feedback)
+                            feedback_content = (
+                                "Your last diagram specification is "
+                                "invalid and failed validation with the "
+                                f"following errors:\n{err_msg}\n\n"
+                                "You MUST correct these errors by "
+                                "modifying the spec and calling "
+                                "compile_json_spec again. Do not finish "
+                                "until validation errors are resolved."
+                            )
+                            self.conversation_manager.add_message(
+                                session_id, "user", feedback_content
+                            )
                             logger.info(
                                 "Spec validation failed. "
                                 "Forcing LLM to correct the spec."
@@ -408,18 +454,15 @@ class AgentOrchestrator:
                         "Detected raw JSON/XML spec dumped as text — "
                         "forcing retry via tool call."
                     )
-                    correction = {
-                        "role": "user",
-                        "content": (
-                            "You output a raw JSON or XML diagram "
-                            "specification as text instead of calling the "
-                            "compile_json_spec tool. NEVER output raw JSON "
-                            "or XML in chat. You MUST use compile_json_spec."
-                        )
-                    }
-                    self.conversation_manager.get_conversation(
-                        session_id
-                    ).append(correction)
+                    correction_content = (
+                        "You output a raw JSON or XML diagram "
+                        "specification as text instead of calling the "
+                        "compile_json_spec tool. NEVER output raw JSON "
+                        "or XML in chat. You MUST use compile_json_spec."
+                    )
+                    self.conversation_manager.add_message(
+                        session_id, "user", correction_content
+                    )
                     continue
 
                 self.conversation_manager.add_message(
