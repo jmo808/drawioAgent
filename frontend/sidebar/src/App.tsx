@@ -28,6 +28,12 @@ function App({ ui }: AppProps) {
 
   const [collabEnabled, setCollabEnabled] = useState(false)
   const [displayName, setDisplayName] = useState(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const paramName = urlParams.get('displayName') || urlParams.get('username')
+    if (paramName) {
+      localStorage.setItem('drawio_agent_display_name', paramName)
+      return paramName
+    }
     return localStorage.getItem('drawio_agent_display_name') || ''
   })
   const [showNamePrompt, setShowNamePrompt] = useState(false)
@@ -387,6 +393,11 @@ function App({ ui }: AppProps) {
     setPendingAction(null);
   };
 
+  const handleEditDisplayName = () => {
+    setPendingAction(null);
+    setShowNamePrompt(true);
+  };
+
   useEffect(() => {
     if (!collabEnabled || state.connectionStatus !== 'connected') return;
 
@@ -498,6 +509,8 @@ function App({ ui }: AppProps) {
         collabEnabled={collabEnabled}
         collabSessionId={state.sessionId}
         collabShortCode={state.shortCode}
+        displayName={displayName}
+        onEditDisplayName={handleEditDisplayName}
         members={state.members}
         aiWorkingFor={state.aiWorkingFor}
         onCreateCollabSession={handleCreateSession}

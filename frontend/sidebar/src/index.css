@@ -748,16 +748,64 @@ body.geDark .glassmorphism {
 
 .modal-content {
   width: 100%;
-  max-width: 400px;
-  border-radius: 12px;
-  padding: 24px;
-  color: var(--ag-text-light);
+  max-width: 360px;
+  border-radius: 16px;
+  padding: 28px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+  color: #1f2937;
+  text-align: center;
 }
 
 body.dark .modal-content,
 body.geDarkPage .modal-content,
 body.geDark .modal-content {
-  color: var(--ag-text-dark);
+  background: #222222;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  color: #f3f4f6;
+}
+
+.modal-content h3 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.modal-content input {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  background: #ffffff;
+  color: #1f2937;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+  margin-bottom: 12px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.modal-content input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+body.dark .modal-content input,
+body.geDarkPage .modal-content input,
+body.geDark .modal-content input {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: #2a2a2a;
+  color: #f3f4f6;
+}
+
+body.dark .modal-content input:focus,
+body.geDarkPage .modal-content input:focus,
+body.geDark .modal-content input:focus {
+  border-color: #3b82f6;
 }
 
 .modal-actions {

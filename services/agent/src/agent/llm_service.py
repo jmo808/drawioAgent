@@ -76,6 +76,8 @@ class LLMService:
         self.config = config
         self.model_string = f"{config.llm_provider}/{config.llm_model}"
         self.temperature = config.llm_temperature
+        if "gemini" in self.model_string.lower():
+            self.temperature = 1.0
         if config.llm_api_key:
             os.environ["GEMINI_API_KEY"] = config.llm_api_key
             os.environ["GOOGLE_API_KEY"] = config.llm_api_key
@@ -290,8 +292,9 @@ class LLMService:
         kwargs: Dict[str, Any] = {
             "model": self.model_string,
             "messages": messages,
-            "temperature": self.temperature,
         }
+        if "gemini" not in self.model_string.lower():
+            kwargs["temperature"] = self.temperature
         
         if self.config.llm_api_key:
             kwargs["api_key"] = self.config.llm_api_key

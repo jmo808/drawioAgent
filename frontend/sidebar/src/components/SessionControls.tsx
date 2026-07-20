@@ -8,6 +8,8 @@ interface SessionControlsProps {
   onCreateSession: () => void;
   onJoinSession: (codeOrId: string) => void;
   onLeaveSession: () => void;
+  displayName?: string;
+  onEditDisplayName?: () => void;
 }
 
 export const SessionControls: React.FC<SessionControlsProps> = ({
@@ -16,21 +18,23 @@ export const SessionControls: React.FC<SessionControlsProps> = ({
   onCreateSession,
   onJoinSession,
   onLeaveSession,
+  displayName,
+  onEditDisplayName,
 }) => {
   const [copied, setCopied] = useState(false);
   const [joinCode, setJoinCode] = useState('');
   const [showJoinInput, setShowJoinInput] = useState(false);
 
   const handleCopy = () => {
-    if (!sessionId) return;
-    const url = `${window.location.origin}${window.location.pathname}?session=${sessionId}`;
-    navigator.clipboard.writeText(url)
+    const textToCopy = shortCode || sessionId;
+    if (!textToCopy) return;
+    navigator.clipboard.writeText(textToCopy)
       .then(() => {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       })
       .catch((err) => {
-        console.error('Failed to copy session link: ', err);
+        console.error('Failed to copy session ID: ', err);
       });
   };
 
@@ -45,6 +49,19 @@ export const SessionControls: React.FC<SessionControlsProps> = ({
 
   return (
     <div className="session-controls glassmorphism">
+      {displayName && (
+        <div className="session-user-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, fontSize: '12px', opacity: 0.85 }}>
+          <span>Name: <strong>{displayName}</strong></span>
+          <button 
+            type="button" 
+            className="btn-edit-name" 
+            onClick={onEditDisplayName}
+            style={{ background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer', padding: 0, textDecoration: 'underline', fontSize: '11px' }}
+          >
+            Change
+          </button>
+        </div>
+      )}
       {!sessionId ? (
         <div className="collab-actions">
           {!showJoinInput ? (
@@ -91,7 +108,7 @@ export const SessionControls: React.FC<SessionControlsProps> = ({
             </span>
           </div>
           <div className="session-copy-row">
-            <button className="btn btn-icon" onClick={handleCopy} title="Copy Session Link">
+            <button className="btn btn-icon" onClick={handleCopy} title="Copy Session ID">
               {copied ? <Check size={16} color="#10b981" /> : <Copy size={16} />}
               <span className="btn-text">{copied ? MESSAGES.copied : MESSAGES.btnCopy}</span>
             </button>

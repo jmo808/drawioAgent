@@ -37,10 +37,10 @@ export const DisplayNamePrompt: React.FC<DisplayNamePromptProps> = ({
             autoFocus
           />
           <div className="modal-actions">
-            <button type="button" className="btn btn-secondary" onClick={onCancel}>
+            <button type="button" className="drawio-agent-btn secondary" onClick={onCancel}>
               {MESSAGES.btnCancel}
             </button>
-            <button type="submit" className="btn btn-primary">
+            <button type="submit" className="drawio-agent-btn primary">
               {MESSAGES.btnConfirm}
             </button>
           </div>

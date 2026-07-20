@@ -36,6 +36,8 @@ interface ChatPanelProps {
   onCreateCollabSession?: () => void;
   onJoinCollabSession?: (codeOrId: string) => void;
   onLeaveCollabSession?: () => void;
+  displayName?: string;
+  onEditDisplayName?: () => void;
 }
 
 export const ChatPanel: React.FC<ChatPanelProps> = ({
@@ -62,7 +64,9 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
   aiWorkingFor = null,
   onCreateCollabSession = () => {},
   onJoinCollabSession = () => {},
-  onLeaveCollabSession = () => {}
+  onLeaveCollabSession = () => {},
+  displayName = '',
+  onEditDisplayName = () => {}
 }) => {
 
   if (!isOpen) {
@@ -177,6 +181,8 @@ export const ChatPanel: React.FC<ChatPanelProps> = ({
           <SessionControls
             sessionId={collabSessionId}
             shortCode={collabShortCode}
+            displayName={displayName}
+            onEditDisplayName={onEditDisplayName}
             onCreateSession={onCreateCollabSession}
             onJoinSession={onJoinCollabSession}
             onLeaveSession={onLeaveCollabSession}
