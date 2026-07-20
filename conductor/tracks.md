@@ -13,6 +13,6 @@ This file tracks all major tracks for the project. Each track has its own detail
   *Link: [./archive/observability_20260711/](./archive/observability_20260711/)*
 
 - [x] **Track 6: Decoupled Domain Expert Architecture**
-  *Link: [./tracks/domain_separation_20260712/](./tracks/domain_separation_20260712/)*
+  *Link: [./archive/domain_separation_20260712/](./archive/domain_separation_20260712/)*
 
 ---
