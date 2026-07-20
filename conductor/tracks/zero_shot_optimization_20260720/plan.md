@@ -70,7 +70,7 @@
     - [ ] Generate initial TF-IDF index
     - [ ] Verify tests pass
 
-- [ ] Task: Integrate RAG into the Python agent's prompt pipeline
+- [x] Task: Integrate RAG into the Python agent's prompt pipeline [69ae771]
     - [ ] Write failing tests for prompt augmentation:
       - When a template matches (score > 0.3), its full JSON spec is injected into the system prompt
       - When no template matches, system prompt is unchanged
