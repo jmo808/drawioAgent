@@ -85,8 +85,11 @@ jobs:
 
       - name: Setup Port Forwarding
         run: |
-          # Find gateway or frontend service and port-forward to localhost:8081
-          GW_SVC=$(kubectl get svc -o jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | grep -E "gateway|frontend" | head -n 1)
+          # Target Cilium Gateway API service or fallback to frontend
+          GW_SVC=$(kubectl get svc -o jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | grep "cilium-gateway" | head -n 1)
+          if [ -z "$GW_SVC" ]; then
+            GW_SVC=$(kubectl get svc -o jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | grep "frontend" | head -n 1)
+          fi
           echo "Port forwarding service '$GW_SVC' to localhost:8081..."
           PORT=$(kubectl get svc $GW_SVC -o jsonpath='{.spec.ports[0].port}')
           kubectl port-forward svc/$GW_SVC 8081:$PORT &

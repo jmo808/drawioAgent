@@ -24,7 +24,15 @@ spec:
     {{- toYaml .Values.httproute.hostnames | nindent 4 }}
   {{- end }}
   rules:
-    # 1. API routes (http & ws)
+    # 1. Agent providers route
+    - matches:
+        - path:
+            type: Exact
+            value: /api/v1/providers
+      backendRefs:
+        - name: {{ include "drawio-agent.fullname" . }}-agent
+          port: 8000
+    # 2. API routes (http & ws)
     - matches:
         - path:
             type: PathPrefix
