@@ -10,7 +10,7 @@ on:
 jobs:
   e2e:
     name: K8s E2E Validation
-    runs-on: k8s-cluster
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Agent Repository
         uses: actions/checkout@v4
