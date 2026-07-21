@@ -54,11 +54,8 @@ jobs:
 
       - name: Install Cilium CNI
         run: |
-          cilium install --version 1.16.0 --set gatewayAPI.enabled=true
-          kubectl wait --namespace kube-system \
-            --for=condition=ready pod \
-            --selector=k8s-app=cilium \
-            --timeout=120s
+          cilium install --version 1.16.0 --set gatewayAPI.enabled=true --wait
+          cilium status --wait --wait-duration 3m
 
       - name: Build Service Docker Images
         run: |
