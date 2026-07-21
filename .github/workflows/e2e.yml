@@ -13,18 +13,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Agent Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
         with:
           path: drawioAgent
 
       - name: Checkout Plugin Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
         with:
           repository: jmo808/drawio_plugin
           path: drawio_plugin
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v4.2.0
         with:
           node-version: 22
 
@@ -102,7 +102,7 @@ jobs:
           npx playwright test -c tests/e2e/playwright.config.ts
 
       - name: Collect Playwright Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.1
         if: always()
         with:
           name: playwright-report
