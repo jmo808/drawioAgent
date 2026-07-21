@@ -8,6 +8,8 @@ import { featuresRoutes } from './routes/features.js';
 import { chatRoutes } from './routes/chat.js';
 import { metricsPlugin } from './plugins/metrics.js';
 
+import { authRoutes } from './routes/auth.js';
+
 /**
  * Builds and configures the Fastify application instance.
  * @param app Fastify instance to configure.
@@ -35,13 +37,16 @@ export async function buildApp(app: FastifyInstance) {
   await app.register(rateLimitPlugin);
 
   // Register authentication middleware
-  await app.register(authPlugin, { bypassRoutes: ['/health', '/ready', '/metrics', '/api/features', '/api/v1/health', '/api/v1/ready', '/api/v1/metrics', '/api/v1/features'] });
+  await app.register(authPlugin, { bypassRoutes: ['/health', '/ready', '/metrics', '/api/features', '/api/v1/health', '/api/v1/ready', '/api/v1/metrics', '/api/v1/features', '/api/v1/auth/login', '/api/v1/auth/callback'] });
 
   // Register health check routes
   await app.register(healthRoutes);
 
   // Register features discovery routes
   await app.register(featuresRoutes);
+
+  // Register OIDC auth routes
+  await app.register(authRoutes);
 
   // Register WebSocket chat routes
   await app.register(chatRoutes);

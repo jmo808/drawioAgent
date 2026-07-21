@@ -18,10 +18,35 @@ function App({ ui }: AppProps) {
     return 'session-' + Math.random().toString(36).substring(2, 11)
   })
 
+  const [authToken] = useState<string | null>(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const urlToken = urlParams.get('token')
+    if (urlToken) {
+      localStorage.setItem('drawio_agent_auth_token', urlToken)
+      // Clean token parameter from URL
+      window.history.replaceState({}, document.title, window.location.pathname)
+      return urlToken
+    }
+    return localStorage.getItem('drawio_agent_auth_token') || null
+  })
+
   const [apiKey] = useState(() => {
     const urlParams = new URLSearchParams(window.location.search)
-    return urlParams.get('apiKey') || localStorage.getItem('drawio_agent_api_key') || 'default-secret-key'
+    return urlParams.get('apiKey') || localStorage.getItem('drawio_agent_api_key') || authToken || 'default-secret-key'
   })
+
+  // Trigger OIDC login capture if unauthenticated in production
+  useEffect(() => {
+    const isProdDomain = window.location.hostname.endsWith('example.com')
+    const urlParams = new URLSearchParams(window.location.search)
+    const code = urlParams.get('code')
+    
+    if (isProdDomain && !authToken && !code && !urlParams.get('apiKey')) {
+      console.log('[DrawioAgent] Redirecting to OIDC login capture...')
+      const redirectUri = encodeURIComponent(window.location.href)
+      window.location.href = `/api/v1/auth/login?redirect_uri=${redirectUri}`
+    }
+  }, [authToken])
 
   const { state, dispatch } = useChatStore()
   const [isOpen, setIsOpen] = useState(true)
