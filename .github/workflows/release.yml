@@ -99,7 +99,7 @@ jobs:
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
 
       - name: Run Trivy Vulnerability Scan
-        uses: aquasecurity/trivy-action@0.30.0
+        uses: aquasecurity/trivy-action@0.29.0
         with:
           image-ref: 'ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:${{ steps.tag-info.outputs.version }}'
           format: 'sarif'

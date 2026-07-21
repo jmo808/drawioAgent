@@ -88,8 +88,10 @@ jobs:
 
       - name: Setup Port Forwarding
         run: |
-          # Port forward the gateway API service to localhost:8080
-          kubectl port-forward svc/drawio-agent-gateway 8080:80 &
+          # Find gateway or frontend service and port-forward to localhost:8081
+          GW_SVC=$(kubectl get svc -o jsonpath='{.items[*].metadata.name}' | tr ' ' '\n' | grep -E "gateway|frontend" | head -n 1)
+          echo "Port forwarding service '$GW_SVC' to localhost:8081..."
+          kubectl port-forward svc/$GW_SVC 8081:8080 & || kubectl port-forward svc/$GW_SVC 8081:80 &
           # Port forward the API service and Agent service for integration tests
           kubectl port-forward svc/drawio-agent-api 3000:3000 &
           kubectl port-forward svc/drawio-agent-agent 8000:8000 &
