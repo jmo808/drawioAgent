@@ -35,7 +35,7 @@ export async function buildApp(app: FastifyInstance) {
   await app.register(rateLimitPlugin);
 
   // Register authentication middleware
-  await app.register(authPlugin, { bypassRoutes: ['/health', '/ready', '/metrics', '/api/features'] });
+  await app.register(authPlugin, { bypassRoutes: ['/health', '/ready', '/metrics', '/api/features', '/api/v1/health', '/api/v1/ready', '/api/v1/metrics', '/api/v1/features'] });
 
   // Register health check routes
   await app.register(healthRoutes);

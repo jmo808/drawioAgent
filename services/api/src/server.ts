@@ -18,6 +18,16 @@ const server = Fastify({
   }
 });
 
+process.on('uncaughtException', (err) => {
+  console.error('[FATAL] Uncaught Exception:', err);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('[FATAL] Unhandled Rejection:', reason);
+  process.exit(1);
+});
+
 const start = async () => {
   try {
     await buildApp(server);
@@ -25,18 +35,20 @@ const start = async () => {
     const host = process.env.HOST || '0.0.0.0';
 
     const closeGracefully = async (signal: string) => {
-      server.log.info(`Received ${signal}. Gracefully shutting down Fastify server...`);
+      console.log(`Received ${signal}. Gracefully shutting down Fastify server...`);
       await server.close();
-      server.log.info('Fastify server shut down successfully.');
+      console.log('Fastify server shut down successfully.');
       process.exit(0);
     };
 
     process.on('SIGTERM', () => closeGracefully('SIGTERM'));
     process.on('SIGINT', () => closeGracefully('SIGINT'));
 
+    console.log(`Starting API server on ${host}:${port}...`);
     await server.listen({ port, host });
+    console.log(`API server listening on ${host}:${port}`);
   } catch (err) {
-    server.log.error(err);
+    console.error('Failed to start API server:', err);
     process.exit(1);
   }
 };

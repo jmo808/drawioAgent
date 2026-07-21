@@ -10,8 +10,12 @@ export async function healthRoutes(app: FastifyInstance) {
     return { status: 'ok' };
   });
 
+  app.get('/api/v1/health', async (req, reply) => {
+    return { status: 'ok' };
+  });
+
   // Readiness check endpoint validating Agent reachability
-  app.get('/ready', async (req, reply) => {
+  const handleReady = async (req: any, reply: any) => {
     const agentUrl = process.env.AGENT_SERVICE_URL || 'http://localhost:8000';
     try {
       const res = await request(`${agentUrl}/health`, {
@@ -42,5 +46,8 @@ export async function healthRoutes(app: FastifyInstance) {
       reply.code(503);
       return { status: 'not ready', error: err.message };
     }
-  });
+  };
+
+  app.get('/ready', handleReady);
+  app.get('/api/v1/ready', handleReady);
 }

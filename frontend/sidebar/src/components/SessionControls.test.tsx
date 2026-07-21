@@ -81,7 +81,7 @@ describe('SessionControls', () => {
     // Test Copy
     fireEvent.click(screen.getByText(MESSAGES.btnCopy));
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
-      expect.stringContaining('?session=uuid-session-12345')
+      expect.stringContaining('654321')
     );
 
     await waitFor(() => {

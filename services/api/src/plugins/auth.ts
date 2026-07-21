@@ -39,7 +39,7 @@ const authPluginCallback: FastifyPluginAsync<AuthPluginOptions> = async (
   fastify.addHook('preHandler', async (request, reply) => {
     // Bypass authentication for defined routes
     const path = request.routeOptions?.url || request.url.split('?')[0];
-    if (bypassRoutes.includes(path)) {
+    if (bypassRoutes.some(route => path === route || path.endsWith(route))) {
       return;
     }
 

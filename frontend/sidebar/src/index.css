@@ -738,7 +738,9 @@ body.geDark .glassmorphism {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   z-index: 10002;
   display: flex;
   align-items: center;
@@ -748,72 +750,188 @@ body.geDark .glassmorphism {
 
 .modal-content {
   width: 100%;
-  max-width: 360px;
+  max-width: 380px;
   border-radius: 16px;
   padding: 28px;
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
-  color: #1f2937;
+  background-color: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+  color: #111827 !important;
   text-align: center;
+  box-sizing: border-box !important;
 }
 
 body.dark .modal-content,
 body.geDarkPage .modal-content,
 body.geDark .modal-content {
-  background: #222222;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-  color: #f3f4f6;
+  background-color: #1f2937 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5) !important;
+  color: #f9fafb !important;
 }
 
 .modal-content h3 {
   margin-top: 0;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   font-size: 16px;
   font-weight: 600;
   line-height: 1.4;
+  color: inherit !important;
 }
 
-.modal-content input {
-  width: 100%;
-  padding: 10px 14px;
-  border-radius: 8px;
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  background: #ffffff;
-  color: #1f2937;
-  font-size: 14px;
-  outline: none;
-  box-sizing: border-box;
-  margin-bottom: 12px;
-  transition: border-color 0.2s, box-shadow 0.2s;
+.modal-content input,
+.modal-content .input-field {
+  display: block;
+  width: 100% !important;
+  height: 42px !important;
+  padding: 8px 14px !important;
+  border-radius: 8px !important;
+  border: 1px solid #d1d5db !important;
+  background-color: #f9fafb !important;
+  color: #111827 !important;
+  font-size: 14px !important;
+  font-family: inherit !important;
+  outline: none !important;
+  box-sizing: border-box !important;
+  margin-bottom: 20px !important;
+  transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s !important;
 }
 
-.modal-content input:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+.modal-content input::placeholder,
+.modal-content .input-field::placeholder {
+  color: #9ca3af !important;
+  opacity: 1 !important;
+}
+
+.modal-content input:focus,
+.modal-content .input-field:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2) !important;
+  background-color: #ffffff !important;
 }
 
 body.dark .modal-content input,
 body.geDarkPage .modal-content input,
-body.geDark .modal-content input {
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background: #2a2a2a;
-  color: #f3f4f6;
+body.geDark .modal-content input,
+body.dark .modal-content .input-field,
+body.geDarkPage .modal-content .input-field,
+body.geDark .modal-content .input-field {
+  border: 1px solid #4b5563 !important;
+  background-color: #374151 !important;
+  color: #f9fafb !important;
+}
+
+body.dark .modal-content input::placeholder,
+body.geDarkPage .modal-content input::placeholder,
+body.geDark .modal-content input::placeholder,
+body.dark .modal-content .input-field::placeholder,
+body.geDarkPage .modal-content .input-field::placeholder,
+body.geDark .modal-content .input-field::placeholder {
+  color: #9ca3af !important;
 }
 
 body.dark .modal-content input:focus,
 body.geDarkPage .modal-content input:focus,
-body.geDark .modal-content input:focus {
-  border-color: #3b82f6;
+body.geDark .modal-content input:focus,
+body.dark .modal-content .input-field:focus,
+body.geDarkPage .modal-content .input-field:focus,
+body.geDark .modal-content .input-field:focus {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3) !important;
+  background-color: #1f2937 !important;
 }
 
 .modal-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
+  align-items: center;
+  gap: 10px;
   margin-top: 20px;
 }
+
+.modal-actions .drawio-agent-btn,
+.modal-actions button {
+  height: 36px !important;
+  padding: 0 16px !important;
+  border-radius: 8px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.15s ease-in-out !important;
+  box-sizing: border-box !important;
+}
+
+.modal-actions .drawio-agent-btn.primary,
+.modal-actions button[type="submit"] {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+  border: 1px solid #2563eb !important;
+}
+
+.modal-actions .drawio-agent-btn.primary:hover,
+.modal-actions button[type="submit"]:hover {
+  background-color: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
+}
+
+.modal-actions .drawio-agent-btn.secondary,
+.modal-actions button[type="button"] {
+  background-color: #f3f4f6 !important;
+  color: #374151 !important;
+  border: 1px solid #d1d5db !important;
+}
+
+.modal-actions .drawio-agent-btn.secondary:hover,
+.modal-actions button[type="button"]:hover {
+  background-color: #e5e7eb !important;
+  color: #111827 !important;
+}
+
+body.dark .modal-actions .drawio-agent-btn.primary,
+body.geDarkPage .modal-actions .drawio-agent-btn.primary,
+body.geDark .modal-actions .drawio-agent-btn.primary,
+body.dark .modal-actions button[type="submit"],
+body.geDarkPage .modal-actions button[type="submit"],
+body.geDark .modal-actions button[type="submit"] {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+  border: 1px solid #2563eb !important;
+}
+
+body.dark .modal-actions .drawio-agent-btn.primary:hover,
+body.geDarkPage .modal-actions .drawio-agent-btn.primary:hover,
+body.geDark .modal-actions .drawio-agent-btn.primary:hover,
+body.dark .modal-actions button[type="submit"]:hover,
+body.geDarkPage .modal-actions button[type="submit"]:hover,
+body.geDark .modal-actions button[type="submit"]:hover {
+  background-color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+}
+
+body.dark .modal-actions .drawio-agent-btn.secondary,
+body.geDarkPage .modal-actions .drawio-agent-btn.secondary,
+body.geDark .modal-actions .drawio-agent-btn.secondary,
+body.dark .modal-actions button[type="button"],
+body.geDarkPage .modal-actions button[type="button"],
+body.geDark .modal-actions button[type="button"] {
+  background-color: #374151 !important;
+  color: #e5e7eb !important;
+  border: 1px solid #4b5563 !important;
+}
+
+body.dark .modal-actions .drawio-agent-btn.secondary:hover,
+body.geDarkPage .modal-actions .drawio-agent-btn.secondary:hover,
+body.geDark .modal-actions .drawio-agent-btn.secondary:hover,
+body.dark .modal-actions button[type="button"]:hover,
+body.geDarkPage .modal-actions button[type="button"]:hover,
+body.geDark .modal-actions button[type="button"]:hover {
+  background-color: #4b5563 !important;
+  color: #ffffff !important;
+}
+
 
 /* Session Controls */
 .session-controls {

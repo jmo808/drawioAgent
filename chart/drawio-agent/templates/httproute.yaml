@@ -4,31 +4,31 @@ metadata:
   name: {{ include "drawio-agent.fullname" . }}
   labels:
     {{- include "drawio-agent.labels" . | nindent 4 }}
+  {{- if .Values.httproute.annotations }}
+  annotations:
+    {{- toYaml .Values.httproute.annotations | nindent 4 }}
+  {{- end }}
 spec:
   parentRefs:
     - group: gateway.networking.k8s.io
       kind: Gateway
       name: {{ .Values.gateway.name }}
+      {{- if .Values.gateway.namespace }}
+      namespace: {{ .Values.gateway.namespace }}
+      {{- end }}
+      {{- if .Values.gateway.sectionName }}
+      sectionName: {{ .Values.gateway.sectionName }}
+      {{- end }}
   {{- if .Values.httproute.hostnames }}
   hostnames:
     {{- toYaml .Values.httproute.hostnames | nindent 4 }}
   {{- end }}
   rules:
-    # 1. API routes
+    # 1. API routes (http & ws)
     - matches:
         - path:
             type: PathPrefix
-            value: /api/v1
-      backendRefs:
-        - name: {{ include "drawio-agent.fullname" . }}-api
-          port: 3000
-    # 2. WebSocket chat route
-    # Note: When Gateway TLS is enabled, client connections to /api/v1/ws must use WSS (wss://).
-    # The Gateway terminates TLS on port 443 and forwards plain WebSocket frames to the API service.
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /api/v1/ws
+            value: /api
       backendRefs:
         - name: {{ include "drawio-agent.fullname" . }}-api
           port: 3000

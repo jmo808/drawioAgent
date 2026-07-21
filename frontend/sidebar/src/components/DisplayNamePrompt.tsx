@@ -25,7 +25,7 @@ export const DisplayNamePrompt: React.FC<DisplayNamePromptProps> = ({
 
   return (
     <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-      <div className="modal-content glassmorphism animate-fade-in">
+      <div className="modal-content animate-fade-in">
         <h3 id="modal-title">{MESSAGES.promptEnterDisplayName}</h3>
         <form onSubmit={handleSubmit}>
           <input
@@ -37,10 +37,10 @@ export const DisplayNamePrompt: React.FC<DisplayNamePromptProps> = ({
             autoFocus
           />
           <div className="modal-actions">
-            <button type="button" className="drawio-agent-btn secondary" onClick={onCancel}>
+            <button type="button" className="drawio-agent-btn secondary modal-btn" onClick={onCancel}>
               {MESSAGES.btnCancel}
             </button>
-            <button type="submit" className="drawio-agent-btn primary">
+            <button type="submit" className="drawio-agent-btn primary modal-btn">
               {MESSAGES.btnConfirm}
             </button>
           </div>

@@ -64,6 +64,15 @@ agent:
     model: "llama3"
     apiKey: ""
 
+# ExternalSecret Integration settings
+externalSecret:
+  enabled: false
+  refreshInterval: "1h"
+  secretStoreRef:
+    kind: "ClusterSecretStore"
+    name: "external-secret-store"
+  remoteKey: "llm-api-key"
+
 # Authentication settings
 auth:
   provider: "apikey" # apikey | oidc | both
