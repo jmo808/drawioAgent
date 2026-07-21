@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 
 export async function authRoutes(fastify: FastifyInstance) {
-  // OIDC Login redirect endpoint
+  // OIDC Login redirect endpoint (browser redirect)
   fastify.get('/api/v1/auth/login', async (request, reply) => {
     const issuer = process.env.AUTH_ISSUER || 'https://auth.example.com/';
     const clientId = process.env.AUTH_AUDIENCE || 'drawio-agent';
@@ -11,7 +11,7 @@ export async function authRoutes(fastify: FastifyInstance) {
     return reply.redirect(authUrl);
   });
 
-  // OIDC Callback endpoint
+  // OIDC Callback endpoint (server-to-server token exchange using internal cluster network)
   fastify.get('/api/v1/auth/callback', async (request, reply) => {
     const { code } = request.query as Record<string, string>;
     if (!code) {
@@ -19,12 +19,13 @@ export async function authRoutes(fastify: FastifyInstance) {
     }
 
     const issuer = process.env.AUTH_ISSUER || 'https://auth.example.com/';
+    const internalIssuer = process.env.AUTH_INTERNAL_ISSUER || 'http://oidc-server.oidc.svc.cluster.local';
     const clientId = process.env.AUTH_AUDIENCE || 'drawio-agent';
     const clientSecret = process.env.AUTH_CLIENT_SECRET || 'drawio-agent-secret';
     const callbackUri = 'https://diagrams.example.com/api/v1/auth/callback';
 
     try {
-      const tokenUrl = `${issuer.replace(/\/$/, '')}/application/o/token/`;
+      const tokenUrl = `${internalIssuer.replace(/\/$/, '')}/application/o/token/`;
       const bodyParams = new URLSearchParams({
         grant_type: 'authorization_code',
         code,
@@ -33,15 +34,20 @@ export async function authRoutes(fastify: FastifyInstance) {
         redirect_uri: callbackUri,
       });
 
+      const hostHeader = new URL(issuer).host;
+
       const response = await fetch(tokenUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Host': hostHeader,
+        },
         body: bodyParams.toString(),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
-        fastify.log.error(`OIDC token exchange failed: ${errorText}`);
+        fastify.log.error(`OIDC token exchange failed (${response.status}): ${errorText}`);
         return reply.status(401).send({ error: 'Unauthorized', message: `Failed to exchange code: ${errorText}` });
       }
 
