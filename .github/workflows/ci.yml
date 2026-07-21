@@ -11,16 +11,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v7.0.1
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4.2.0
+        uses: actions/setup-node@v7.0.0
         with:
           node-version: 22
           cache: 'npm'
 
       - name: Setup Python
-        uses: actions/setup-python@v5.4.0
+        uses: actions/setup-python@v7.0.0
         with:
           python-version: '3.11'
           cache: 'pip'
@@ -38,7 +38,7 @@ jobs:
         run: ruff check .
 
       - name: Setup Helm
-        uses: azure/setup-helm@v4.3.0
+        uses: azure/setup-helm@v5.0.1
 
       - name: Run Helm Lint
         run: helm lint --strict chart/drawio-agent
@@ -48,10 +48,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v7.0.1
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4.2.0
+        uses: actions/setup-node@v7.0.0
         with:
           node-version: 22
           cache: 'npm'
@@ -67,16 +67,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v7.0.1
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4.2.0
+        uses: actions/setup-node@v7.0.0
         with:
           node-version: 22
           cache: 'npm'
 
       - name: Setup Python
-        uses: actions/setup-python@v5.4.0
+        uses: actions/setup-python@v7.0.0
         with:
           python-version: '3.11'
           cache: 'pip'
@@ -102,10 +102,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v7.0.1
 
       - name: Run Trivy Vulnerability Scanner
-        uses: aquasecurity/trivy-action@0.29.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: 'fs'
           format: 'sarif'
@@ -114,7 +114,7 @@ jobs:
           exit-code: '1'
 
       - name: Upload Trivy Scan Results
-        uses: actions/upload-artifact@v4.6.1
+        uses: actions/upload-artifact@v7.0.1
         if: always()
         with:
           name: trivy-fs-results
@@ -125,19 +125,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Agent Repository
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v7.0.1
         with:
           path: drawioAgent
 
       - name: Checkout Plugin Repository
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v7.0.1
         with:
           repository: jmo808/drawio_plugin
           path: drawio_plugin
 
       - name: Detect Changes
         id: filter
-        uses: dorny/paths-filter@v3.0.2
+        uses: dorny/paths-filter@v4.0.2
         with:
           filters: |
             shared:
@@ -154,11 +154,11 @@ jobs:
 
       - name: Setup Docker Buildx
         if: steps.filter.outputs.frontend == 'true' || steps.filter.outputs.api == 'true' || steps.filter.outputs.agent == 'true'
-        uses: docker/setup-buildx-action@v3.10.0
+        uses: docker/setup-buildx-action@v4.2.0
 
       - name: Build Frontend (Verify)
         if: steps.filter.outputs.frontend == 'true'
-        uses: docker/build-push-action@v6.15.0
+        uses: docker/build-push-action@v7.3.0
         with:
           context: drawioAgent
           file: drawioAgent/frontend/sidebar/Dockerfile
@@ -169,7 +169,7 @@ jobs:
 
       - name: Build API Server (Verify)
         if: steps.filter.outputs.api == 'true'
-        uses: docker/build-push-action@v6.15.0
+        uses: docker/build-push-action@v7.3.0
         with:
           context: drawioAgent
           file: drawioAgent/services/api/Dockerfile
@@ -180,7 +180,7 @@ jobs:
 
       - name: Build Agent (Verify)
         if: steps.filter.outputs.agent == 'true'
-        uses: docker/build-push-action@v6.15.0
+        uses: docker/build-push-action@v7.3.0
         with:
           context: .
           file: drawioAgent/services/agent/Dockerfile
