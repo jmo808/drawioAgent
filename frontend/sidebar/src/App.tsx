@@ -19,13 +19,32 @@ function App({ ui }: AppProps) {
   })
 
   const [authToken] = useState<string | null>(() => {
-    const urlParams = new URLSearchParams(window.location.search)
-    const urlToken = urlParams.get('token')
-    if (urlToken) {
-      localStorage.setItem('drawio_agent_auth_token', urlToken)
-      // Clean token parameter from URL
-      window.history.replaceState({}, document.title, window.location.pathname)
-      return urlToken
+    try {
+      const urlParams = new URLSearchParams(window.location.search)
+      let urlToken = urlParams.get('token')
+
+      // Also check top-level parent window URL if embedded in iframe
+      if (!urlToken && window.parent && window.parent !== window) {
+        try {
+          const parentParams = new URLSearchParams(window.parent.location.search)
+          urlToken = parentParams.get('token')
+        } catch (e) {}
+      }
+
+      if (urlToken) {
+        localStorage.setItem('drawio_agent_auth_token', urlToken)
+        // Clean token parameter from parent URL if accessible
+        if (window.parent && window.parent !== window) {
+          try {
+            const cleanUrl = new URL(window.parent.location.href)
+            cleanUrl.searchParams.delete('token')
+            window.parent.history.replaceState({}, document.title, cleanUrl.href)
+          } catch (e) {}
+        }
+        return urlToken
+      }
+    } catch (e) {
+      console.warn('Failed to read parent URL params:', e)
     }
     return localStorage.getItem('drawio_agent_auth_token') || null
   })
@@ -39,12 +58,24 @@ function App({ ui }: AppProps) {
   useEffect(() => {
     const isProdDomain = window.location.hostname.endsWith('example.com')
     const urlParams = new URLSearchParams(window.location.search)
-    const code = urlParams.get('code')
-    
-    if (isProdDomain && !authToken && !code && !urlParams.get('apiKey')) {
-      console.log('[DrawioAgent] Redirecting to OIDC login capture...')
-      const redirectUri = encodeURIComponent(window.location.href)
-      window.location.href = `/api/v1/auth/login?redirect_uri=${redirectUri}`
+    let code = urlParams.get('code')
+    let apiKeyParam = urlParams.get('apiKey')
+
+    if (window.parent && window.parent !== window) {
+      try {
+        const parentParams = new URLSearchParams(window.parent.location.search)
+        if (!code) code = parentParams.get('code')
+        if (!apiKeyParam) apiKeyParam = parentParams.get('apiKey')
+      } catch (e) {}
+    }
+
+    if (isProdDomain && !authToken && !code && !apiKeyParam) {
+      console.log('[DrawioAgent] Redirecting top window to OIDC login capture...')
+      if (window.top) {
+        window.top.location.href = `/api/v1/auth/login`
+      } else {
+        window.location.href = `/api/v1/auth/login`
+      }
     }
   }, [authToken])
 
