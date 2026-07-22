@@ -197,8 +197,12 @@ export interface ScreenCoordinates {
 }
 
 export const getGraphContainerBounds = (ui?: EditorUi): DOMRect | null => {
-  if (ui && ui.editor && ui.editor.graph && (ui.editor.graph as any).container) {
-    return (ui.editor.graph as any).container.getBoundingClientRect();
+  const activeUi = ui || (window as any).drawioEditorUi;
+  if (activeUi && activeUi.editor && activeUi.editor.graph && (activeUi.editor.graph as any).container) {
+    const container = (activeUi.editor.graph as any).container;
+    if (container && typeof container.getBoundingClientRect === 'function') {
+      return container.getBoundingClientRect();
+    }
   }
   const container = document.querySelector('.geDiagramContainer') || document.querySelector('.geStage') || document.querySelector('svg');
   return container ? container.getBoundingClientRect() : null;
@@ -211,8 +215,9 @@ export const screenToCanvasCoordinates = (ui: EditorUi | undefined, clientX: num
   let scale = 1;
   let translate = { x: 0, y: 0 };
 
-  if (ui && ui.editor && ui.editor.graph) {
-    const graph = ui.editor.graph as any;
+  const activeUi = ui || (window as any).drawioEditorUi;
+  if (activeUi && activeUi.editor && activeUi.editor.graph) {
+    const graph = activeUi.editor.graph as any;
     const view = typeof graph.getView === 'function' ? graph.getView() : graph.view;
     if (view) {
       if (typeof view.getScale === 'function') scale = view.getScale() || 1;
@@ -220,8 +225,12 @@ export const screenToCanvasCoordinates = (ui: EditorUi | undefined, clientX: num
     }
   }
 
-  const canvasX = (clientX - bounds.left - (translate.x * scale)) / scale;
-  const canvasY = (clientY - bounds.top - (translate.y * scale)) / scale;
+  const safeScale = isNaN(scale) || scale <= 0 ? 1 : scale;
+  const safeTransX = isNaN(translate.x) ? 0 : translate.x;
+  const safeTransY = isNaN(translate.y) ? 0 : translate.y;
+
+  const canvasX = (clientX - bounds.left - (safeTransX * safeScale)) / safeScale;
+  const canvasY = (clientY - bounds.top - (safeTransY * safeScale)) / safeScale;
   return { canvasX, canvasY };
 };
 
@@ -232,8 +241,9 @@ export const canvasToScreenCoordinates = (ui: EditorUi | undefined, canvasX: num
   let scale = 1;
   let translate = { x: 0, y: 0 };
 
-  if (ui && ui.editor && ui.editor.graph) {
-    const graph = ui.editor.graph as any;
+  const activeUi = ui || (window as any).drawioEditorUi;
+  if (activeUi && activeUi.editor && activeUi.editor.graph) {
+    const graph = activeUi.editor.graph as any;
     const view = typeof graph.getView === 'function' ? graph.getView() : graph.view;
     if (view) {
       if (typeof view.getScale === 'function') scale = view.getScale() || 1;
@@ -241,7 +251,15 @@ export const canvasToScreenCoordinates = (ui: EditorUi | undefined, canvasX: num
     }
   }
 
-  const screenX = bounds.left + (translate.x * scale) + (canvasX * scale);
-  const screenY = bounds.top + (translate.y * scale) + (canvasY * scale);
+  const safeScale = isNaN(scale) || scale <= 0 ? 1 : scale;
+  const safeTransX = isNaN(translate.x) ? 0 : translate.x;
+  const safeTransY = isNaN(translate.y) ? 0 : translate.y;
+  const safeCanvasX = isNaN(canvasX) ? 0 : canvasX;
+  const safeCanvasY = isNaN(canvasY) ? 0 : canvasY;
+
+  const screenX = bounds.left + (safeTransX * safeScale) + (safeCanvasX * safeScale);
+  const screenY = bounds.top + (safeTransY * safeScale) + (safeCanvasY * safeScale);
+
+  if (isNaN(screenX) || isNaN(screenY)) return null;
   return { screenX, screenY };
 };

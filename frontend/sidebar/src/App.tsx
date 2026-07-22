@@ -474,8 +474,6 @@ function App({ ui }: AppProps) {
 
   // Mouse movement listener over draw.io canvas for live cursor sharing
   useEffect(() => {
-    if (!state.sessionId) return;
-
     let lastSend = 0;
     const throttleMs = 100;
 
@@ -483,7 +481,8 @@ function App({ ui }: AppProps) {
       const now = Date.now();
       if (now - lastSend < throttleMs) return;
 
-      const coords = drawioBridge.screenToCanvasCoordinates(ui, e.clientX, e.clientY);
+      const activeUi = ui || (window as any).drawioEditorUi;
+      const coords = drawioBridge.screenToCanvasCoordinates(activeUi, e.clientX, e.clientY);
       if (coords) {
         lastSend = now;
         sendCursorMove(coords.canvasX, coords.canvasY, true);
@@ -513,7 +512,7 @@ function App({ ui }: AppProps) {
         } catch (err) {}
       }
     };
-  }, [state.sessionId, ui, sendCursorMove]);
+  }, [ui, sendCursorMove]);
 
   const handleCreateSession = useCallback(() => {
     if (!displayName) {
