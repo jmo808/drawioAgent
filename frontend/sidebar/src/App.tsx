@@ -477,7 +477,7 @@ function App({ ui }: AppProps) {
     if (!state.sessionId) return;
 
     let lastSend = 0;
-    const throttleMs = 50;
+    const throttleMs = 100;
 
     const handlePointerMove = (e: MouseEvent) => {
       const now = Date.now();
@@ -496,10 +496,22 @@ function App({ ui }: AppProps) {
 
     window.addEventListener('mousemove', handlePointerMove);
     window.addEventListener('mouseleave', handleMouseLeave);
+    if (window.parent && window.parent !== window) {
+      try {
+        window.parent.addEventListener('mousemove', handlePointerMove);
+        window.parent.addEventListener('mouseleave', handleMouseLeave);
+      } catch (err) {}
+    }
 
     return () => {
       window.removeEventListener('mousemove', handlePointerMove);
       window.removeEventListener('mouseleave', handleMouseLeave);
+      if (window.parent && window.parent !== window) {
+        try {
+          window.parent.removeEventListener('mousemove', handlePointerMove);
+          window.parent.removeEventListener('mouseleave', handleMouseLeave);
+        } catch (err) {}
+      }
     };
   }, [state.sessionId, ui, sendCursorMove]);
 

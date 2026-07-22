@@ -237,26 +237,6 @@ export async function chatRoutes(app: FastifyInstance) {
 
     socket.on('message', async (message) => {
       try {
-        const apiKey = query.apiKey || req.ip;
-        const allowed = await app.wsRateLimiter.consume(apiKey, wsLimit);
-        if (!allowed) {
-          req.log.warn({
-            audit: true,
-            eventType: 'rate_limit_violation',
-            requestId: req.id,
-            clientIp: req.ip,
-            timestamp: new Date().toISOString(),
-            details: { sessionId }
-          }, 'Rate limit exceeded');
-
-          socket.send(JSON.stringify({
-            type: 'error',
-            payload: { code: 'RATE_LIMIT_EXCEEDED', message: 'Rate limit exceeded' },
-            timestamp: new Date().toISOString(), requestId: req.id
-          }));
-          return;
-        }
-
         const dataStr = message.toString();
         let parsed: any;
         
@@ -282,6 +262,29 @@ export async function chatRoutes(app: FastifyInstance) {
             timestamp: new Date().toISOString(), requestId: req.id
           }));
           return;
+        }
+
+        // Ephemeral presence messages (like cursor_move) do NOT consume token bucket rate limits
+        if (parsed.type !== 'cursor_move') {
+          const apiKey = query.apiKey || req.ip;
+          const allowed = await app.wsRateLimiter.consume(apiKey, wsLimit);
+          if (!allowed) {
+            req.log.warn({
+              audit: true,
+              eventType: 'rate_limit_violation',
+              requestId: req.id,
+              clientIp: req.ip,
+              timestamp: new Date().toISOString(),
+              details: { sessionId }
+            }, 'Rate limit exceeded');
+
+            socket.send(JSON.stringify({
+              type: 'error',
+              payload: { code: 'RATE_LIMIT_EXCEEDED', message: 'Rate limit exceeded' },
+              timestamp: new Date().toISOString(), requestId: req.id
+            }));
+            return;
+          }
         }
 
         ws_messages_total.labels(parsed.type, 'success').inc();
