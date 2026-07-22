@@ -200,42 +200,48 @@ export const getGraphContainerBounds = (ui?: EditorUi): DOMRect | null => {
   if (ui && ui.editor && ui.editor.graph && (ui.editor.graph as any).container) {
     return (ui.editor.graph as any).container.getBoundingClientRect();
   }
-  const container = document.querySelector('.geDiagramContainer') || document.querySelector('svg');
+  const container = document.querySelector('.geDiagramContainer') || document.querySelector('.geStage') || document.querySelector('svg');
   return container ? container.getBoundingClientRect() : null;
 };
 
 export const screenToCanvasCoordinates = (ui: EditorUi | undefined, clientX: number, clientY: number): CanvasCoordinates | null => {
   const bounds = getGraphContainerBounds(ui);
-  if (!bounds) return null;
+  if (!bounds) return { canvasX: clientX, canvasY: clientY };
 
   let scale = 1;
   let translate = { x: 0, y: 0 };
 
-  if (ui && ui.editor && ui.editor.graph && (ui.editor.graph as any).view) {
-    const view = (ui.editor.graph as any).view as ViewMock;
-    if (typeof view.getScale === 'function') scale = view.getScale() || 1;
-    if (typeof view.getTranslate === 'function') translate = view.getTranslate() || { x: 0, y: 0 };
+  if (ui && ui.editor && ui.editor.graph) {
+    const graph = ui.editor.graph as any;
+    const view = typeof graph.getView === 'function' ? graph.getView() : graph.view;
+    if (view) {
+      if (typeof view.getScale === 'function') scale = view.getScale() || 1;
+      if (typeof view.getTranslate === 'function') translate = view.getTranslate() || { x: 0, y: 0 };
+    }
   }
 
-  const canvasX = (clientX - bounds.left - translate.x) / scale;
-  const canvasY = (clientY - bounds.top - translate.y) / scale;
+  const canvasX = (clientX - bounds.left - (translate.x * scale)) / scale;
+  const canvasY = (clientY - bounds.top - (translate.y * scale)) / scale;
   return { canvasX, canvasY };
 };
 
 export const canvasToScreenCoordinates = (ui: EditorUi | undefined, canvasX: number, canvasY: number): ScreenCoordinates | null => {
   const bounds = getGraphContainerBounds(ui);
-  if (!bounds) return null;
+  if (!bounds) return { screenX: canvasX, screenY: canvasY };
 
   let scale = 1;
   let translate = { x: 0, y: 0 };
 
-  if (ui && ui.editor && ui.editor.graph && (ui.editor.graph as any).view) {
-    const view = (ui.editor.graph as any).view as ViewMock;
-    if (typeof view.getScale === 'function') scale = view.getScale() || 1;
-    if (typeof view.getTranslate === 'function') translate = view.getTranslate() || { x: 0, y: 0 };
+  if (ui && ui.editor && ui.editor.graph) {
+    const graph = ui.editor.graph as any;
+    const view = typeof graph.getView === 'function' ? graph.getView() : graph.view;
+    if (view) {
+      if (typeof view.getScale === 'function') scale = view.getScale() || 1;
+      if (typeof view.getTranslate === 'function') translate = view.getTranslate() || { x: 0, y: 0 };
+    }
   }
 
-  const screenX = bounds.left + translate.x + (canvasX * scale);
-  const screenY = bounds.top + translate.y + (canvasY * scale);
+  const screenX = bounds.left + (translate.x * scale) + (canvasX * scale);
+  const screenY = bounds.top + (translate.y * scale) + (canvasY * scale);
   return { screenX, screenY };
 };

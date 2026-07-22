@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { canvasToScreenCoordinates } from '../services/drawioBridge';
 
 export interface RemoteCursor {
@@ -43,7 +44,7 @@ export const CursorOverlay: React.FC<CursorOverlayProps> = ({ cursors, ui }) => 
   useEffect(() => {
     const timer = setInterval(() => {
       setTick((t) => t + 1);
-    }, 1000);
+    }, 500);
     return () => clearInterval(timer);
   }, []);
 
@@ -55,8 +56,9 @@ export const CursorOverlay: React.FC<CursorOverlayProps> = ({ cursors, ui }) => 
 
   if (activeCursors.length === 0) return null;
 
-  return (
+  return createPortal(
     <div
+      className="drawio-agent-cursor-overlay"
       aria-hidden="true"
       style={{
         position: 'fixed',
@@ -65,7 +67,7 @@ export const CursorOverlay: React.FC<CursorOverlayProps> = ({ cursors, ui }) => 
         width: '100vw',
         height: '100vh',
         pointerEvents: 'none',
-        zIndex: 999999,
+        zIndex: 9999999,
         overflow: 'hidden',
       }}
     >
@@ -81,15 +83,16 @@ export const CursorOverlay: React.FC<CursorOverlayProps> = ({ cursors, ui }) => 
           <div
             key={cursor.connId}
             style={{
-              position: 'absolute',
+              position: 'fixed',
               left: `${coords.screenX}px`,
               top: `${coords.screenY}px`,
               transform: 'translate(-2px, -2px)',
-              transition: 'left 0.05s linear, top 0.05s linear, opacity 0.3s ease-out',
+              transition: 'left 0.1s linear, top 0.1s linear, opacity 0.3s ease-out',
               opacity,
               display: 'flex',
               alignItems: 'center',
               pointerEvents: 'none',
+              zIndex: 9999999,
             }}
           >
             {/* SVG Cursor Pointer Arrow */}
@@ -98,7 +101,7 @@ export const CursorOverlay: React.FC<CursorOverlayProps> = ({ cursors, ui }) => 
               height="24"
               viewBox="0 0 24 24"
               fill="none"
-              style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}
+              style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.4))' }}
             >
               <path
                 d="M5.65376 12.3673H5.46026L5.31717 12.4976L0.500002 16.8829L0.500002 1.17157L17.3916 12.3673H5.65376Z"
@@ -115,12 +118,12 @@ export const CursorOverlay: React.FC<CursorOverlayProps> = ({ cursors, ui }) => 
                 marginTop: 14,
                 backgroundColor: color,
                 color: '#ffffff',
-                fontSize: '11px',
+                fontSize: '12px',
                 fontWeight: 600,
-                padding: '2px 8px',
+                padding: '3px 10px',
                 borderRadius: '12px',
                 whiteSpace: 'nowrap',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.25)',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
                 lineHeight: '1.2',
                 letterSpacing: '0.2px',
               }}
@@ -130,6 +133,7 @@ export const CursorOverlay: React.FC<CursorOverlayProps> = ({ cursors, ui }) => 
           </div>
         );
       })}
-    </div>
+    </div>,
+    document.body
   );
 };
