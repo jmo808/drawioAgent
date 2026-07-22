@@ -13,7 +13,7 @@
   
   /* Dark theme colors */
   --ag-bg-dark: #1e1f26;
-  --ag-border-dark: #2e303a;
+  --ag-border-dark: rgba(255, 255, 255, 0.15);
   --ag-text-dark: #f0f0f3;
   --ag-text-muted-dark: #a29fb0;
   --ag-bubble-user-dark: #aa3bff;
@@ -439,14 +439,16 @@ body.dark .drawio-agent-msg-user {
   background: var(--ag-bubble-assistant-light);
   color: var(--ag-text-light);
   border-bottom-left-radius: 4px;
-  border: 1px solid var(--ag-border-light);
+  border: 1px solid rgba(220, 220, 228, 0.8);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 body.geDarkPage .drawio-agent-msg-bubble.drawio-agent-msg-assistant,
 body.geDark .drawio-agent-msg-bubble.drawio-agent-msg-assistant,
 body.dark .drawio-agent-msg-bubble.drawio-agent-msg-assistant {
   background: var(--ag-bubble-assistant-dark);
   color: var(--ag-text-dark);
-  border: 1px solid var(--ag-border-dark);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
 /* Tool Progress indicator */
