@@ -486,11 +486,29 @@ function App({ ui }: AppProps) {
       if (coords) {
         lastSend = now;
         sendCursorMove(coords.canvasX, coords.canvasY, true);
+
+        // Show local cursor hover pill on canvas even when 1 person is in session
+        setRemoteCursors(prev => ({
+          ...prev,
+          'self': {
+            connId: 'self',
+            displayName: displayName || 'You',
+            canvasX: coords.canvasX,
+            canvasY: coords.canvasY,
+            active: true,
+            lastSeen: Date.now()
+          }
+        }));
       }
     };
 
     const handleMouseLeave = () => {
       sendCursorMove(0, 0, false);
+      setRemoteCursors(prev => {
+        const next = { ...prev };
+        delete next['self'];
+        return next;
+      });
     };
 
     window.addEventListener('mousemove', handlePointerMove);
@@ -512,7 +530,7 @@ function App({ ui }: AppProps) {
         } catch (err) {}
       }
     };
-  }, [ui, sendCursorMove]);
+  }, [ui, sendCursorMove, displayName]);
 
   const handleCreateSession = useCallback(() => {
     if (!displayName) {
