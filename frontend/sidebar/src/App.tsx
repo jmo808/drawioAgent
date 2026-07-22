@@ -474,6 +474,12 @@ function App({ ui }: AppProps) {
 
   // Mouse movement listener over draw.io canvas for live cursor sharing
   useEffect(() => {
+    // Only track and render hover cursors when connected to an active session
+    if (!state.sessionId) {
+      setRemoteCursors({});
+      return;
+    }
+
     let lastSend = 0;
     const throttleMs = 100;
 
@@ -487,7 +493,7 @@ function App({ ui }: AppProps) {
         lastSend = now;
         sendCursorMove(coords.canvasX, coords.canvasY, true);
 
-        // Show local cursor hover pill on canvas even when 1 person is in session
+        // Show local cursor hover pill on canvas when in session
         setRemoteCursors(prev => ({
           ...prev,
           'self': {
@@ -530,7 +536,7 @@ function App({ ui }: AppProps) {
         } catch (err) {}
       }
     };
-  }, [ui, sendCursorMove, displayName]);
+  }, [state.sessionId, ui, sendCursorMove, displayName]);
 
   const handleCreateSession = useCallback(() => {
     if (!displayName) {
