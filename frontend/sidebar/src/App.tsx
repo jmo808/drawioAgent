@@ -79,11 +79,44 @@ function App({ ui }: AppProps) {
     }
   }, [authToken])
 
+  const getNameFromToken = useCallback((token: string | null): string | null => {
+    if (!token || typeof token !== 'string') return null
+    try {
+      const parts = token.split('.')
+      if (parts.length < 2) return null
+      const payloadJson = atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'))
+      const payload = JSON.parse(payloadJson)
+
+      if (typeof payload.name === 'string' && payload.name.trim()) {
+        return payload.name.trim()
+      }
+      const first = typeof payload.given_name === 'string' ? payload.given_name.trim() : ''
+      const last = typeof payload.family_name === 'string' ? payload.family_name.trim() : ''
+      if (first || last) {
+        return `${first} ${last}`.trim()
+      }
+      if (typeof payload.preferred_username === 'string' && payload.preferred_username.trim()) {
+        return payload.preferred_username.trim()
+      }
+      if (typeof payload.email === 'string' && payload.email.trim()) {
+        return payload.email.trim()
+      }
+    } catch (e) {
+      console.warn('Failed to parse name from token:', e)
+    }
+    return null
+  }, [])
+
   const { state, dispatch } = useChatStore()
   const [isOpen, setIsOpen] = useState(true)
 
   const [collabEnabled, setCollabEnabled] = useState(false)
   const [displayName, setDisplayName] = useState(() => {
+    const tokenName = getNameFromToken(authToken)
+    if (tokenName) {
+      localStorage.setItem('drawio_agent_display_name', tokenName)
+      return tokenName
+    }
     const urlParams = new URLSearchParams(window.location.search)
     const paramName = urlParams.get('displayName') || urlParams.get('username')
     if (paramName) {
@@ -92,6 +125,15 @@ function App({ ui }: AppProps) {
     }
     return localStorage.getItem('drawio_agent_display_name') || ''
   })
+
+  // Update displayName automatically from OIDC token claims when authenticated
+  useEffect(() => {
+    const tokenName = getNameFromToken(authToken)
+    if (tokenName) {
+      setDisplayName(tokenName)
+      localStorage.setItem('drawio_agent_display_name', tokenName)
+    }
+  }, [authToken, getNameFromToken])
   const [showNamePrompt, setShowNamePrompt] = useState(false)
   const [pendingAction, setPendingAction] = useState<{ type: 'create' } | { type: 'join'; codeOrId: string } | null>(null)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
