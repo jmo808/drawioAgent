@@ -511,6 +511,22 @@ export async function chatRoutes(app: FastifyInstance) {
             }
           }
 
+        } else if (parsed.type === 'cursor_move') {
+          const targetSessionId = activeCollabSessionId || sessionId;
+          if (pubsubManager && parsed.payload) {
+            pubsubManager.publishEvent(targetSessionId, {
+              type: 'cursor_move',
+              payload: {
+                ...parsed.payload,
+                connId,
+                displayName
+              },
+              senderConnId: connId,
+              timestamp: new Date().toISOString(), requestId: req.id
+            }).catch(err => {
+              req.log.error({ err, sessionId: targetSessionId }, 'Failed to broadcast cursor move');
+            });
+          }
         } else if (parsed.type === 'diagram_broadcast') {
           req.log.info({ sessionId: activeCollabSessionId || sessionId, classification }, 'Broadcasting diagram update from client');
           const targetSessionId = activeCollabSessionId || sessionId;

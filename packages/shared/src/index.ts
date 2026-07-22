@@ -54,6 +54,15 @@ export const CollaborationSyncPayloadSchema = z.object({
   version: z.number() // Version field to prevent race conditions
 });
 
+export const CursorMovePayloadSchema = z.object({
+  canvasX: z.number(),
+  canvasY: z.number(),
+  displayName: z.string(),
+  connId: z.string().optional(),
+  color: z.string().optional(),
+  active: z.boolean().optional(),
+});
+
 // WebSocket Message Types List
 export type WebSocketMessageType = 
   | 'chat_message'
@@ -74,7 +83,8 @@ export type WebSocketMessageType =
   | 'member_joined'
   | 'member_left'
   | 'ai_locked'
-  | 'ai_unlocked';
+  | 'ai_unlocked'
+  | 'cursor_move';
 
 export const WebSocketMessageSchema = z.object({
   type: z.enum([
@@ -96,7 +106,8 @@ export const WebSocketMessageSchema = z.object({
     'member_joined',
     'member_left',
     'ai_locked',
-    'ai_unlocked'
+    'ai_unlocked',
+    'cursor_move'
   ]),
   payload: z.record(z.unknown()),
   id: z.string().optional(),
@@ -168,6 +179,7 @@ export function isErrorPayload(payload: unknown): payload is ErrorPayload {
 
 export type CollaborationJoinPayload = z.infer<typeof CollaborationJoinPayloadSchema>;
 export type CollaborationSyncPayload = z.infer<typeof CollaborationSyncPayloadSchema>;
+export type CursorMovePayload = z.infer<typeof CursorMovePayloadSchema>;
 
 export function isCollaborationJoinPayload(payload: unknown): payload is CollaborationJoinPayload {
   return CollaborationJoinPayloadSchema.safeParse(payload).success;
@@ -175,4 +187,8 @@ export function isCollaborationJoinPayload(payload: unknown): payload is Collabo
 
 export function isCollaborationSyncPayload(payload: unknown): payload is CollaborationSyncPayload {
   return CollaborationSyncPayloadSchema.safeParse(payload).success;
+}
+
+export function isCursorMovePayload(payload: unknown): payload is CursorMovePayload {
+  return CursorMovePayloadSchema.safeParse(payload).success;
 }

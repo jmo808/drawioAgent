@@ -216,11 +216,29 @@ export const useWebSocket = ({
     }
   }, [])
 
+  const sendCursorMove = useCallback((canvasX: number, canvasY: number, active = true) => {
+    const envelope = {
+      type: 'cursor_move',
+      payload: {
+        canvasX,
+        canvasY,
+        displayName: displayNameRef.current,
+        active
+      },
+      timestamp: new Date().toISOString()
+    }
+    const ws = wsRef.current
+    if (ws && ws.readyState === 1) {
+      ws.send(JSON.stringify(envelope))
+    }
+  }, [])
+
   return {
     sendMessage,
     broadcastDiagram,
     createSession,
     joinSession,
-    leaveSession
+    leaveSession,
+    sendCursorMove
   }
 }

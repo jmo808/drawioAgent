@@ -6,6 +6,7 @@ import type { ToolProgress, DiagramUpdate, ErrorPayload } from '@drawio-agent/sh
 import { MESSAGES } from './i18n'
 import { useChatStore } from './hooks/useChatStore'
 import { useWebSocket } from './hooks/useWebSocket'
+import { CursorOverlay, type RemoteCursor } from './components/CursorOverlay'
 import * as drawioBridge from './services/drawioBridge'
 import './index.css'
 
@@ -356,7 +357,9 @@ function App({ ui }: AppProps) {
     disconnected?: boolean;
   }
 
-  const { sendMessage, broadcastDiagram, createSession, joinSession, leaveSession } = useWebSocket({
+  const [remoteCursors, setRemoteCursors] = useState<Record<string, RemoteCursor>>({});
+
+  const { sendMessage, broadcastDiagram, createSession, joinSession, leaveSession, sendCursorMove } = useWebSocket({
     sessionId,
     collabSessionId: state.sessionId,
     displayName: displayName,
@@ -389,6 +392,23 @@ function App({ ui }: AppProps) {
             isAgent
           }
         });
+      } else if (message.type === 'cursor_move') {
+        const payload = message.payload as Record<string, unknown>;
+        const connId = (payload.connId as string) || ((message as unknown as Record<string, unknown>).senderConnId as string);
+        if (connId) {
+          setRemoteCursors(prev => ({
+            ...prev,
+            [connId]: {
+              connId,
+              displayName: (payload.displayName as string) || 'Anonymous',
+              canvasX: Number(payload.canvasX || 0),
+              canvasY: Number(payload.canvasY || 0),
+              color: payload.color as string | undefined,
+              active: payload.active !== false,
+              lastSeen: Date.now()
+            }
+          }));
+        }
       } else if (message.type === 'diagram_update') {
         const payload = message.payload as unknown as DiagramUpdate;
         if (ui && payload.xml) {
@@ -422,8 +442,16 @@ function App({ ui }: AppProps) {
         }
       } else if (message.type === 'member_left') {
         const payload = message.payload as Record<string, unknown>;
-        dispatch({ type: 'REMOVE_MEMBER', payload: payload.connId as string });
-        const member = state.members.find(m => m.connId === payload.connId);
+        const deadConnId = payload.connId as string;
+        if (deadConnId) {
+          setRemoteCursors(prev => {
+            const next = { ...prev };
+            delete next[deadConnId];
+            return next;
+          });
+        }
+        dispatch({ type: 'REMOVE_MEMBER', payload: deadConnId });
+        const member = state.members.find(m => m.connId === deadConnId);
         showToast(`${member?.displayName || 'A member'} left the session`);
       } else if (message.type === 'diagram_broadcast') {
         const payload = message.payload as Record<string, unknown>;
@@ -443,6 +471,37 @@ function App({ ui }: AppProps) {
       }
     }
   });
+
+  // Mouse movement listener over draw.io canvas for live cursor sharing
+  useEffect(() => {
+    if (!state.sessionId) return;
+
+    let lastSend = 0;
+    const throttleMs = 50;
+
+    const handlePointerMove = (e: MouseEvent) => {
+      const now = Date.now();
+      if (now - lastSend < throttleMs) return;
+
+      const coords = drawioBridge.screenToCanvasCoordinates(ui, e.clientX, e.clientY);
+      if (coords) {
+        lastSend = now;
+        sendCursorMove(coords.canvasX, coords.canvasY, true);
+      }
+    };
+
+    const handleMouseLeave = () => {
+      sendCursorMove(0, 0, false);
+    };
+
+    window.addEventListener('mousemove', handlePointerMove);
+    window.addEventListener('mouseleave', handleMouseLeave);
+
+    return () => {
+      window.removeEventListener('mousemove', handlePointerMove);
+      window.removeEventListener('mouseleave', handleMouseLeave);
+    };
+  }, [state.sessionId, ui, sendCursorMove]);
 
   const handleCreateSession = useCallback(() => {
     if (!displayName) {
@@ -588,6 +647,7 @@ function App({ ui }: AppProps) {
 
   return (
     <div className="drawio-agent-app-container">
+      <CursorOverlay cursors={remoteCursors} ui={ui} />
       <ChatPanel
         messages={state.messages}
         isLoading={state.isLoading}
