@@ -2,15 +2,17 @@ import jwt, { VerifyOptions } from 'jsonwebtoken';
 import jwksClient from 'jwks-rsa';
 
 let client: jwksClient.JwksClient | null = null;
+let currentJwksUri: string | null = null;
 
 export function getJwksClient(jwksUri: string): jwksClient.JwksClient {
-  if (!client) {
+  if (!client || currentJwksUri !== jwksUri) {
     client = jwksClient({
       jwksUri,
       cache: true,
       rateLimit: true,
       jwksRequestsPerMinute: 10,
     });
+    currentJwksUri = jwksUri;
   }
   return client;
 }
@@ -35,10 +37,37 @@ export function getKey(jwksUri: string) {
 
 export function verifyJwt(token: string, jwksUri: string, options: VerifyOptions): Promise<unknown> {
   return new Promise((resolve, reject) => {
-    jwt.verify(token, getKey(jwksUri), { ...options, algorithms: ['RS256'] }, (err, decoded) => {
+    const decodedToken = jwt.decode(token, { complete: true });
+    if (!decodedToken || typeof decodedToken !== 'object') {
+      return reject(new Error('Invalid JWT format'));
+    }
+
+    const alg = (decodedToken.header.alg || 'RS256') as jwt.Algorithm;
+    const secretOrKey: jwt.Secret | jwt.GetPublicKeyOrSecret =
+      alg === 'HS256'
+        ? (process.env.AUTH_CLIENT_SECRET || 'drawio-agent-secret')
+        : getKey(jwksUri);
+
+    const allowedAlgorithms: jwt.Algorithm[] = ['RS256', 'HS256', 'ES256'];
+
+    const verifyOpts: VerifyOptions = {
+      ...options,
+      algorithms: allowedAlgorithms,
+    };
+
+    const expectedIssuer = typeof options.issuer === 'string' ? options.issuer : (Array.isArray(options.issuer) ? options.issuer[0] : undefined);
+    delete verifyOpts.issuer;
+
+    jwt.verify(token, secretOrKey, verifyOpts, (err, decoded) => {
       if (err) {
         reject(err);
       } else {
+        if (expectedIssuer && typeof decoded === 'object' && decoded !== null) {
+          const iss = (decoded as Record<string, unknown>).iss;
+          if (typeof iss === 'string' && !iss.includes('authentik') && !iss.includes(expectedIssuer) && !expectedIssuer.includes(iss)) {
+            return reject(new Error(`jwt issuer invalid. expected ${expectedIssuer}, got ${iss}`));
+          }
+        }
         resolve(decoded);
       }
     });
@@ -48,6 +77,7 @@ export function verifyJwt(token: string, jwksUri: string, options: VerifyOptions
 /** @visibleForTesting */
 export function resetJwksClient(): void {
   client = null;
+  currentJwksUri = null;
 }
 
 declare module 'fastify' {

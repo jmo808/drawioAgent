@@ -45,15 +45,27 @@ const authPluginCallback: FastifyPluginAsync<AuthPluginOptions> = async (
 
     // Extract potential credentials
     const authHeader = request.headers['authorization'];
-    const bearerToken =
+    const queryParams = request.query as Record<string, unknown>;
+    const apiKeyHeader = request.headers['x-api-key'];
+    const apiKeyQuery = typeof queryParams?.apiKey === 'string' ? queryParams.apiKey : undefined;
+    const tokenQuery = typeof queryParams?.token === 'string' ? queryParams.token : undefined;
+
+    let bearerToken =
       authHeader && authHeader.toLowerCase().startsWith('bearer ')
         ? authHeader.substring(7)
         : undefined;
 
-    const apiKeyHeader = request.headers['x-api-key'];
-    const queryParams = request.query as Record<string, unknown>;
-    const apiKeyQuery = typeof queryParams?.apiKey === 'string' ? queryParams.apiKey : undefined;
-    const providedApiKey = typeof apiKeyHeader === 'string' ? apiKeyHeader : apiKeyQuery;
+    if (!bearerToken) {
+      if (tokenQuery && tokenQuery.startsWith('eyJ')) {
+        bearerToken = tokenQuery;
+      } else if (apiKeyQuery && apiKeyQuery.startsWith('eyJ')) {
+        bearerToken = apiKeyQuery;
+      }
+    }
+
+    const providedApiKey = typeof apiKeyHeader === 'string'
+      ? apiKeyHeader
+      : (apiKeyQuery && !apiKeyQuery.startsWith('eyJ') ? apiKeyQuery : undefined);
 
     // Helper: validate API key
     const validateApiKey = (key: string): boolean => {
