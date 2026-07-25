@@ -7,7 +7,15 @@ export async function authRoutes(fastify: FastifyInstance) {
     const clientId = process.env.AUTH_AUDIENCE || 'drawio-agent';
     const callbackUri = 'https://diagrams.example.com/api/v1/auth/callback';
     
-    const authUrl = `${issuer.replace(/\/$/, '')}/application/o/authorize/?client_id=${encodeURIComponent(clientId)}&response_type=code&redirect_uri=${encodeURIComponent(callbackUri)}&scope=openid%20profile%20email`;
+    let baseUrl = 'https://auth.example.com';
+    try {
+      const parsedIssuer = new URL(issuer);
+      baseUrl = `${parsedIssuer.protocol}//${parsedIssuer.host}`;
+    } catch (e) {
+      fastify.log.error(`Failed to parse AUTH_ISSUER: ${issuer}. Using fallback base URL.`);
+    }
+    
+    const authUrl = `${baseUrl}/application/o/authorize/?client_id=${encodeURIComponent(clientId)}&response_type=code&redirect_uri=${encodeURIComponent(callbackUri)}&scope=openid%20profile%20email`;
     return reply.redirect(authUrl);
   });
 
@@ -25,7 +33,14 @@ export async function authRoutes(fastify: FastifyInstance) {
     const callbackUri = 'https://diagrams.example.com/api/v1/auth/callback';
 
     try {
-      const tokenUrl = `${internalIssuer.replace(/\/$/, '')}/application/o/token/`;
+      let internalBaseUrl = 'http://oidc-server.oidc.svc.cluster.local';
+      try {
+        const parsedInternal = new URL(internalIssuer);
+        internalBaseUrl = `${parsedInternal.protocol}//${parsedInternal.host}`;
+      } catch (e) {
+        fastify.log.error(`Failed to parse AUTH_INTERNAL_ISSUER: ${internalIssuer}. Using fallback internal base URL.`);
+      }
+      const tokenUrl = `${internalBaseUrl}/application/o/token/`;
       const bodyParams = new URLSearchParams({
         grant_type: 'authorization_code',
         code,
