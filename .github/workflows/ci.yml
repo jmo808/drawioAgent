@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
   lint:
     name: Lint & Style Checks
@@ -113,12 +117,19 @@ jobs:
           severity: 'CRITICAL,HIGH'
           exit-code: '1'
 
-      - name: Upload Trivy Scan Results
+      - name: Upload Trivy Scan Results (Artifact)
         uses: actions/upload-artifact@v7.0.1
         if: always()
         with:
           name: trivy-fs-results
           path: trivy-results.sarif
+
+      - name: Upload Trivy Scan Results to Security Tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+          category: 'trivy-fs'
 
   docker-build-verify:
     name: Verify Docker Builds
