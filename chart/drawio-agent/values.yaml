@@ -79,6 +79,10 @@ auth:
   jwksUri: ""
   issuer: ""
   audience: "drawio-agent"
+  callbackUri: ""
+  redirectUri: ""
+  internalIssuer: ""
+  trustedIssuerPatterns: ""
 
 # Collaboration (Valkey) settings
 collaboration:

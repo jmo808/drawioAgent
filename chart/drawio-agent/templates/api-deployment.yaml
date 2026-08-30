@@ -63,6 +63,26 @@ spec:
                 configMapKeyRef:
                   name: {{ include "drawio-agent.fullname" . }}-config
                   key: AUTH_AUDIENCE
+            - name: AUTH_CALLBACK_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "drawio-agent.fullname" . }}-config
+                  key: AUTH_CALLBACK_URI
+            - name: AUTH_REDIRECT_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "drawio-agent.fullname" . }}-config
+                  key: AUTH_REDIRECT_URI
+            - name: AUTH_INTERNAL_ISSUER
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "drawio-agent.fullname" . }}-config
+                  key: AUTH_INTERNAL_ISSUER
+            - name: AUTH_TRUSTED_ISSUER_PATTERNS
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ include "drawio-agent.fullname" . }}-config
+                  key: AUTH_TRUSTED_ISSUER_PATTERNS
             - name: COLLABORATION_ENABLED
               valueFrom:
                 configMapKeyRef:
