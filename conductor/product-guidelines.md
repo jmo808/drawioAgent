@@ -60,3 +60,9 @@ The AI agent should never block the user's workflow:
 - All UI strings externalized for future i18n support
 - No hardcoded English strings in component code
 - RTL layout support not required for MVP, but string externalization enables it later
+
+## Supply Chain Security & Dependency Pinning
+- **Immutable Action Pinning**: All GitHub Actions must be pinned to 40-character commit SHAs (mutable tags forbidden).
+- **Scanner Engine Locking**: Security scanners (Trivy, Cosign) must explicitly lock their binary/engine versions in action configs.
+- **Security Dashboard Integration**: All automated vulnerability and static analysis scans must publish SARIF reports directly to GitHub Security tab.
+- **Reproducible Builds**: Strict lockfile integrity enforced across npm (`package-lock.json`) and python (`requirements.txt`).
