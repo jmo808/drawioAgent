@@ -3,11 +3,15 @@ import { FastifyInstance } from 'fastify';
 export async function authRoutes(fastify: FastifyInstance) {
   // OIDC Login redirect endpoint (browser redirect)
   fastify.get('/api/v1/auth/login', async (request, reply) => {
-    const issuer = process.env.AUTH_ISSUER || 'https://auth.example.com/';
+    const issuer = process.env.AUTH_ISSUER || '';
     const clientId = process.env.AUTH_AUDIENCE || 'drawio-agent';
-    const callbackUri = 'https://diagrams.example.com/api/v1/auth/callback';
+    const callbackUri = process.env.AUTH_CALLBACK_URI || '';
+
+    if (!issuer || !callbackUri) {
+      fastify.log.warn('OIDC login route invoked but AUTH_ISSUER and/or AUTH_CALLBACK_URI are not set.');
+    }
     
-    let baseUrl = 'https://auth.example.com';
+    let baseUrl = '';
     try {
       const parsedIssuer = new URL(issuer);
       baseUrl = `${parsedIssuer.protocol}//${parsedIssuer.host}`;
@@ -19,21 +23,25 @@ export async function authRoutes(fastify: FastifyInstance) {
     return reply.redirect(authUrl);
   });
 
-  // OIDC Callback endpoint (server-to-server token exchange using internal cluster network)
+  // OIDC Callback endpoint (server-to-server token exchange)
   fastify.get('/api/v1/auth/callback', async (request, reply) => {
     const { code } = request.query as Record<string, string>;
     if (!code) {
       return reply.status(400).send({ error: 'Bad Request', message: 'Missing authorization code' });
     }
 
-    const issuer = process.env.AUTH_ISSUER || 'https://auth.example.com/';
-    const internalIssuer = process.env.AUTH_INTERNAL_ISSUER || 'http://oidc-server.oidc.svc.cluster.local';
+    const issuer = process.env.AUTH_ISSUER || '';
+    const internalIssuer = process.env.AUTH_INTERNAL_ISSUER || '';
     const clientId = process.env.AUTH_AUDIENCE || 'drawio-agent';
     const clientSecret = process.env.AUTH_CLIENT_SECRET || 'drawio-agent-secret';
-    const callbackUri = 'https://diagrams.example.com/api/v1/auth/callback';
+    const callbackUri = process.env.AUTH_CALLBACK_URI || '';
+
+    if (!issuer || !internalIssuer || !callbackUri) {
+      fastify.log.warn('OIDC callback route invoked but one or more required env vars (AUTH_ISSUER, AUTH_INTERNAL_ISSUER, AUTH_CALLBACK_URI) are not set.');
+    }
 
     try {
-      let internalBaseUrl = 'http://oidc-server.oidc.svc.cluster.local';
+      let internalBaseUrl = '';
       try {
         const parsedInternal = new URL(internalIssuer);
         internalBaseUrl = `${parsedInternal.protocol}//${parsedInternal.host}`;
@@ -70,7 +78,8 @@ export async function authRoutes(fastify: FastifyInstance) {
       const token = tokens.access_token || tokens.id_token;
 
       // Redirect back to main application with token
-      return reply.redirect(`https://diagrams.example.com/?token=${encodeURIComponent(token)}`);
+      const redirectBase = process.env.AUTH_REDIRECT_URI || '/';
+      return reply.redirect(`${redirectBase}${redirectBase.includes('?') ? '&' : '?'}token=${encodeURIComponent(token)}`);
     } catch (err) {
       fastify.log.error(`Auth callback error: ${err}`);
       return reply.status(500).send({ error: 'Internal Server Error', message: 'Authentication callback failed' });

@@ -64,8 +64,12 @@ export function verifyJwt(token: string, jwksUri: string, options: VerifyOptions
       } else {
         if (expectedIssuer && typeof decoded === 'object' && decoded !== null) {
           const iss = (decoded as Record<string, unknown>).iss;
-          if (typeof iss === 'string' && !iss.includes('authentik') && !iss.includes(expectedIssuer) && !expectedIssuer.includes(iss)) {
-            return reject(new Error(`jwt issuer invalid. expected ${expectedIssuer}, got ${iss}`));
+          const trustedPatterns = (process.env.AUTH_TRUSTED_ISSUER_PATTERNS || '').split(',').filter(Boolean);
+          if (typeof iss === 'string') {
+            const issuersMatch = iss.includes(expectedIssuer) || expectedIssuer.includes(iss) || trustedPatterns.some(p => iss.includes(p.trim()));
+            if (!issuersMatch) {
+              return reject(new Error(`jwt issuer invalid. expected ${expectedIssuer}, got ${iss}`));
+            }
           }
         }
         resolve(decoded);

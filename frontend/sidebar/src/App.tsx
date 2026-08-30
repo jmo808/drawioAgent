@@ -57,7 +57,7 @@ function App({ ui }: AppProps) {
 
   // Trigger OIDC login capture if unauthenticated in production
   useEffect(() => {
-    const isProdDomain = window.location.hostname.endsWith('example.com')
+    const isProdDomain = import.meta.env.VITE_OIDC_ENABLED === 'true'
     const urlParams = new URLSearchParams(window.location.search)
     let code = urlParams.get('code')
     let apiKeyParam = urlParams.get('apiKey')
