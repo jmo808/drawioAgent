@@ -17,6 +17,8 @@ frontend:
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
     tag: ""
+    # Optional image digest for cryptographic SHA pinning (takes precedence over tag)
+    digest: ""
   resources:
     limits:
       cpu: 200m
@@ -33,6 +35,8 @@ api:
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
     tag: ""
+    # Optional image digest for cryptographic SHA pinning (takes precedence over tag)
+    digest: ""
   resources:
     limits:
       cpu: 500m
@@ -49,6 +53,8 @@ agent:
     pullPolicy: IfNotPresent
     # Overrides the image tag whose default is the chart appVersion.
     tag: ""
+    # Optional image digest for cryptographic SHA pinning (takes precedence over tag)
+    digest: ""
   resources:
     limits:
       cpu: 1000m
