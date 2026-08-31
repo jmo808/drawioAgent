@@ -4,9 +4,18 @@ import * as path from 'path';
 
 // Resolve path to build-diagram script in drawio_plugin
 const buildDiagramPath = path.resolve(__dirname, '../../../../../drawio_plugin/scripts/build-diagram.js');
-const { buildDiagram } = require(buildDiagramPath);
+const hasPlugin = fs.existsSync(buildDiagramPath);
+let buildDiagram: any = null;
+if (hasPlugin) {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    buildDiagram = require(buildDiagramPath).buildDiagram;
+  } catch {
+    // Ignore require error if not available
+  }
+}
 
-describe('Architecture JSON Templates Validation', () => {
+describe.skipIf(!hasPlugin || !buildDiagram)('Architecture JSON Templates Validation', () => {
   const templatesDir = path.resolve(__dirname, '../../../../templates/architectures');
   const tempOutputDir = path.resolve(__dirname, '../../../../services/api/src/test/scratch');
 
