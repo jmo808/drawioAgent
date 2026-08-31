@@ -67,6 +67,9 @@ jobs:
       - name: Install Root Dependencies
         run: npm ci --legacy-peer-deps
 
+      - name: Build Shared Package
+        run: npm run build -w packages/shared
+
       - name: Run Type Check
         run: npm run typecheck
 
@@ -91,6 +94,9 @@ jobs:
 
       - name: Install Root Dependencies
         run: npm ci --legacy-peer-deps
+
+      - name: Build Shared Package
+        run: npm run build -w packages/shared
 
       - name: Run TS Unit Tests
         run: npm test
