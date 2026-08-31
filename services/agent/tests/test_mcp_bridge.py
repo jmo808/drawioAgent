@@ -64,7 +64,7 @@ async def test_mcp_bridge_lifecycle_and_call():
     mock_process.stdin.write = mock_write
     mock_process.stdin.drain = AsyncMock()
 
-    with patch("asyncio.create_subprocess_exec", return_value=mock_process) as mock_exec:
+    with patch("asyncio.create_subprocess_exec", return_value=mock_process):
         bridge = MCPBridge(settings)
         await bridge.start()
         

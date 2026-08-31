@@ -1,6 +1,5 @@
 import pytest
 from fastapi.testclient import TestClient
-from prometheus_client import REGISTRY
 
 from agent.server import app
 from agent.metrics import (

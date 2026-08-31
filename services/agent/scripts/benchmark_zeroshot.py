@@ -2,7 +2,6 @@ import os
 import sys
 import json
 import subprocess
-from typing import Dict, Any
 from agent.config import settings
 
 def run_benchmark():
@@ -111,7 +110,7 @@ def run_benchmark():
     # 3. Output summary
     success_rate = (success_count / total_count) * 100.0
     print("==================================================")
-    print(f" BENCHMARK SUMMARY")
+    print(" BENCHMARK SUMMARY")
     print(f" Success Rate: {success_count}/{total_count} ({success_rate:.1f}%)")
     print("==================================================")
     

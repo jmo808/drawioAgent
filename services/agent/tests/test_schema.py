@@ -1,6 +1,6 @@
 import pytest
 from pydantic import ValidationError
-from agent.schema import DiagramSpec, ContainerSpec, NodeSpec, EdgeSpec
+from agent.schema import DiagramSpec
 
 def test_valid_schema():
     spec_data = {

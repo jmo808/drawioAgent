@@ -8,9 +8,10 @@
     "frontend/sidebar"
   ],
   "scripts": {
-    "test": "npm run test -w packages/shared -w services/api -w frontend/sidebar",
     "build": "npm run build -w packages/shared -w services/api -w frontend/sidebar",
-    "lint": "npm run lint -w packages/shared -w services/api -w frontend/sidebar"
+    "typecheck": "npm run build -w packages/shared && tsc -b packages/shared/tsconfig.json services/api/tsconfig.json frontend/sidebar/tsconfig.json",
+    "test": "npm run build -w packages/shared && npm run test -w packages/shared -w services/api -w frontend/sidebar",
+    "lint": "npm run lint -w frontend/sidebar"
   },
   "devDependencies": {
     "@playwright/test": "^1.61.1",

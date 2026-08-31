@@ -153,7 +153,7 @@ class TemplateMatcher:
                             score=best_score,
                             spec_json=spec_json
                         )
-                    except Exception as e:
+                    except Exception:
                         # Log error, fallback
                         pass
         return None

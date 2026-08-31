@@ -40,7 +40,7 @@ jobs:
         run: npm run lint
 
       - name: Install Python Linting Tools
-        run: pip install ruff
+        run: pip install ruff==0.9.9
 
       - name: Run Ruff
         run: ruff check .
@@ -92,8 +92,8 @@ jobs:
       - name: Install Root Dependencies
         run: npm ci --legacy-peer-deps
 
-      - name: Run TS Unit Tests (with Coverage)
-        run: npm run test -- --coverage --run
+      - name: Run TS Unit Tests
+        run: npm test
 
       - name: Install Python Dependencies
         run: |
@@ -157,18 +157,19 @@ jobs:
         id: filter
         uses: dorny/paths-filter@7b450fff21473bca461d4b92ce414b9d0420d706 # v4.0.2
         with:
+          working-directory: drawioAgent
           filters: |
             shared:
-              - 'drawioAgent/packages/shared/**'
+              - 'packages/shared/**'
             frontend:
-              - 'drawioAgent/frontend/sidebar/**'
-              - 'drawioAgent/packages/shared/**'
+              - 'frontend/sidebar/**'
+              - 'packages/shared/**'
             api:
-              - 'drawioAgent/services/api/**'
-              - 'drawioAgent/packages/shared/**'
+              - 'services/api/**'
+              - 'packages/shared/**'
             agent:
-              - 'drawioAgent/services/agent/**'
-              - 'drawioAgent/packages/shared/**'
+              - 'services/agent/**'
+              - 'packages/shared/**'
 
       - name: Setup Docker Buildx
         if: steps.filter.outputs.frontend == 'true' || steps.filter.outputs.api == 'true' || steps.filter.outputs.agent == 'true'

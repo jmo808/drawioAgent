@@ -1,7 +1,6 @@
 import pytest
 import os
 import asyncio
-import time
 from unittest.mock import AsyncMock, patch, MagicMock
 from agent.config import Settings
 from agent.llm_service import LLMService
@@ -10,7 +9,6 @@ from agent.circuit_breaker import (
     CircuitBreakerManager, 
     llm_circuit_state
 )
-import pybreaker
 
 @pytest.fixture(autouse=True)
 def reset_breaker_manager():

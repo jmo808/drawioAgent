@@ -2,7 +2,6 @@ import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
 from agent.llm_service import LLMService, format_mcp_tool
 from agent.config import Settings
-import litellm
 
 def test_format_mcp_tool():
     mcp_tool = {

@@ -1,7 +1,5 @@
 import pytest
-import time
 from unittest.mock import AsyncMock, patch, MagicMock
-from opentelemetry import trace
 from agent.llm_service import LLMService
 from agent.mcp_bridge import MCPBridge
 from agent.orchestrator import AgentOrchestrator

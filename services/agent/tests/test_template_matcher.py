@@ -1,4 +1,3 @@
-import pytest
 from agent.template_matcher import TemplateMatcher
 
 def test_template_matcher_similarity():

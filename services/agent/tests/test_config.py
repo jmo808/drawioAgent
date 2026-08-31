@@ -1,4 +1,3 @@
-import os
 from agent.config import Settings
 
 def test_settings_default():

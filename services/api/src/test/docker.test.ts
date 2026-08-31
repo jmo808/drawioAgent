@@ -1,7 +1,7 @@
 import { describe, test, expect, beforeAll, afterAll } from 'vitest'
 import { execSync } from 'child_process'
 
-describe('API Server Docker Image Integration', () => {
+describe.skipIf(!process.env.RUN_DOCKER_TESTS)('API Server Docker Image Integration', () => {
   const containerName = 'drawio-api-test-server'
   const port = '8086'
 

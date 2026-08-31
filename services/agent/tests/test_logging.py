@@ -1,11 +1,8 @@
 import pytest
-import json
 from fastapi.testclient import TestClient
 from agent.server import app
 from agent.llm_service import LLMService
 from agent.mcp_bridge import MCPBridge
-from agent.orchestrator import AgentOrchestrator
-import structlog
 from structlog.testing import capture_logs
 
 @pytest.fixture
@@ -14,7 +11,7 @@ def client():
 
 def test_request_id_middleware(client):
     req_id = "test-req-id-12345"
-    with capture_logs() as cap_logs:
+    with capture_logs():
         response = client.get("/health", headers={"X-Request-ID": req_id})
     assert response.status_code == 200
     assert response.headers["X-Request-ID"] == req_id

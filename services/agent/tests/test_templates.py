@@ -1,6 +1,5 @@
 import os
 import json
-import pytest
 from agent.config import settings
 
 def test_template_library_exists_and_valid():
