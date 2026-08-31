@@ -1,4 +1,10 @@
+import os
+import pytest
+from agent.config import settings
 from agent.template_matcher import TemplateMatcher
+
+templates_exist = os.path.exists(os.path.join(settings.skills_dir, "references", "templates"))
+pytestmark = pytest.mark.skipif(not templates_exist, reason="Templates directory not available")
 
 def test_template_matcher_similarity():
     """

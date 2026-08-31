@@ -1,7 +1,13 @@
+import os
 import subprocess
 import time
 import httpx
 import pytest
+
+pytestmark = pytest.mark.skipif(
+    not os.environ.get("RUN_DOCKER_TESTS"),
+    reason="Docker/Podman integration tests require RUN_DOCKER_TESTS=1 and built test container",
+)
 
 @pytest.fixture(scope="module")
 def agent_container():
