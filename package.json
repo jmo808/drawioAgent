@@ -16,5 +16,16 @@
   "devDependencies": {
     "@playwright/test": "^1.61.1",
     "typescript": "^5.3.3"
+  },
+  "overrides": {
+    "find-my-way": "^9.7.0",
+    "brace-expansion": "^2.1.4",
+    "fast-uri": "^4.1.2",
+    "@fastify/ajv-compiler": {
+      "fast-uri": "^3.1.5"
+    },
+    "ajv": {
+      "fast-uri": "^3.1.5"
+    }
   }
 }
