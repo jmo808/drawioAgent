@@ -116,7 +116,7 @@ jobs:
           format: 'sarif'
           output: 'trivy-${{ matrix.service }}.sarif'
           severity: 'CRITICAL,HIGH'
-          trivy-version: '0.60.0'
+          version: 'v0.60.0'
 
       - name: Upload Trivy Scan Results to Security Tab
         uses: github/codeql-action/upload-sarif@6f5948dfacef28e207b48d0905cf90c03365536d # v3.30.3
