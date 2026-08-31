@@ -106,17 +106,23 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run Trivy Vulnerability Scan
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+      - name: Run Trivy Vulnerability Scan (Digest Pinned)
         env:
           TRIVY_USERNAME: ${{ github.actor }}
           TRIVY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          image-ref: 'ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:${{ steps.tag-info.outputs.version }}'
-          format: 'sarif'
-          output: 'trivy-${{ matrix.service }}.sarif'
-          severity: 'CRITICAL,HIGH'
-          version: 'v0.60.0'
+        run: |
+          docker run --rm \
+            -e TRIVY_USERNAME \
+            -e TRIVY_PASSWORD \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v ${{ github.workspace }}:/workspace \
+            docker.io/aquasec/trivy@sha256:91c3a842834563a6860dbaec5af7c1949df5caf988f9632ef5cbb0a5cd59d8f8 \
+            image \
+            --format sarif \
+            --output /workspace/trivy-${{ matrix.service }}.sarif \
+            --severity HIGH,CRITICAL \
+            --exit-code 0 \
+            ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:${{ steps.tag-info.outputs.version }}
 
       - name: Upload Trivy Scan Results to Security Tab
         uses: github/codeql-action/upload-sarif@6f5948dfacef28e207b48d0905cf90c03365536d # v3.30.3

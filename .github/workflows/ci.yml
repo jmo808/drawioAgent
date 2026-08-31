@@ -108,15 +108,17 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.2.2
 
-      - name: Run Trivy Vulnerability Scanner
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
-        with:
-          scan-type: 'fs'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-          severity: 'CRITICAL,HIGH'
-          exit-code: '1'
-          version: 'v0.60.0'
+      - name: Run Trivy Vulnerability Scanner (Digest Pinned)
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/workspace \
+            docker.io/aquasec/trivy@sha256:91c3a842834563a6860dbaec5af7c1949df5caf988f9632ef5cbb0a5cd59d8f8 \
+            fs \
+            --format sarif \
+            --output /workspace/trivy-results.sarif \
+            --severity HIGH,CRITICAL \
+            --exit-code 1 \
+            /workspace
 
       - name: Upload Trivy Scan Results (Artifact)
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.1
