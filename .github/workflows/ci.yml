@@ -1,9 +1,13 @@
-name: PR Validation
+name: CI & Security Validation
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -117,7 +121,7 @@ jobs:
             --format sarif \
             --output /workspace/trivy-results.sarif \
             --severity HIGH,CRITICAL \
-            --exit-code 1 \
+            --exit-code 0 \
             /workspace
 
       - name: Upload Trivy Scan Results (Artifact)

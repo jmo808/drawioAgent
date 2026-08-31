@@ -93,6 +93,9 @@ jobs:
           - service: agent
             image_name: drawio-agent
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.2.2
+
       - name: Extract Tag Info
         id: tag-info
         run: |
