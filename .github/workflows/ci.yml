@@ -109,6 +109,7 @@ jobs:
       - name: Run Python Unit Tests (with Coverage)
         run: |
           cd services/agent
+          export PYTHONPATH=src
           pytest --cov=src --cov-fail-under=80 --cov-report=term-missing tests/
 
   trivy-scan:
